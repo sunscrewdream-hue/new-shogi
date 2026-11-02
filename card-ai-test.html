@@ -4,7 +4,31 @@
 html{min-height:100%;background:#e8e0d3}
 body{min-height:100dvh;position:relative;isolation:isolate;background:transparent}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--kyoto-season-art,none);background-position:center center;background-size:cover;background-repeat:no-repeat}
-#board{box-shadow:0 14px 32px rgba(53,38,27,.24);background:#d4ad70}
+/* Kyoto stone paving shogi board: vector-drawn original, full resolution at any viewport. */
+#board{
+ border:5px solid #565852;
+ outline:1px solid rgba(247,238,222,.65);
+ outline-offset:1px;
+ background-color:#b6b5ac;
+ background-image:url("assets/board-kyoto-stone.svg");
+ background-repeat:no-repeat;
+ background-position:center;
+ background-size:100% 100%;
+ box-shadow:0 14px 32px rgba(42,43,39,.30),inset 0 0 0 1px rgba(245,241,226,.22);
+}
+#board .sq{
+ border-right:1px solid rgba(54,57,52,.52);
+ border-bottom:1px solid rgba(54,57,52,.52);
+ color:#202622;
+}
+#board .sq:nth-child(9n){border-right:0}
+#board .sq:nth-last-child(-n+9){border-bottom:0}
+#board .sq span{
+ font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+ font-weight:900;
+ text-shadow:0 1px 1px rgba(255,254,240,.92),0 0 4px rgba(250,248,235,.40);
+}
+
 #status,#cardCountdown,#event{max-width:520px;box-sizing:border-box;margin:6px auto;padding:6px 9px;border-radius:6px;background:rgba(250,245,235,.42);text-shadow:0 1px 1px rgba(255,255,255,.65);box-shadow:0 2px 12px rgba(55,40,28,.06)}
 #hand0,#hand1{max-width:520px;box-sizing:border-box;margin:5px auto;padding:5px;background:rgba(250,245,235,.26);border-radius:6px}
 #officerPanel{max-width:520px;box-sizing:border-box;margin:7px auto;padding:7px;background:rgba(250,245,235,.48);border:1px solid rgba(115,94,69,.22);border-radius:7px}
