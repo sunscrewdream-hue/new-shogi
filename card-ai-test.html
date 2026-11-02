@@ -4,25 +4,23 @@
 html{min-height:100%;background:#e8e0d3}
 body{min-height:100dvh;position:relative;isolation:isolate;background:transparent}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--kyoto-season-art,none);background-position:center center;background-size:cover;background-repeat:no-repeat}
-/* Kyoto stone paving shogi board: vector-drawn original, full resolution at any viewport. */
+/* 京都石畳の正式採用盤。画像内の9×9罫線とタップ領域を一致させる。 */
 #board{
- border:5px solid #565852;
- outline:1px solid rgba(247,238,222,.65);
- outline-offset:1px;
- background-color:#b6b5ac;
- background-image:url("assets/board-kyoto-stone.svg");
+ border:0;
+ outline:0;
+ padding:min(2.9vw,15.4px);
+ background-color:#aaa49c;
+ background-image:url("board-kyoto-anime-framed-1080.webp"),url("assets/board-kyoto-stone.svg");
  background-repeat:no-repeat;
- background-position:center;
+ background-position:center center;
  background-size:100% 100%;
- box-shadow:0 14px 32px rgba(42,43,39,.30),inset 0 0 0 1px rgba(245,241,226,.22);
+ box-shadow:0 14px 32px rgba(42,43,39,.30);
 }
 #board .sq{
- border-right:1px solid rgba(54,57,52,.52);
- border-bottom:1px solid rgba(54,57,52,.52);
+ border:0;
  color:#202622;
+ background:transparent;
 }
-#board .sq:nth-child(9n){border-right:0}
-#board .sq:nth-last-child(-n+9){border-bottom:0}
 #board .sq span{
  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
  font-weight:900;
