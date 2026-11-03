@@ -696,18 +696,34 @@ function hideHijikataPortrait(){
 function showHijikataPortrait(piece,x){
  hideHijikataPortrait();
  // Only the Shinsengumi's Hijikata: character ID 1, currently the player's rook.
- if(!piece||piece.s!==0||piece.cid!==1)return;
+ if(!piece||(piece.originSide??piece.s)!==0||piece.cid!==1)return;
  const pop=el('hijikataPop'),id=portraitSerial,e=epoch;
  pop.classList.toggle('on-right',x<5);
  pop.classList.add('show');
  setTimeout(()=>{if(e===epoch&&id===portraitSerial)pop.classList.remove('show')},2600);
 }
-function showOfficer(p){let v=p?(p.s===0?officerData[p.cid]:enemyOfficerData[p.cid]):null;el('officerName').textContent=v?v[0]:'隊士を選択';el('officerRole').textContent=v?v[1]+' ／ '+p.t+'（仮肖像）':'駒をタップすると人物が表示されます';el('officerPortrait').textContent=v?v[0].slice(0,1):'誠'}function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;captureArtSerial++;el('promotionOverlay').classList.remove('show','promote-shine');el('captureOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];ended=false;busy=false;el('event').textContent='';showOfficer(null);render()}
+function showOfficer(p){let v=p?((p.originSide??p.s)===0?officerData[p.cid]:enemyOfficerData[p.cid]):null;el('officerName').textContent=v?v[0]:'隊士を選択';el('officerRole').textContent=v?v[1]+' ／ '+p.t+'（仮肖像）':'駒をタップすると人物が表示されます';el('officerPortrait').textContent=v?v[0].slice(0,1):'誠'}let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;captureArtSerial++;el('promotionOverlay').classList.remove('show','promote-shine');el('captureOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];ended=false;busy=false;el('event').textContent='';showOfficer(null);render()}
 function moves(B,y,x,attack=false){let p=B[y][x];if(!p)return[];let d=p.s?1:-1,out=[];function add(dy,dx,slide=false){let Y=y+dy,X=x+dx;while(inside(Y,X)){let q=B[Y][X];if(q&&q.s===p.s)break;if(q?.t==='玉'&&!attack)break;out.push([Y,X]);if(q||!slide)break;Y+=dy;X+=dx}}let gold=[[d,-1],[d,0],[d,1],[0,-1],[0,1],[-d,0]],silver=[[d,-1],[d,0],[d,1],[-d,-1],[-d,1]];if(p.t==='玉')[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v));else if(p.t==='金'||p.p&&['歩','香','桂','銀'].includes(p.t))gold.forEach(v=>add(...v));else if(p.t==='銀')silver.forEach(v=>add(...v));else if(p.t==='歩')add(d,0);else if(p.t==='桂'){add(2*d,-1);add(2*d,1)}else if(p.t==='香')add(d,0,true);else if(p.t==='飛'){[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v,true));if(p.p)[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v))}else if(p.t==='角'){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v,true));if(p.p)[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v))}return out}
 function check(B,s){let king;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===s&&B[y][x].t==='玉')king=[y,x];if(!king)return true;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===1-s&&moves(B,y,x,true).some(v=>v[0]===king[0]&&v[1]===king[1]))return true;return false}
 function promote(p,y,Y){return !p.p&&['歩','香','桂','銀','飛','角'].includes(p.t)&&(p.s?y>=6||Y>=6:y<=2||Y<=2)}
 function forced(p,Y){return !p.p&&(['歩','香'].includes(p.t)&&(p.s?Y===8:Y===0)||p.t==='桂'&&(p.s?Y>=7:Y<=1))}
-function apply(B,H,s,m,prom=false){if(m.drop){B[m.Y][m.X]={t:m.t,s,p:false};H[s][m.t]--;return}let p=B[m.y][m.x],q=B[m.Y][m.X];if(q)H[s][q.t]=(H[s][q.t]||0)+1;B[m.Y][m.X]=p;B[m.y][m.x]=null;if(prom||forced(p,m.Y))p.p=true}
+function apply(B,H,s,m,prom=false,ids=null){
+ if(m.drop){
+  // The type-only hand UI uses first-in-first-out order for distinct people of the same type.
+  const identity=ids?.[s]?.[m.t]?.shift()||null;
+  B[m.Y][m.X]={t:m.t,s,p:false,...(identity||{})};
+  H[s][m.t]--;
+  return;
+ }
+ let p=B[m.y][m.x],q=B[m.Y][m.X];
+ if(q){
+  H[s][q.t]=(H[s][q.t]||0)+1;
+  // Keep the original character identity even when the piece changes allegiance.
+  if(ids)(ids[s][q.t]??=[]).push({cid:q.cid,originSide:q.originSide??q.s});
+ }
+ B[m.Y][m.X]=p;B[m.y][m.x]=null;
+ if(prom||forced(p,m.Y))p.p=true;
+}
 function legalMoves(B,H,s){let out=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=B[y][x];if(p?.s!==s)continue;for(let [Y,X] of moves(B,y,x)){let m={y,x,Y,X};let bb=clone(B),hh=clone(H);apply(bb,hh,s,m);if(!check(bb,s))out.push(m)}}for(let t of Object.keys(H[s]))if(H[s][t]>0)for(let Y=0;Y<9;Y++)for(let X=0;X<9;X++){if(B[Y][X])continue;if(['歩','香'].includes(t)&&(s?Y===8:Y===0)||t==='桂'&&(s?Y>=7:Y<=1))continue;if(t==='歩'&&B.some(r=>r[X]?.s===s&&r[X]?.t==='歩'&&!r[X]?.p))continue;let m={drop:true,t,Y,X},bb=clone(B),hh=clone(H);apply(bb,hh,s,m);if(!check(bb,s))out.push(m)}return out}
 function showVictory(winner,reason='詰み'){
  if(ended)return;
@@ -768,11 +784,13 @@ function scheduleAI(){if(pendingCardSide!==null||ended)return;busy=true;render()
  hideHijikataPortrait();
  const captured=!m.drop&&!!b[m.Y][m.X];
  const speakerSide=turn;
- const officer=!m.drop?b[m.y]?.[m.x]?.cid:null;
- apply(b,h,turn,m,prom);
+ const movingPiece=!m.drop?b[m.y]?.[m.x]:(handIdentities[turn][m.t]||[])[0];
+ const officer=movingPiece?.cid;
+ const originSide=movingPiece?.originSide??movingPiece?.s??turn;
+ apply(b,h,turn,m,prom,handIdentities);
  lastMove={y:m.Y,x:m.X};sound(captured);
  const gaveCheck=check(b,1-speakerSide);
- const actor=speakerSide===0
+ const actor=originSide===0
   ?(officer===0?'kondoIsami':officer===1?'hijikataToshizo':chooseMoveVoice(speakerSide,captured,prom,gaveCheck))
   :(officer===0?'saigoTakamori':officer===2?'kidoTakayoshi':chooseMoveVoice(speakerSide,captured,prom,gaveCheck));
  const voiceKey=gaveCheck?'oute':actor;
@@ -931,7 +949,10 @@ function runIncidentEffect(){
   const p=b[effect.y][effect.x],didRemove=!!p&&p.s===effect.owner&&p.t!=='玉';
   if(didRemove){
    b[effect.y][effect.x]=null;
-   if(effect.kind==='援軍')h[effect.side][p.t]=(h[effect.side][p.t]||0)+1;
+   if(effect.kind==='援軍'){
+     h[effect.side][p.t]=(h[effect.side][p.t]||0)+1;
+     (handIdentities[effect.side][p.t]??=[]).push({cid:p.cid,originSide:p.originSide??p.s});
+    }
   }
   incidentTarget=null;
   if(didRemove){
