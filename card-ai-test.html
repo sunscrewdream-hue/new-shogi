@@ -232,7 +232,96 @@ body.quake-world::before{animation:kyotoWorldQuake 1.65s ease-out both;will-chan
  to{transform:scale(1);opacity:1}}
 .game-menu-link{display:inline-block;padding:10px 13px;margin:3px;color:#423022;
  border:1px solid #89643f;border-radius:6px;background:#fff8e9;text-decoration:none;font-size:15px}
-</style><div id="titleScreen"><div id="titleInner"><h1 id="titleMain"><img id="titleLogo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async" fetchpriority="high"></h1><div id="titleSub">幕末動乱・盤上決戦</div><button id="startGame" onclick="startGame()">いざ、出陣</button><button id="titleSoundReplay" type="button" onclick="playTitleIntro()" aria-label="新選組将棋のタイトルコールと太鼓3連打を再生">🔊 タイトルコールを聴く</button><nav id="titleLinks" aria-label="タイトルメニュー"><a href="collection.html">仮のコレクションページ <span aria-hidden="true">›</span></a><a href="history.html">新選組の歴史 <span aria-hidden="true">›</span></a><a href="rules.html">将棋の遊び方 <span aria-hidden="true">›</span></a></nav><div id="titleFoot">事件札が戦局を変える</div></div></div><header id="gameHeader" aria-label="新選組将棋"><img id="gameLogo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async"></header><div><button id="seasonPreview" type="button" onclick="cycleKyotoSeason()" aria-label="背景の季節を切り替える">背景：秋 ▸</button></div><div id="status"></div><div id="checkHint" role="status" aria-live="polite"></div><div id="cardCountdown" style="font-size:14px;font-weight:bold;color:#734718;margin:6px"></div><div>AI持ち駒</div><div id="hand1" class="hand"></div><div id="board"></div><div id="officerPanel" aria-live="polite"><div id="officerPortrait">誠</div><div><div id="officerName">隊士を選択</div><div id="officerRole">駒をタップすると人物が表示されます</div></div></div><div id="turnNotice" role="status" aria-live="polite"><span class="turnWords"><img id="turnBanner" class="turn-art" src="assets/turn-notice/turn_shinsengumi_illustrated.png" alt="新選組の手番！" width="887" height="887" decoding="async" fetchpriority="high"><span id="turnBannerFallback" class="turnFallback"></span></span></div><div>あなたの持ち駒</div><div id="hand0" class="hand"></div><button onclick="restartGame()">最初から</button><button onclick="surrender()">降参</button><button onclick="returnToTitle()">タイトルへ戻る</button><a class="game-menu-link" href="rules.html" target="_blank" rel="noopener">将棋の遊び方</a><button onclick="drawPreview()">🎴 カード演出テスト</button><button onclick="testSound()">♪ 効果音テスト</button><button id="sfxToggle" onclick="toggleSampleSfx()">効果音：ON</button><button id="voiceToggle" onclick="toggleVoice()">⚔ 掛け声：ON</button><button onclick="previewVoiceClips(0)" title="新選組の掛け声を試聴">新選組の声</button><button onclick="previewVoiceClips(1)" title="薩長同盟軍の掛け声6種類を試聴">薩長の声</button><button id="bgmToggle" onclick="toggleBgm()">♪ BGM：ON</button><label>音量 <input id="volume" type="range" min="0" max="100" value="10" style="width:110px;vertical-align:middle"></label><div id="audioStatus" style="font-size:12px">音声：未確認</div><div id="bgmStatus" style="font-size:12px">BGM：ON（出陣時に再生）</div><div id="event"></div><div id="incidentBanner" aria-label="動乱の刻" role="status"><img src="assets/cards/incident-title.png" alt="動乱の刻" width="1600" height="900" decoding="async"></div><div id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endText"><div id="endPanel"><div id="endSurrender"></div><div id="endText">勝負あり！</div><div id="endActions"><button onclick="restartGame()">もう一局！</button><button onclick="returnToTitle()">タイトルへ戻る</button></div></div></div><div id="cardOverlay"><div id="cardFace" role="button" tabindex="0" aria-label="事件札をめくる" onclick="flipCard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard()}"><div id="cardTitle">事件札</div><div id="cardDetail">局中に何が起こるか…</div></div><div id="cardPrompt">カードをタップしてめくる</div></div><small>事件札は双方3手番ごとに出現・タップでめくる・手番消費なし。札は有利/不利/何もなし。盤面をタップして指します。</small><script>
+
+/* Batch-2026-11-03: compact illustrated turn badges. */
+#turnNotice .turnWords{width:min(47vw,370px)!important}
+#turnNotice .turn-art{max-height:37vh!important}
+/* Full-bleed start sequence: two independent alpha layers cross over black. */
+#introClash{position:fixed;inset:0;z-index:235;overflow:hidden;display:none;pointer-events:none;background:#000}
+#introClash.show{display:block;animation:introBack 2.5s ease-out forwards}
+#introClash img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+#introClash.show .introUpper{animation:introUpperCross 2.5s cubic-bezier(.32,.11,.53,.98) both}
+#introClash.show .introLower{animation:introLowerCross 2.5s cubic-bezier(.32,.11,.53,.98) both}
+#introFlash{position:absolute;inset:0;opacity:0;background:linear-gradient(160deg,transparent 36%,#ffe8aa 50%,transparent 54%);mix-blend-mode:screen}
+#introClash.show #introFlash{animation:introSteel .48s ease-in-out 1s both}
+@keyframes introUpperCross{
+ 0%,7%{transform:translate(-14%,-115%)}
+ 42%,49%{transform:translate(0,0)}
+ 100%{transform:translate(20%,124%)}}
+@keyframes introLowerCross{
+ 0%,7%{transform:translate(14%,115%)}
+ 42%,49%{transform:translate(0,0)}
+ 100%{transform:translate(-20%,-124%)}}
+@keyframes introBack{
+ 0%,63%{background:#000}
+ 86%,100%{background:transparent}}
+@keyframes introSteel{
+ 0%,100%{opacity:0}48%{opacity:.8}}
+/* Centered hand-brushed event result, without changing the painted card file. */
+#cardFace{position:relative}
+#cardFace.revealed #cardTitle{
+ position:absolute;inset:0;z-index:4;margin:0;padding:0 7%;max-width:none;
+ display:flex!important;align-items:center;justify-content:center;
+ font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+ font-weight:900;font-size:clamp(28px,7.3vw,39px);
+ letter-spacing:.09em;color:#fff2c8;-webkit-text-stroke:.6px #3b150d;
+ text-shadow:0 3px 3px #000,1px 0 1px #16070a,0 0 12px #200a0a;
+ background:linear-gradient(to bottom,transparent 32%,rgba(7,8,12,.1) 38%,rgba(7,8,12,.55) 46%,rgba(7,8,12,.58) 54%,rgba(7,8,12,.12) 63%,transparent 70%);
+ pointer-events:none;text-align:center
+}
+/* Stylized choice instead of browser confirm for optional promotion. */
+#promotionOverlay{position:fixed;inset:0;z-index:145;display:none;align-items:center;justify-content:center;
+ background:rgba(0,0,0,.79);padding:18px;box-sizing:border-box}
+#promotionOverlay.show{display:flex}
+#promotionPanel{position:relative;width:min(90vw,420px);padding:32px 16px 26px;
+ background:radial-gradient(ellipse at top,#42342b,#121720 75%);
+ border:2px solid #d9b46b;border-radius:14px;color:#f8e7c2;
+ box-shadow:0 10px 50px #000b,0 0 25px #ad834a88}
+#promotionPanel h2{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+ font-size:clamp(29px,8vw,40px);margin:4px 0 12px;letter-spacing:.08em;
+ text-shadow:0 3px #27100d,0 0 15px #db853e9e}
+#promotionPanel p{margin:6px 0 23px;font-size:14px;color:#d8c8a7}
+#promotionActions{display:flex;gap:10px;justify-content:center}
+#promotionActions button{font-size:18px;font-weight:900;min-width:110px;padding:12px 15px;border:1px solid #c6a06a;
+ background:linear-gradient(#efce91,#c28b48);color:#24190f;border-radius:6px}
+#promotionActions button:last-child{background:linear-gradient(#c6c6c6,#8c8c94)}
+#promotionOverlay.promote-shine #promotionPanel:after{content:"";position:absolute;inset:-60%;
+ transform:rotate(30deg);background:linear-gradient(90deg,transparent 38%,#fff7d677 49%,transparent 57%);
+ pointer-events:none;animation:promoteBlade .45s ease-out both}
+@keyframes promoteBlade{from{transform:translateX(-70%) rotate(30deg)}to{transform:translateX(70%) rotate(30deg)}}
+/* Capture artwork, independent from check and turn UI. */
+#captureOverlay{position:fixed;inset:0;z-index:106;display:none;align-items:center;justify-content:center;
+ background:rgba(5,10,19,.28);pointer-events:none;padding:6px}
+#captureOverlay.show{display:flex;animation:captureAppears 1.5s ease-out both}
+#captureOverlay img{display:block;width:min(96vw,780px);max-height:38dvh;object-fit:contain;filter:drop-shadow(0 8px 12px #0009)}
+@keyframes captureAppears{0%{opacity:0;transform:scale(1.24)}25%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:0}}
+/* Outcome portraits bounce from above (winner) and below (defeated). */
+#endPanel{padding:12px 10px 17px!important}
+.endIllustration{display:block;width:min(78vw,410px);max-height:27dvh;object-fit:contain;margin:0 auto}
+#endWinnerImage{animation:winDrop .85s cubic-bezier(.16,1.39,.33,1) both}
+#endLoserImage{animation:loseRise .95s cubic-bezier(.16,1.35,.33,1) both}
+#endText{font-size:clamp(24px,6vw,40px)!important;margin:4px 0 12px!important}
+#endSurrender{font-size:clamp(20px,6vw,36px)!important}
+@keyframes winDrop{from{opacity:0;transform:translateY(-100dvh) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes loseRise{from{opacity:0;transform:translateY(100dvh) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Earthquake cracks first, then dark holes blocking moves for three plies. */
+#board .sq.quake-crack,#board .sq.quake-hole{position:relative;z-index:4}
+#board .sq.quake-crack:after,#board .sq.quake-hole:after{
+ content:"";position:absolute;inset:0;z-index:8;pointer-events:none;
+ background-size:100% 100%;background-repeat:no-repeat;background-position:center}
+#board .sq.quake-crack:after{background-image:url("assets/visuals/quake_crack.webp");
+ animation:crackAppear .35s ease-out both}
+#board .sq.quake-hole:after{background-image:url("assets/visuals/quake_hole.webp");filter:drop-shadow(0 0 3px #070707)}
+#board .sq.quake-hole{cursor:not-allowed}
+@keyframes crackAppear{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+#quakeHoleHint:not(:empty){margin:4px auto;padding:7px 10px;max-width:460px;font-size:13px;
+ border-radius:7px;background:rgba(23,17,14,.87);color:#ffe4ac}
+@media(prefers-reduced-motion:reduce){
+ #introClash.show .introUpper,#introClash.show .introLower{animation-duration:.5s}
+ #introClash.show #introFlash,#endWinnerImage,#endLoserImage{animation:none}
+ #captureOverlay.show{animation:none}
+ #promotionOverlay.promote-shine #promotionPanel:after{animation:none}
+}</style><div id="introClash" aria-hidden="true"><img class="introUpper" src="assets/visuals/intro_saccho.webp" alt=""><img class="introLower" src="assets/visuals/intro_shinsengumi.webp" alt=""><span id="introFlash"></span></div><div id="titleScreen"><div id="titleInner"><h1 id="titleMain"><img id="titleLogo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async" fetchpriority="high"></h1><div id="titleSub">幕末動乱・盤上決戦</div><button id="startGame" onclick="startGame()">いざ、出陣</button><button id="titleSoundReplay" type="button" onclick="playTitleIntro()" aria-label="新選組将棋のタイトルコールと太鼓3連打を再生">🔊 タイトルコールを聴く</button><nav id="titleLinks" aria-label="タイトルメニュー"><a href="collection.html">仮のコレクションページ <span aria-hidden="true">›</span></a><a href="history.html">新選組の歴史 <span aria-hidden="true">›</span></a><a href="rules.html">将棋の遊び方 <span aria-hidden="true">›</span></a></nav><div id="titleFoot">事件札が戦局を変える</div></div></div><header id="gameHeader" aria-label="新選組将棋"><img id="gameLogo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async"></header><div><button id="seasonPreview" type="button" onclick="cycleKyotoSeason()" aria-label="背景の季節を切り替える">背景：秋 ▸</button></div><div id="status"></div><div id="checkHint" role="status" aria-live="polite"></div><div id="quakeHoleHint" role="status" aria-live="polite"></div><div id="cardCountdown" style="font-size:14px;font-weight:bold;color:#734718;margin:6px"></div><div>AI持ち駒</div><div id="hand1" class="hand"></div><div id="board"></div><div id="officerPanel" aria-live="polite"><div id="officerPortrait">誠</div><div><div id="officerName">隊士を選択</div><div id="officerRole">駒をタップすると人物が表示されます</div></div></div><div id="turnNotice" role="status" aria-live="polite"><span class="turnWords"><img id="turnBanner" class="turn-art" src="assets/turn-notice/turn_shinsengumi_illustrated.png" alt="新選組の手番！" width="887" height="887" decoding="async" fetchpriority="high"><span id="turnBannerFallback" class="turnFallback"></span></span></div><div>あなたの持ち駒</div><div id="hand0" class="hand"></div><button onclick="restartGame()">最初から</button><button onclick="surrender()">降参</button><button onclick="returnToTitle()">タイトルへ戻る</button><a class="game-menu-link" href="rules.html" target="_blank" rel="noopener">将棋の遊び方</a><button onclick="drawPreview()">🎴 カード演出テスト</button><button onclick="testSound()">♪ 効果音テスト</button><button id="sfxToggle" onclick="toggleSampleSfx()">効果音：ON</button><button id="voiceToggle" onclick="toggleVoice()">⚔ 掛け声：ON</button><button onclick="previewVoiceClips(0)" title="新選組の掛け声を試聴">新選組の声</button><button onclick="previewVoiceClips(1)" title="薩長同盟軍の掛け声6種類を試聴">薩長の声</button><button id="bgmToggle" onclick="toggleBgm()">♪ BGM：ON</button><label>音量 <input id="volume" type="range" min="0" max="100" value="10" style="width:110px;vertical-align:middle"></label><div id="audioStatus" style="font-size:12px">音声：未確認</div><div id="bgmStatus" style="font-size:12px">BGM：ON（出陣時に再生）</div><div id="event"></div><div id="incidentBanner" aria-label="動乱の刻" role="status"><img src="assets/cards/incident-title.png" alt="動乱の刻" width="1600" height="900" decoding="async"></div><div id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endText"><div id="endPanel"><div id="endSurrender"></div><img id="endWinnerImage" class="endIllustration" src="" alt="勝利"><img id="endLoserImage" class="endIllustration" src="" alt="敗北"><div id="endText">勝負あり！</div><div id="endActions"><button onclick="restartGame()">もう一局！</button><button onclick="returnToTitle()">タイトルへ戻る</button></div></div></div><div id="promotionOverlay" role="dialog" aria-modal="true" aria-labelledby="promotionTitle"><div id="promotionPanel"><h2 id="promotionTitle">成るか、成らぬか</h2><p>駒を成り駒に変化させますか？</p><div id="promotionActions"><button onclick="choosePromotion(true)">成る！</button><button onclick="choosePromotion(false)">成らぬ</button></div></div></div><div id="captureOverlay" aria-hidden="true"><img id="captureArt" src="" alt=""></div><div id="cardOverlay"><div id="cardFace" role="button" tabindex="0" aria-label="事件札をめくる" onclick="flipCard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard()}"><div id="cardTitle">事件札</div><div id="cardDetail">局中に何が起こるか…</div></div><div id="cardPrompt">カードをタップしてめくる</div></div><small>事件札は双方4手番ごとに出現・タップでめくる・手番消費なし。札は有利/不利/何もなし。盤面をタップして指します。</small><script>
 let audioCtx=null;function unlockAudio(){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}document.addEventListener('pointerdown',unlockAudio,{passive:true});function sound(capture){unlockAudio();if(playSampleSfx(capture?'slash':'move')){el('audioStatus').textContent='音声：効果音再生中';return;}if(!audioCtx||audioCtx.state!=='running'){el('audioStatus').textContent='音声：再生待ち（もう一度タップ）';return;}el('audioStatus').textContent='音声：再生中';let volume=Number(el('volume')?.value||85)/100;let now=audioCtx.currentTime;for(let i=0;i<(capture?2:1);i++){let osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type=capture?'square':'triangle';osc.frequency.setValueAtTime(capture?(i?570:420):310,now+i*.055);osc.frequency.exponentialRampToValueAtTime(capture?(i?280:210):155,now+i*.055+.075);gain.gain.setValueAtTime(.0001,now+i*.055);gain.gain.exponentialRampToValueAtTime((capture?.22:.17)*volume,now+i*.055+.007);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.055+.095);osc.connect(gain).connect(audioCtx.destination);osc.start(now+i*.055);osc.stop(now+i*.055+.105)}}let bgmEnabled=true;
 const bgmAudio=new Audio('./honor_in_the_silence_96kbps.mp3');
 bgmAudio.loop=true;bgmAudio.preload='auto';bgmAudio.playsInline=true;
