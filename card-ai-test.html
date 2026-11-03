@@ -279,6 +279,11 @@ const battleVoiceUrls={
  shinsengumi:'assets/audio/voice_shinsengumi_move_sorya.mp3',
  kondoIsami:'assets/audio/voice_kondo_isami_king_move.mp3',
  hijikataToshizo:'assets/audio/voice_hijikata_toshizo_move.mp3',
+ incidentCalm:'assets/audio/events/incident_voice_calm.mp3',
+ incidentEarthquake:'assets/audio/events/incident_voice_earthquake.mp3',
+ incidentReinforcement:'assets/audio/events/incident_voice_reinforcement.mp3',
+ incidentDesertion:'assets/audio/events/incident_voice_desertion.mp3',
+ incidentPurge:'assets/audio/events/incident_voice_purge.mp3',
  capture:'assets/audio/voice_capture_toraeta.mp3',
  loss:'assets/audio/voice_loss_munen.mp3',
  sacchoChesto:'assets/audio/saccho_voice_01_chesto.mp3',
@@ -287,6 +292,14 @@ const battleVoiceUrls={
  sacchoLoss:'assets/audio/saccho_voice_04_munen.mp3',
  sacchoEncore:'assets/audio/saccho_voice_05_madamada.mp3',
  sacchoFinisher:'assets/audio/saccho_voice_06_korede_saigo.mp3'
+};
+/* Every incident name is spoken only after the card face is revealed. */
+const incidentVoiceByKind={
+ '何事もなし':'incidentCalm',
+ '大地震':'incidentEarthquake',
+ '援軍':'incidentReinforcement',
+ '脱走':'incidentDesertion',
+ '粛清':'incidentPurge'
 };
 const battleVoices=Object.fromEntries(Object.entries(battleVoiceUrls).map(([key,url])=>{
  const clip=new Audio(url);clip.preload='auto';clip.playsInline=true;return [key,clip];
@@ -523,6 +536,7 @@ function revealCard(){
  face.classList.add('revealed');
  face.setAttribute('aria-label',lastIncidentKind+'。もう一度タップして閉じる');
  el('cardPrompt').textContent=el('event').textContent+'　／　もう一度タップして閉じる';
+ playBattleVoice(incidentVoiceByKind[lastIncidentKind]);
 }
 function flipCard(){
  if(pendingCardSide===null)return;
