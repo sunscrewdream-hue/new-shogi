@@ -241,7 +241,7 @@ const sampleSfxPaths={
  banner:'assets/audio/sfx/taiko_dodon.mp3',
  drum:'assets/audio/sfx/taiko_dodon.mp3',
  reinforce:'assets/audio/sfx/taiko_dodon.mp3',
- desert:'assets/audio/sfx/sword_sheath.mp3',
+ desert:'assets/audio/sfx/gravel_run.mp3',
  quake:'assets/audio/sfx/rumble.mp3',
  finish:'assets/audio/sfx/taiko_dodon.mp3',
  move:'assets/audio/sfx/sword_swing.mp3',
@@ -273,7 +273,6 @@ function toggleSampleSfx(){
 function playSampleSfx(kind){
  if(!sampleSfxEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return false;
  if(kind==='slash')kind=['slash1','slash2','slash3'][Math.floor(Math.random()*3)];
- if(kind==='move'&&Math.random()<.17)kind='gravel';
  const clip=sampleSfx[kind];if(!clip)return false;
  if(activeSampleSfx){activeSampleSfx.pause();activeSampleSfx.currentTime=0}
  clip.currentTime=0;
