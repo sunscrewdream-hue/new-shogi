@@ -10,11 +10,11 @@ section{background:#17181cde;border:1px solid #aa8d6655;padding:13px 16px;border
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px}
 .tile{background:#292b2f;border:1px solid #9c805f;border-radius:9px;padding:12px;text-align:center}.tile b{font-size:1.25rem;color:#ffdb98}
 .move{margin:8px auto;display:grid;grid-template-columns:repeat(3,25px);grid-template-rows:repeat(3,25px);justify-content:center;gap:2px}
-.move span{display:grid;place-items:center;background:#51443866;border:1px solid #ad9972;font-size:15px;color:#f8dfa8}
+.move.knight{grid-template-rows:repeat(5,25px)}.move span{display:grid;place-items:center;background:#51443866;border:1px solid #ad9972;font-size:15px;color:#f8dfa8}
 .move span.c{background:#b3884a;color:#0d151d;font-weight:900}.move span.y{background:#b6e2d3;color:#162a29;font-weight:bold}.move span.a{background:#d9a464;color:#1b1b1b;font-weight:bold}
 .note{padding:10px;background:#2c302e;border-left:4px solid #84bcb9}
 table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;border-bottom:1px solid #75664a;text-align:left;vertical-align:top}th{color:#f8db9e}strong{color:#ffdfaa}
-@media(max-width:440px){main{padding:10px}section{padding:12px}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{padding:7px;font-size:.9rem} .move{grid-template-columns:repeat(3,23px);grid-template-rows:repeat(3,23px)}}
+@media(max-width:440px){main{padding:10px}section{padding:12px}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{padding:7px;font-size:.9rem} .move{grid-template-columns:repeat(3,23px);grid-template-rows:repeat(3,23px)}.move.knight{grid-template-rows:repeat(5,23px)}}
 </style></head>
 <body><main><header><img src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" loading="eager"><h1>将棋の遊び方</h1><p>初めての方にも分かる、盤上の戦いの基本</p><a class="nav" href="card-ai-test.html">対局画面へ戻る</a></header>
 <section><h2>1. 将棋はどうすれば勝ち？</h2><p class="lead">相手の<strong>王（玉）</strong>を逃げられない状態にする「<strong>詰み</strong>」を目指すゲームです。</p>
@@ -63,13 +63,22 @@ for(const [name,description,arr,knight] of data){
  const title=document.createElement('b');title.textContent=name;
  const text=document.createElement('div');text.textContent=description;
  const grid=document.createElement('div');grid.className='move';grid.setAttribute('role','img');grid.setAttribute('aria-label',description);
- for(let i=0;i<9;i++){
-  const span=document.createElement('span');const n=i===4?0:i<4?i:i-1;const val=i===4?3:(arr[n]||0);
-  if(val===3){span.className='c';span.textContent='●'}
-  else if(val){span.className=val===1?'y':'a';span.textContent=val===1?'▲':'↟'}
-  grid.append(span);
+ if(knight){
+  grid.classList.add('knight');
+  for(let i=0;i<15;i++){
+   const span=document.createElement('span');
+   if(i===7){span.className='c';span.textContent='●'}
+   else if(i===0||i===2){span.className='y';span.textContent='▲'}
+   grid.append(span);
+  }
+ }else{
+  for(let i=0;i<9;i++){
+   const span=document.createElement('span');const n=i===4?0:i<4?i:i-1;const val=i===4?3:(arr[n]||0);
+   if(val===3){span.className='c';span.textContent='●'}
+   else if(val){span.className=val===1?'y':'a';span.textContent=val===1?'▲':'↟'}
+   grid.append(span);
+  }
  }
- if(knight){grid.children[0].textContent='桂';grid.children[2].textContent='桂';grid.children[0].className='y';grid.children[2].className='y'}
  card.append(title,grid,text);container.append(card)
 }
 </script></body></html>
