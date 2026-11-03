@@ -473,7 +473,7 @@ function chooseMoveVoice(side,captured,promoted,gaveCheck){
 let sampleSfxEnabled=true,activeSampleSfx=null;
 const sampleSfxPaths={
  turn:'assets/audio/sfx/taiko_kaka.mp3',
- purge:'assets/audio/sfx/taiko_don.mp3',
+ purge:'assets/audio/sfx/purge_shukusei.mp3',
  card:'assets/audio/sfx/taiko_don.mp3',
  flip:'assets/audio/sfx/card_flip.mp3',
  banner:'assets/audio/sfx/taiko_dodon.mp3',
@@ -815,7 +815,8 @@ function runIncidentEffect(){
  const effect=incidentEffect;incidentEffect=null;
  if(effect.kind==='大地震'){quakeEffect();return}
  incidentRunning=true;busy=true;playerTurnReady=false;
- playFx(effect.kind==='援軍'?'reinforce':effect.kind==='粛清'?'purge':'desert');
+ // In a purge, play the supplied impact only when the target piece disappears.
+ if(effect.kind!=='粛清')playFx(effect.kind==='援軍'?'reinforce':'desert');
  incidentTarget={y:effect.y,x:effect.x};render();
  const e=epoch;
  setTimeout(()=>{
@@ -827,6 +828,7 @@ function runIncidentEffect(){
   }
   incidentTarget=null;
   if(didRemove){
+   if(effect.kind==='粛清')playFx('purge');
    if(effect.kind==='粛清'||effect.kind==='脱走')playBattleVoice(effect.owner===1?'sacchoLoss':'loss');
    else if(effect.kind==='援軍'){playBattleVoice(effect.side===1?'sacchoCapture':'capture');showCaptureArt(effect.side)}
    if(effect.kind!=='粛清')incidentSfx();
