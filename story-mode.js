@@ -9,7 +9,6 @@ function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(
 function sfx(t){
  if(soundOff)return;
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_munen.mp3"};
- if(t==="cannon"||t==="rifle"){const a=new Audio('assets/story/audio/'+t+'.mp3');a.volume=.6;a.play().catch(()=>{});return}
  if(files[t]){const a=new Audio(files[t]);a.volume=t==="capture"?.83:.40;a.play().catch(()=>{});return}
  try{
   audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
