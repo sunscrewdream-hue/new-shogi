@@ -9,14 +9,15 @@ const specs={
  battle02:{count:8,level:1},
  ending:{count:8,level:.78}
 };
-let ctx=null,master=null,source=null,channel=null,current=null,wanted=null,muted=false,epoch=0;
+let ctx=null,master=null,source=null,channel=null,current=null,wanted=null,muted=false,epoch=0,volume=10;
+const gainLevel=()=>muted?0:Math.min(1,volume/100*.60);
 const buffers=new Map(),pending=new Map();
 function audioContext(){
  if(ctx)return ctx;
  const AC=window.AudioContext||window.webkitAudioContext;
  if(!AC)return null;
  ctx=new AC();
- master=ctx.createGain();master.gain.value=muted?0:.46;
+ master=ctx.createGain();master.gain.value=gainLevel();
  const limiter=ctx.createDynamicsCompressor();
  limiter.threshold.value=-15;limiter.knee.value=10;limiter.ratio.value=3;
  limiter.attack.value=.01;limiter.release.value=.2;
@@ -79,19 +80,20 @@ async function play(name){
 function setMuted(value){
  muted=!!value;
  if(!ctx||!master)return;
- master.gain.setTargetAtTime(muted?0:.46,ctx.currentTime,.12);
+ master.gain.setTargetAtTime(gainLevel(),ctx.currentTime,.12);
 }
+function setVolume(value){volume=Math.max(0,Math.min(100,Number(value)||0));if(ctx&&master)master.gain.setTargetAtTime(gainLevel(),ctx.currentTime,.1)}
 function duck(){
  if(!ctx||!master||muted)return;
  const t=ctx.currentTime;
  master.gain.cancelScheduledValues(t);master.gain.setValueAtTime(master.gain.value,t);
- master.gain.setTargetAtTime(.23,t,.1);
- master.gain.setTargetAtTime(.46,t+1.6,.22);
+ master.gain.setTargetAtTime(gainLevel()*.5,t,.1);
+ master.gain.setTargetAtTime(gainLevel(),t+1.6,.22);
 }
 document.addEventListener("visibilitychange",()=>{
  if(!ctx)return;
  if(document.hidden)ctx.suspend().catch(()=>{});
  else if(!muted&&wanted)ctx.resume().catch(()=>{});
 });
-window.StoryBgm={play,unlock,setMuted,duck,stop:()=>play(null)};
+window.StoryBgm={play,unlock,setMuted,setVolume,duck,stop:()=>play(null)};
 })();
