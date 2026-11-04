@@ -167,6 +167,8 @@ function compactApplyIncident(effect){
  const {kind,side,owner,y,x}=effect,p=g.board[y]?.[x];
  if(!p||p.s!==owner||p.t==="玉"){compactResumeTurn();return}
  compactIncidentMarks=[y+":"+x];banner(owner,p);render();
+ // Finished match plays the gravel-run cue as the desertion starts, not after it ends.
+ if(kind==="脱走")compactSound("desert");
  const finish=()=>{if(game!==epoch)return;compactIncidentMarks=[];compactResumeTurn()};
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
@@ -181,7 +183,7 @@ function compactApplyIncident(effect){
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
    render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");setTimeout(finish,1400);
-  }else{if(kind==="脱走")compactSound("desert");render();setTimeout(finish,650)}
+  }else{render();setTimeout(finish,650)}
  };
  if(kind==="脱走"){
   const rect=board.children[y*g.w+x]?.getBoundingClientRect();
@@ -223,7 +225,7 @@ function compactTurn(side,after,opening=false){
  art.src=side===0?"assets/turn-notice/turn_shinsengumi_illustrated.png":"assets/turn-notice/turn_enemy_illustrated.png";
  art.alt=title;art.style.display="block";fallback.textContent=title;fallback.classList.add("hidden");
  art.onerror=()=>{art.style.display="none";fallback.classList.remove("hidden")};
- panel.classList.add("show");if(opening)compactSound("turn");render();
+ panel.classList.add("show");compactSound("turn");render();
  setTimeout(()=>{
   if(game!==epoch||stamp!==compactFxSerial||ended)return;
   panel.classList.remove("show");
