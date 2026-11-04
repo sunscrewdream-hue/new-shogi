@@ -41,7 +41,7 @@
  const baseRestart=restartGame;
  restartGame=function(){baseRestart();stopTitleMusic()};
  const baseReset=reset;
- reset=function(){baseReset();captureCounts={}};
+ reset=function(){baseReset();captureCounts={};for(const seal of hitokiriSeals)seal.classList.remove('active','preview');visibleBannerPersons.fill(null)};
  $('volume').addEventListener('input',syncTitleVolume);
 
  /* PWA, fullscreen button, title/manual/navigation. */
@@ -198,6 +198,23 @@
   if(captured)awardPerson(captured);
   return result;
  };
+ /* The seal belongs to a particular historical person and follows their capture counter. */
+ const visibleBannerPersons=[null,null],hitokiriSeals=[];
+ for(const side of [0,1]){
+  const seal=document.createElement('img');seal.className='hitokiri-stamp';seal.src='assets/visuals/hitokiri_red_calligraphy.webp';seal.alt='人斬り覚醒';seal.setAttribute('aria-hidden','true');
+  $(side===0?'officerPanel':'enemyOfficerPanel').append(seal);hitokiriSeals[side]=seal;
+ }
+ function syncHitokiriSeal(side){
+  const person=visibleBannerPersons[side];
+  const key=person&&Number.isInteger(person.cid)?String(person.originSide??person.s)+':'+String(person.cid):null;
+  const active=!!(ruleSettings.hitokiri&&key&&Number(captureCounts[key]||0)>=3);
+  hitokiriSeals[side].classList.toggle('active',active);
+ }
+ const baseSetCharacterBanner=setCharacterBanner;
+ setCharacterBanner=function(side,p,caption='',duration=2500){
+  visibleBannerPersons[side]=p;const result=baseSetCharacterBanner(side,p,caption,duration);
+  syncHitokiriSeal(side);return result;
+ };
  flashHitokiri=function(message){
   const notice=$('hitokiriNotice');
   const awakening=message.includes('覚醒');
@@ -205,10 +222,7 @@
   const image=document.createElement('img');image.src=awakening?'assets/visuals/hitokiri_red_calligraphy.webp':'assets/visuals/hitokiri_kill_calligraphy.webp';image.alt=name;
   notice.replaceChildren(image);
   const side=turn,ep=epoch;
-  const panel=$(side===0?'officerPanel':'enemyOfficerPanel');
-  const className=awakening?'hitokiri-banner':'hitokiri-kill-banner';
-  panel.classList.remove('hitokiri-banner','hitokiri-kill-banner');panel.classList.add(className);
-  setTimeout(()=>{if(ep===epoch)panel.classList.remove(className)},1900);
+  syncHitokiriSeal(side);
   const id=++noticeSerialHitokiri;notice.classList.add('show');
   setTimeout(()=>{if(ep===epoch&&id===noticeSerialHitokiri)notice.classList.remove('show')},1800);
  };
@@ -216,10 +230,19 @@
  /* These visual tests leave the actual match and character counters unchanged. */
  const testTools=document.createElement('span');testTools.className='special-debug';testTools.id='hitokiriTestTools';
  const awakeningTest=document.createElement('button');awakeningTest.type='button';awakeningTest.textContent='⚔ 人斬り覚醒テスト';
- awakeningTest.onclick=()=>{if(titleIsVisible())return;flashHitokiri('人斬り覚醒');showToast('人斬り覚醒：演出プレビュー（捕縛数は変わりません）')};
+ awakeningTest.onclick=()=>{if(titleIsVisible())return;flashHitokiri('人斬り覚醒');const seal=hitokiriSeals[turn];seal.classList.add('preview');const ep=epoch;setTimeout(()=>{if(ep===epoch)seal.classList.remove('preview')},2500);showToast('人斬り覚醒：演出プレビュー（捕縛数は変わりません）')};
  const killTest=document.createElement('button');killTest.type='button';killTest.textContent='🩸 斬殺演出テスト';
  killTest.onclick=()=>{if(titleIsVisible())return;const focus=lastMove||{y:4,x:4};playFx('purge');markBlood(focus.y,focus.x);flashHitokiri('人斬り・斬殺！');showToast('斬殺：演出プレビュー（駒は変わりません）')};
- testTools.append(awakeningTest,killTest);document.querySelector('.special-debug')?.insertAdjacentElement('afterend',testTools);
+ const reinforcementTest=document.createElement('button');reinforcementTest.type='button';reinforcementTest.textContent='🏃 援軍アニメテスト';
+ reinforcementTest.onclick=()=>{
+  if(titleIsVisible()||incidentRunning)return;
+  const targets=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(b[y][x]?.s===1&&b[y][x].t!=='玉')targets.push({y,x,p:b[y][x]});
+  targets.sort((a,z)=>Math.abs(a.x-4)+Math.abs(a.y-4)-Math.abs(z.x-4)-Math.abs(z.y-4));
+  const target=targets[0];if(!target){showToast('敵の駒がないためテストできません');return}
+  animateDefection({y:target.y,x:target.x,side:0},target.p,()=>render());
+  showToast('援軍の移動テスト（盤面と持ち駒の数は変わりません）');
+ };
+ testTools.append(awakeningTest,killTest,reinforcementTest);document.querySelector('.special-debug')?.insertAdjacentElement('afterend',testTools);
 
  /* Autosave only at complete turn boundaries; the scene can always be restored. */
  function saveGame(key){
@@ -258,23 +281,38 @@
  /* Reinforcement = defection, not an arrest. Move the token to the receiver's jail. */
  function animateDefection(effect,person,done){
   const cell=$('board').children[effect.y*9+effect.x],jail=$(effect.side===0?'playerHandShell':'enemyHandShell');
-  const from=cell?.getBoundingClientRect(),to=jail?.getBoundingClientRect();
-  if(!from||!to||!cell||reducedGameMotion()){done();return}
+  if(!cell||!jail){done();return}
+  let from=cell.getBoundingClientRect(),to=jail.getBoundingClientRect();
+  if(from.bottom<0||from.top>window.innerHeight){$('boardStage').scrollIntoView({block:'center',behavior:'auto'});from=cell.getBoundingClientRect();to=jail.getBoundingClientRect()}
   const flight=document.createElement('div');flight.className='defection-flight';
   flight.style.left=from.left+'px';flight.style.top=from.top+'px';flight.style.width=from.width+'px';flight.style.height=from.height+'px';
   const ghost=createToken(person.t,person.s,person.p);
-  flight.append(ghost);document.body.append(flight);cell.classList.add('sprite-departing');
-  const deltaX=(to.left+to.width/2)-(from.left+from.width/2),deltaY=(to.top+to.height/2)-(from.top+from.height/2);
-  const anim=flight.animate([
-   {offset:0,transform:'translate(0,0) rotate(0)',opacity:1},
-   {offset:.12,transform:'translate(-4px,-5px) rotate(-9deg)'},
-   {offset:.22,transform:'translate(7px,4px) rotate(8deg)'},
-   {offset:.35,transform:'translate(-4px,0) rotate(-7deg)'},
-   {offset:.78,transform:`translate(${deltaX*.72}px,${deltaY*.72}px) scale(.82)`},
-   {offset:1,transform:`translate(${deltaX}px,${deltaY}px) scale(.6) rotate(${effect.side===0?0:180}deg)`,opacity:.1}
-  ],{duration:1370,easing:'ease-in-out',fill:'forwards'});
-  let finished=false;const finish=()=>{if(finished)return;finished=true;anim.cancel();flight.remove();cell.classList.remove('sprite-departing');done()};
-  anim.finished.then(finish,finish);setTimeout(finish,1700);
+  const badge=document.createElement('span');badge.className='defection-flight-badge';badge.textContent='援軍！';
+  flight.append(ghost,badge);document.body.append(flight);cell.classList.add('sprite-departing');
+  const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+  const destX=clamp(to.left+to.width/2,from.width/2+16,window.innerWidth-from.width/2-16);
+  const destY=clamp(to.top+to.height/2,from.height/2+28,window.innerHeight-from.height/2-30);
+  const deltaX=destX-(from.left+from.width/2),deltaY=destY-(from.top+from.height/2);
+  const duration=reducedGameMotion()?800:1800;
+  let finished=false,anim=null;
+  const finish=()=>{if(finished)return;finished=true;try{anim?.cancel()}catch{}flight.remove();cell.classList.remove('sprite-departing');done()};
+  const frames=[
+   {offset:0,transform:'translate(0,0) scale(1.25) rotate(-7deg)',opacity:1},
+   {offset:.2,transform:'translate(4px,-4px) scale(1.35) rotate(7deg)',opacity:1},
+   {offset:.53,transform:`translate(${deltaX*.34}px,${deltaY*.32-12}px) scale(1.26) rotate(-9deg)`,opacity:1},
+   {offset:.82,transform:`translate(${deltaX*.82}px,${deltaY*.78-10}px) scale(1.0) rotate(8deg)`,opacity:1},
+   {offset:1,transform:`translate(${deltaX}px,${deltaY}px) scale(.72) rotate(0deg)`,opacity:.16}
+  ];
+  try{
+   if(typeof flight.animate==='function'){
+    anim=flight.animate(frames,{duration,easing:'cubic-bezier(.35,.1,.2,1)',fill:'forwards'});
+    anim.finished.then(finish,finish);
+   }else{
+    flight.style.transform=frames[0].transform;
+    requestAnimationFrame(()=>{flight.style.transition=`transform ${duration}ms ease-in-out,opacity ${duration}ms ease-in-out`;flight.style.transform=frames[4].transform;flight.style.opacity='.16'});
+   }
+  }catch{flight.style.opacity='1'}
+  setTimeout(finish,duration+180);
  }
  const baseIncidentEffect=runIncidentEffect;
  runIncidentEffect=function(){

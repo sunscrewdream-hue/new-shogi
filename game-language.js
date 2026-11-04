@@ -26,7 +26,7 @@
   '新選組の声':'Shinsengumi Voices','薩長の声':'Satcho Voices',
   '♪ BGM：ON':'♪ Music: ON','♪ BGM：OFF':'♪ Music: OFF',
   '音量':'Volume','💾 対局を保存':'💾 Save Game','⚔ 人斬り覚醒テスト':'⚔ Test Hitokiri Awakening',
-  '🩸 斬殺演出テスト':'🩸 Test Hitokiri Strike','もう一局！':'Play Again!',
+  '🩸 斬殺演出テスト':'🩸 Test Hitokiri Strike','🏃 援軍アニメテスト':'🏃 Test Reinforcement Animation','もう一局！':'Play Again!',
   '勝負あった！':'Victory Decided!','成るか、成らぬか':'Promote This Piece?',
   '駒を成り駒に変化させますか？':'Would you like to promote your piece?',
   '成る！':'Promote','成らぬ':'Do Not Promote',
