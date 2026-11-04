@@ -505,5 +505,10 @@
  const baseDraw=showRepetitionDraw;
  showRepetitionDraw=function(){baseDraw();endStage.classList.add('result-draw')};
 
+ const storyLink=document.createElement('a');
+ storyLink.href='story-mode.html';storyLink.textContent='⚔ ストーリーモード　誠の軌跡 ›';
+ storyLink.setAttribute('aria-label','ストーリーモードを開始');
+ const storyMenu=$('titleLinks');
+ if(storyMenu&&!storyMenu.querySelector('a[href="story-mode.html"]'))storyMenu.prepend(storyLink);
  syncTitleVolume();updateContinueButton();render();
 })();
