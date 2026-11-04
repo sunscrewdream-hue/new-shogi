@@ -173,22 +173,17 @@ function animateCompactEscort(side,y,x,captive,done){
  const cell=$("storyBoard").children[y*g.w+x],jail=$("storyHand"+side)?.closest(".hand-container");
  const rect=cell?.getBoundingClientRect(),goal=jail?.getBoundingClientRect(),layer=$("compactActionLayer"),game=epoch;
  if(!rect||!goal||!Element.prototype.animate||window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){setTimeout(done,180);return}
+ // One capture = one officer illustration, owned by the capturing side only.
+ // Remove any previous animation before starting a new one.
+ layer.replaceChildren();
  const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
  const targetX=rect.left+rect.width/2-width/2,targetY=rect.top+rect.height/2-height/2;
  const goalX=goal.left+goal.width/2-width/2,goalY=goal.top+goal.height/2-height/2;
  const startX=side===0?-width-20:innerWidth+20;
  function sprite(src,left,top){const img=document.createElement("img");img.src=src;img.alt="";Object.assign(img.style,{left:left+"px",top:top+"px",width:width+"px",height:height+"px"});layer.append(img);return img}
  const guard=sprite("assets/sprites/figures/"+(side===0?"shinsengumi_back":"saccho_front")+".webp",startX,targetY);
- // The captive is a small shogi token, not a second running character sprite.
- const captiveSprite=document.createElement("span");captiveSprite.className="compact-captive-token"+(captive?.s===1?" enemy":"");
- captiveSprite.textContent=captive?label(captive):"駒";
- Object.assign(captiveSprite.style,{left:targetX+width*.25+"px",top:targetY+height*.45+"px",width:width*.5+"px",height:width*.58+"px"});layer.append(captiveSprite);
- const dx=targetX-startX,dy=goalY-targetY,carryX=goalX-targetX;
- const animations=[
-  guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"}),
-  captiveSprite.animate([{offset:0,opacity:0},{offset:.38,opacity:0},{offset:.48,opacity:1},{offset:.87,opacity:1,transform:`translate(${carryX}px,${dy}px) scale(.7)`},{offset:1,opacity:0,transform:`translate(${carryX}px,${dy}px) scale(.5)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"})
- ];
- Promise.allSettled(animations.map(a=>a.finished)).then(()=>{guard.remove();captiveSprite.remove();if(game===epoch)done()});
+ const dx=targetX-startX,dy=goalY-targetY;
+ guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{guard.remove();if(game===epoch)done()});
 }
 function compactTurn(side,after,opening=false){
  if(!compactMode()||ended)return after?.();
