@@ -53,11 +53,24 @@
  const exact=new Map(Object.entries(strings));
  const replacements=[
   [/🎴\s*事件札が出現！/g,'🎴 Event card is ready!'],
+  [/あなたの手番/g,'Your Turn'],
+  [/敵軍の手番/g,"Opponent's Turn"],
+  [/薩長同盟の手番/g,"Satcho Alliance's Turn"],
+  [/薩長の手番/g,"Satcho's Turn"],
+  [/新選組の手番/g,"Shinsengumi's Turn"],
+  [/新撰組の手番/g,"Shinsengumi's Turn"],
+  [/敵軍、思案中…/g,'Opponent is thinking…'],
+  [/王手！ 防御してください/g,'Check! Defend your king.'],
+  [/⚠ 王手！ 王の移動・攻め駒の捕獲・合駒で防いでください。/g,'⚠ Check! Move your king, capture the attacker, or block the attack.'],
+  [/⚠ 王手！ 防ぐか、覚悟して主君を見捨てる手も選べます。/g,'⚠ Check! You can defend your king or choose to abandon your lord.'],
+  [/事件発生中…/g,'Event in progress…'],
+  [/事件札を確認中/g,'Event card being revealed'],
+  [/勝負あり/g,'Match Over'],
   [/（\d+\/40）/g,m=>m.replace('（','(').replace('）',')')],
   [/(\d+)名が未収録です。/g,(_,n)=>n+' characters remaining.'],
   [/（(\d+)\/40）/g,'($1/40)'],
   [/【王手】/g,'[CHECK]'],[/　🤔 思考中…/g,' 🤔 Thinking…'],
-  [/の手番/g,"'s turn"],[/札まで(\d+)手/g,'card in $1 moves'],
+  [/の手番/g,' Turn'],[/札まで(\d+)手/g,'card in $1 moves'],
   [/人斬り覚醒/g,'HITOKIRI AWAKENING'],[/人斬り・斬殺/g,'HITOKIRI STRIKE'],
   [/地震の穴が塞がった！/g,'The earthquake holes have closed!'],
   [/新選組/g,'Shinsengumi'],[/新撰組/g,'Shinsengumi'],[/薩長同盟/g,'Satcho Alliance'],
@@ -65,7 +78,7 @@
   [/対局を保存しました/g,'Match saved'],[/保存した対局を再開しました/g,'Match resumed'],
   [/を獲得/g,' unlocked'],[/人物カード獲得：/g,'Character Card: '],
   [/事件札/g,'Event Card'],[/脱走/g,'Desertion'],[/粛清/g,'Purge'],[/援軍/g,'Reinforcements'],
-  [/大地震/g,'Earthquake'],[/何事もなし/g,'No Incident']
+  [/大地震/g,'Earthquake'],[/何事もなし/g,'No Incident'],[/：/g,': ']
  ];
  const known=new WeakMap();
  const targets=['#titleSub','#titleFoot','#modeAi','#modeLocal','#difficultyPicker label','#ruleModePicker label','#rulePreset option','#aiLevel option','#customRules legend','#customRules label','#startGame','#titleSoundReplay','#titleLinks a','#titleExtras button','#enemyHandLabel','#playerHandShell .hand-label','#status','#cardCountdown','#checkHint','#quakeHoleHint','#enemyBannerStatus','#playerBannerStatus','#enemyBannerVoice','#playerBannerVoice','#event','#endText','#endSurrender','#endActions button','#promotionPanel h2','#promotionPanel p','#promotionActions button','#cardTitle','#cardDetail','#cardEffectText','#cardPrompt','#cardCloseHint','#resetCollection','#collectionStatus','#collectionTotal','#collectionProgress','#collectionTotal + div','.hero h1','.hero .intro','.collection-progress > div','#abandonPanel h2','#abandonPanel p','#abandonNo','#abandonYes','#quickSave','#hitokiriTestTools button','.special-debug','body > button','#sfxToggle','#voiceToggle','#bgmToggle','.game-menu-link'];

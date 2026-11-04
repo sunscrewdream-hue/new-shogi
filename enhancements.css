@@ -73,3 +73,41 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #endPanel #endActions{z-index:4!important;background:linear-gradient(transparent,#070b13e8)!important}
 @media(orientation:portrait){#endPanel .endIllustration#endWinnerImage{width:142vw!important;max-width:none!important;height:75dvh!important;top:8%!important}#endPanel:before{left:4%;top:22%;font-size:clamp(43px,14vw,85px)}#endPanel:after{right:6%;top:55%;font-size:clamp(30px,11vw,68px)}}
 @media(prefers-reduced-motion:reduce){#endPanel .endIllustration#endWinnerImage{animation:none!important;transform:translateX(-50%)}}
+
+/* Approved raster tokens: no procedural/vector reshaping or pattern clipping. */
+.shogi-token,.shogi-token.promoted-token{background:url('assets/pieces/shinsengumi_token.png') center/100% 100% no-repeat!important;aspect-ratio:130/165!important;border:0!important;clip-path:none!important;filter:drop-shadow(0 2px 2px #0008)}
+.shogi-token.enemy-token,.shogi-token.enemy-token.promoted-token{background-image:url('assets/pieces/saccho_token.png')!important}
+.shogi-token::before,.shogi-token::after{content:none!important;display:none!important}
+#board .sq .shogi-token.piece-layer{width:auto!important;height:88%!important;max-width:88%!important;position:absolute!important;inset:0!important;margin:auto!important;font-size:clamp(17px,5.6vw,30px)!important}
+.hand-piece .shogi-token.piece-layer{width:auto!important;height:94%!important;max-width:95%!important;position:absolute!important;inset:0!important;margin:auto!important}
+
+/* Check paths are drawn in board coordinates; every simultaneous checker gets its own line. */
+#checkRouteOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:12;overflow:visible;pointer-events:none;filter:drop-shadow(0 0 2px #240600)}
+
+/* Defection runs from the source cell to the real hand position in viewport pixels. */
+.defection-flight{position:fixed!important;z-index:190!important;pointer-events:none!important;inset:auto!important;display:grid;place-items:center;transform-origin:center center}
+.defection-flight .shogi-token{width:auto!important;height:90%!important;max-width:90%!important;margin:auto!important;inset:auto!important;position:relative!important}
+
+/* Pure red ink lettering, with no plaque, gradient, or secondary ornament. */
+#hitokiriNotice{width:min(88vw,640px)!important;filter:none!important;background:none!important;text-shadow:none!important;top:20%!important}
+#hitokiriNotice img{display:block;width:100%;height:auto;filter:drop-shadow(0 3px 3px #070508ae)}
+.dialogue-panel.hitokiri-banner:after,.dialogue-panel.hitokiri-kill-banner:after{content:'';display:block;position:absolute;inset:0;z-index:7;pointer-events:none;filter:none;background:url('assets/visuals/hitokiri_red_calligraphy.webp') center/94% auto no-repeat}
+.dialogue-panel.hitokiri-kill-banner:after{background-image:url('assets/visuals/hitokiri_kill_calligraphy.webp')}
+
+/* Portrait-aware result graphics: old CSS victory/defeat glyphs are entirely removed. */
+#endPanel:before,#endPanel:after{content:none!important;display:none!important}
+#endPanel #endText{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;padding:0!important;margin:-1px!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;opacity:0!important}
+#endPanel .end-result-calligraphy{position:absolute;z-index:3;width:auto;height:auto;object-fit:contain;pointer-events:none;filter:drop-shadow(0 4px 7px #050507aa)}
+#endVerdictGraphic{bottom:96px;left:50%;width:min(46vw,560px)!important;max-height:16dvh;transform:translateX(-50%)}
+#endVictoryGraphic{left:2%;top:23%;width:min(29vw,350px)!important;max-height:34dvh}
+#endDefeatGraphic{right:5%;top:62%;width:min(23vw,270px)!important;max-height:25dvh}
+#endPanel.result-draw .end-result-calligraphy{display:none}
+#endPanel #endResponsiveScene{display:contents}
+@media(orientation:portrait){
+ #endPanel .endIllustration#endWinnerImage{top:1%!important;left:50%!important;width:min(96vw,48dvh)!important;max-width:96vw!important;height:calc(100dvh - 112px)!important;object-fit:contain!important;object-position:center center!important}
+ #endVictoryGraphic{left:0;top:23%;width:42vw!important;max-height:30dvh}
+ #endDefeatGraphic{right:0;top:63%;width:38vw!important;max-height:24dvh}
+ #endVerdictGraphic{bottom:94px;width:min(75vw,360px)!important;max-height:15dvh}
+ #endPanel #endActions{padding-bottom:max(18px,env(safe-area-inset-bottom));gap:8px}
+ #endPanel #endActions button{min-width:0;font-size:14px;padding:10px 12px}
+}

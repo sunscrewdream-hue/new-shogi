@@ -109,6 +109,32 @@
   }
   return baseTap(y,x);
  };
+ /* Enemy portraits are previews, not a move. A selected legal capture still works. */
+ const tapWithKingWarning=tap;
+ tap=function(y,x){
+  const piece=b?.[y]?.[x];
+  if(piece&&piece.s!==turn&&!titleIsVisible()&&!ended&&!busy&&!incidentRunning){
+   const canCapture=sel&&legalMoves(b,h,turn).some(m=>!m.drop&&m.Y===y&&m.X===x&&m.y===sel.y&&m.x===sel.x);
+   if(!canCapture){setCharacterBanner(piece.s,piece,'',3000);return}
+  }
+  return tapWithKingWarning(y,x);
+ };
+ const gameBoard=$('board');
+ gameBoard.addEventListener('pointerover',event=>{
+  if(event.pointerType!=='mouse'||titleIsVisible()||ended||incidentRunning)return;
+  const cell=event.target.closest('.sq');
+  if(!cell||!gameBoard.contains(cell))return;
+  const index=Array.prototype.indexOf.call(gameBoard.children,cell),piece=b?.[Math.floor(index/9)]?.[index%9];
+  if(piece&&piece.s!==turn){setCharacterBanner(piece.s,piece,'',0);cell.dataset.enemyPreview='yes'}
+ });
+ gameBoard.addEventListener('pointerout',event=>{
+  if(event.pointerType!=='mouse')return;
+  const cell=event.target.closest('.sq');
+  if(!cell||!cell.dataset.enemyPreview||cell.contains(event.relatedTarget))return;
+  delete cell.dataset.enemyPreview;
+  const index=Array.prototype.indexOf.call(gameBoard.children,cell),piece=b?.[Math.floor(index/9)]?.[index%9];
+  if(piece&&piece.s!==turn)clearCharacterBanner(piece.s);
+ });
  const baseRender=render;
  render=function(){
   baseRender();
@@ -120,6 +146,20 @@
    const p=b[y][x];if(!p)continue;
    const node=cells[y*9+x];if(!node)continue;
    node.replaceChildren(createToken(p.t,p.s,p.p,true));
+  }
+  const stage=$('boardStage');
+  let routes=$('checkRouteOverlay');if(routes)routes.remove();
+  const threats=ended?[]:getCheckThreats(b).paths;
+  if(threats?.length){
+   const ns='http://www.w3.org/2000/svg';
+   routes=document.createElementNS(ns,'svg');routes.id='checkRouteOverlay';routes.setAttribute('viewBox','0 0 9 9');routes.setAttribute('preserveAspectRatio','none');routes.setAttribute('aria-hidden','true');
+   threats.forEach((path,index)=>{
+    const stroke=index%2===0?'#ff503d':'#ffe07b';
+    const line=document.createElementNS(ns,'line');line.setAttribute('x1',path.fromX+.5);line.setAttribute('y1',path.fromY+.5);line.setAttribute('x2',path.toX+.5);line.setAttribute('y2',path.toY+.5);
+    line.setAttribute('stroke',stroke);line.setAttribute('stroke-width',index%2===0?'.09':'.075');line.setAttribute('stroke-dasharray',index%2===0?'.22 .14':'.12 .13');line.setAttribute('stroke-linecap','round');
+    line.classList.add('check-route');routes.append(line);
+   });
+   stage.append(routes);
   }
  };
  function createToken(t,side,promoted=false,onBoard=false){
@@ -160,17 +200,15 @@
  };
  flashHitokiri=function(message){
   const notice=$('hitokiriNotice');
-  const name=message.includes('覚醒')?'人斬り覚醒':'斬殺';
-  if(name==='人斬り覚醒'){
-   notice.replaceChildren();const image=document.createElement('img');image.src='assets/visuals/hitokiri_awakening_v1.webp';image.alt='人斬り覚醒';notice.append(image);
-  }else{
-   notice.textContent='斬殺！';
-  }
+  const awakening=message.includes('覚醒');
+  const name=awakening?'人斬り覚醒！':'斬殺！';
+  const image=document.createElement('img');image.src=awakening?'assets/visuals/hitokiri_red_calligraphy.webp':'assets/visuals/hitokiri_kill_calligraphy.webp';image.alt=name;
+  notice.replaceChildren(image);
   const side=turn,ep=epoch;
-  if(name==='人斬り覚醒'){
-   const panel=$(side===0?'officerPanel':'enemyOfficerPanel');panel.classList.add('hitokiri-banner');
-   setTimeout(()=>{if(ep===epoch)panel.classList.remove('hitokiri-banner')},1900);
-  }
+  const panel=$(side===0?'officerPanel':'enemyOfficerPanel');
+  const className=awakening?'hitokiri-banner':'hitokiri-kill-banner';
+  panel.classList.remove('hitokiri-banner','hitokiri-kill-banner');panel.classList.add(className);
+  setTimeout(()=>{if(ep===epoch)panel.classList.remove(className)},1900);
   const id=++noticeSerialHitokiri;notice.classList.add('show');
   setTimeout(()=>{if(ep===epoch&&id===noticeSerialHitokiri)notice.classList.remove('show')},1800);
  };
@@ -222,11 +260,12 @@
   const cell=$('board').children[effect.y*9+effect.x],jail=$(effect.side===0?'playerHandShell':'enemyHandShell');
   const from=cell?.getBoundingClientRect(),to=jail?.getBoundingClientRect();
   if(!from||!to||!cell||reducedGameMotion()){done();return}
+  const flight=document.createElement('div');flight.className='defection-flight';
+  flight.style.left=from.left+'px';flight.style.top=from.top+'px';flight.style.width=from.width+'px';flight.style.height=from.height+'px';
   const ghost=createToken(person.t,person.s,person.p);
-  ghost.style.cssText='position:fixed!important;inset:auto!important;z-index:185;pointer-events:none;display:grid;width:'+from.width*.83+'px;height:'+from.height*.92+'px;left:'+from.left+'px;top:'+from.top+'px;margin:0';
-  $('actionLayer').append(ghost);cell.classList.add('sprite-departing');
+  flight.append(ghost);document.body.append(flight);cell.classList.add('sprite-departing');
   const deltaX=(to.left+to.width/2)-(from.left+from.width/2),deltaY=(to.top+to.height/2)-(from.top+from.height/2);
-  const anim=ghost.animate([
+  const anim=flight.animate([
    {offset:0,transform:'translate(0,0) rotate(0)',opacity:1},
    {offset:.12,transform:'translate(-4px,-5px) rotate(-9deg)'},
    {offset:.22,transform:'translate(7px,4px) rotate(8deg)'},
@@ -234,7 +273,7 @@
    {offset:.78,transform:`translate(${deltaX*.72}px,${deltaY*.72}px) scale(.82)`},
    {offset:1,transform:`translate(${deltaX}px,${deltaY}px) scale(.6) rotate(${effect.side===0?0:180}deg)`,opacity:.1}
   ],{duration:1370,easing:'ease-in-out',fill:'forwards'});
-  let finished=false;const finish=()=>{if(finished)return;finished=true;anim.cancel();ghost.remove();cell.classList.remove('sprite-departing');done()};
+  let finished=false;const finish=()=>{if(finished)return;finished=true;anim.cancel();flight.remove();cell.classList.remove('sprite-departing');done()};
   anim.finished.then(finish,finish);setTimeout(finish,1700);
  }
  const baseIncidentEffect=runIncidentEffect;
@@ -262,16 +301,29 @@
 
  /* One illustrated result scene: towering victor and kneeling defeated officer. */
  const baseVictory=showVictory;
+ const endStage=$('endPanel');
+ const verdict=document.createElement('img');verdict.id='endVerdictGraphic';verdict.className='end-result-calligraphy';verdict.src='assets/visuals/verdict_shobu_attah.webp';verdict.alt='勝負あった！';
+ const winGraphic=document.createElement('img');winGraphic.id='endVictoryGraphic';winGraphic.className='end-result-calligraphy';winGraphic.src='assets/visuals/verdict_victory.webp';winGraphic.alt='勝利';
+ const lossGraphic=document.createElement('img');lossGraphic.id='endDefeatGraphic';lossGraphic.className='end-result-calligraphy';lossGraphic.src='assets/visuals/verdict_defeat.webp';lossGraphic.alt='敗北';
+ endStage.insertBefore(verdict,$('endActions'));endStage.insertBefore(winGraphic,$('endActions'));endStage.insertBefore(lossGraphic,$('endActions'));
+ const portraitSource=document.createElement('source');portraitSource.media='(orientation: portrait)';
+ const portraitPicture=document.createElement('picture');portraitPicture.id='endResponsiveScene';
+ const winnerImage=$('endWinnerImage');winnerImage.parentNode.insertBefore(portraitPicture,winnerImage);
+ portraitPicture.append(portraitSource,winnerImage);
  showVictory=function(winner,reason='詰み'){
   baseVictory(winner,reason);
   if($('endOverlay').classList.contains('show')){
    $('endWinnerImage').src=winner===0?'assets/visuals/victory_shinsengumi_scene.webp':'assets/visuals/victory_saccho_scene.webp';
+   portraitSource.srcset=winner===0?'assets/visuals/victory_shinsengumi_mobile.webp':'assets/visuals/victory_saccho_mobile.webp';
+   $('endPanel').classList.remove('result-draw');
    $('endWinnerImage').alt=(winner===0?'新選組':'薩長同盟')+'勝利、敗軍は膝をつく';
    $('endLoserImage').style.display='none';
    $('endText').textContent='勝負あった！';
    $('endPanel').setAttribute('data-winning-side',winner===0?'shinsengumi':'saccho');
   }
  };
+ const baseDraw=showRepetitionDraw;
+ showRepetitionDraw=function(){baseDraw();endStage.classList.add('result-draw')};
 
  syncTitleVolume();updateContinueButton();render();
 })();

@@ -1458,7 +1458,7 @@ function resolveCard(s){
 
 /* Check indicator derives attackers from the same legal attack graph as shogi rules. */
 function getCheckThreats(B=b){
- const kings=new Set(),attackers=new Set(),rays=new Set();
+ const kings=new Set(),attackers=new Set(),rays=new Set(),paths=[];
  for(let side=0;side<2;side++){
   if(!check(B,side))continue;
   let king=null;
@@ -1469,6 +1469,7 @@ function getCheckThreats(B=b){
    const p=B[y][x];
    if(!p||p.s===side||!moves(B,y,x,true).some(([yy,xx])=>yy===king.y&&xx===king.x))continue;
    attackers.add(y+','+x);
+   paths.push({fromY:y,fromX:x,toY:king.y,toX:king.x,kind:p.t});
    const dy=king.y-y,dx=king.x-x;
    const rookRay=p.t==='飛'&&(dy===0||dx===0);
    const bishopRay=p.t==='角'&&Math.abs(dy)===Math.abs(dx);
@@ -1479,7 +1480,7 @@ function getCheckThreats(B=b){
    }
   }
  }
- return {kings,attackers,rays};
+ return {kings,attackers,rays,paths};
 }
 
 function makeHandPiece(s,t,count){
