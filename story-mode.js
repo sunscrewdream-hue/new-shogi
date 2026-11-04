@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false;
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t){
@@ -35,7 +35,7 @@ function popup(title,text,options,img){
  modal.classList.remove("hidden");
 }
 function collect(p){
- if(!p||p.cid==null)return;
+ if(devPreview||!p||p.cid==null)return;
  const id=(p.origin===0?0:20)+p.cid;
  if(id<0||id>=40)return;
  try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));$("storyStatus").textContent="🎴 人物カード獲得！ "+person(p).name}}catch(e){}
@@ -101,10 +101,13 @@ $("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
  restoreStoryHover();window.StoryBgm?.stop();
+ $("storyDevToggle").textContent=devPreview?"🛠 開発テスト：終了して通常表示へ":"🛠 開発テスト：全章を表示";
+ $("storyDevToggle").setAttribute("aria-pressed",String(devPreview));
+ $("storyDevNote").hidden=!devPreview;
  chooseView("storyHome");document.body.style.backgroundImage="";const el=$("storyChapters");el.replaceChildren();
  addButton("序章","壬生の誓い","物語のみ",true,false,()=>talk(-1));
- D.chapters.forEach((v,i)=>addButton("第"+(i+1)+"章",v.title,v.w+"×"+v.h+"盤",unlock>=i,unlock>i,()=>talk(i)));
- addButton("終章",D.epilogue.title,"物語のみ",unlock>=4,false,()=>talk(4));
+ D.chapters.forEach((v,i)=>addButton("第"+(i+1)+"章",v.title,v.w+"×"+v.h+"盤",devPreview||unlock>=i,unlock>i,()=>talk(i)));
+ addButton("終章",D.epilogue.title,"物語のみ",devPreview||unlock>=4,false,()=>talk(4));
  let collection=document.getElementById("storyKingCollection");
  if(!collection){collection=document.createElement("div");collection.id="storyKingCollection";collection.className="history-note";el.after(collection)}
  let earned=[];try{earned=JSON.parse(localStorage.getItem(KINGS)||"[]")}catch(e){}
@@ -129,7 +132,7 @@ function screenHome(){
  function addButton(step,title,size,enabled,done,callback){
   const b=document.createElement("button");b.className="chapter"+(enabled?"":" locked")+(done?" completed":"");b.type="button";b.disabled=!enabled;
   const info=document.createElement("div"),mini=document.createElement("small"),heading=document.createElement("strong"),note=document.createElement("em"),board=document.createElement("div"),fig=document.createElement("span");
-  mini.textContent=step+(done?"　✓ 突破":"");heading.textContent=title;note.textContent=enabled?(done?"再挑戦可能":"出陣可能"):"前の章を突破すると開放";
+  mini.textContent=step+(done?"　✓ 突破":"");heading.textContent=title;note.textContent=devPreview?"開発用プレビュー（記録しません）":enabled?(done?"再挑戦可能":"出陣可能"):"前の章を突破すると開放";
   board.className="chapter-board";board.textContent=enabled?"⚔":"🔒";fig.textContent=size;board.append(fig);info.append(mini,heading,note);b.append(info,board);b.onclick=callback;el.append(b);
  }
 }
@@ -229,7 +232,7 @@ async function fire(kind){
 }
 function finish(winner,reason){
  if(ended)return;epoch++;ended=true;busy=false;render();if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
- if(win){
+ if(win&&!devPreview){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
  }
@@ -244,6 +247,7 @@ function leave(){
  if(ended){screenHome();return}
  popup("対局を中断しますか？","途中の対局は保存されません。",[["章選択へ",()=>{epoch++;ended=true;busy=false;screenHome()}],["戻る",()=>{}]]);
 }
+$( "storyDevToggle" ).onclick=()=>{devPreview=!devPreview;screenHome()};
 $("dialogueNext").onclick=()=>{at++;line()};
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
