@@ -9,6 +9,7 @@ function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(
 function sfx(t){
  if(soundOff)return;
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_munen.mp3"};
+ if(t==="cannon"||t==="rifle"){const a=new Audio('assets/story/audio/'+t+'.mp3');a.volume=.6;a.play().catch(()=>{});return}
  if(files[t]){const a=new Audio(files[t]);a.volume=t==="capture"?.83:.40;a.play().catch(()=>{});return}
  try{
   audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
@@ -144,7 +145,7 @@ function computer(){
  makeMove(move,prom);enemyTurns++;
  if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
   const kind=weapons.length===0?(Math.random()<.5?"cannon":"rifle"):weapons[0]==="cannon"?"rifle":"cannon";
-  if(!weapons.includes(kind))setTimeout(()=>weaponCard(kind),310);
+  if(!weapons.includes(kind))weaponCard(kind);
  }
 }
 function weaponCard(kind){
@@ -155,12 +156,12 @@ function weaponCard(kind){
 async function fire(kind){
  const id=epoch,result=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx);
  if(!result||id!==epoch)return;
- if(result.hit){$("storyStatus").textContent=person(result.hit).name+" に命中！ 駒が消滅。";if(result.hit.s===1)collect(result.hit)}
+ if(result.hit){$("storyStatus").textContent=person(result.hit).name+" に命中！ 駒が消滅。";/* 砲撃による消滅は捕獲ではないためコレクションに加えない */}
  else $("storyStatus").textContent=kind==="cannon"?"砲弾は空きマスへ着弾！":"鉄砲は空振り！";
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
 }
 function finish(winner,reason){
- if(ended)return;epoch++;ended=true;busy=false;render();const win=winner===0,ch=D.chapters[stage],king=ch.king;
+ if(ended)return;epoch++;ended=true;busy=false;render();if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
  if(win){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
