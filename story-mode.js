@@ -31,6 +31,8 @@ function compactMode(){return stage===0||stage===2}
 function compactFighterKey(p){return String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown')}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
+ kondo:"assets/audio/voice_kondo_isami_king_move.mp3",
+ hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  check:"assets/audio/voice_oute.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
@@ -267,7 +269,7 @@ function makeMove(m,prom){
    setTimeout(()=>{if(game===epoch)$("compactAwakenNotice").classList.remove("show")},1600);
   }
  }
- if(captured){if(!willKill)sfx("capture");compactCapture(actor);if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound("move"+actor);else sfx("move");
+ if(captured){if(!willKill)sfx("capture");compactCapture(actor);if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound(actor===0&&source?.origin===0&&source?.cid===0?"kondo":actor===0&&source?.origin===0&&source?.cid===1?"hijikata":"move"+actor);else sfx("move");
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(result){finish(result.winner,result.why);return}
  if(compactMode()){
