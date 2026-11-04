@@ -4,29 +4,31 @@ const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
 let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
+let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
+const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
+const fxLevel=base=>Math.min(1,base*storyVolume/10);
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t){
  if(soundOff)return;
  if(t==="cannon"||t==="rifle"||t==="blast"){
   window.StoryBgm?.duck();
-  const a=new Audio("assets/story/audio/"+t+".mp3");a.volume=t==="cannon"?.75:.67;a.play().catch(()=>{});return;
+  const a=new Audio("assets/story/audio/"+t+".mp3");a.volume=fxLevel(t==="cannon"?.65:.57);a.play().catch(()=>{});return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_custom.mp3"};
- if(files[t]){const a=new Audio(files[t]);a.volume=t==="capture"?.83:.40;a.play().catch(()=>{});return}
+ if(files[t]){const a=new Audio(files[t]);a.volume=["capture","win","loss"].includes(t)?voiceLevel():fxLevel(.35);a.play().catch(()=>{});return}
  try{
   audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
   if(audioContext.state==="suspended")audioContext.resume();
   const dur=t==="cannon"?.8:.28,buf=audioContext.createBuffer(1,Math.floor(audioContext.sampleRate*dur),audioContext.sampleRate),data=buf.getChannelData(0);
   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/data.length*(t==="cannon"?5:10));
   const noise=audioContext.createBufferSource(),filter=audioContext.createBiquadFilter(),gain=audioContext.createGain();
-  noise.buffer=buf;filter.type="lowpass";filter.frequency.value=t==="cannon"?850:1600;gain.gain.value=t==="cannon"?.4:.2;
+  noise.buffer=buf;filter.type="lowpass";filter.frequency.value=t==="cannon"?850:1600;gain.gain.value=fxLevel(t==="cannon"?.4:.2);
   noise.connect(filter).connect(gain).connect(audioContext.destination);noise.start();
  }catch(e){}
 }
-// 5x6 only: reuse the finished game's ORIGINAL images and audio files.
-// Card mechanics are deliberately not introduced on compact chapter boards.
+// Compact chapters reuse the approved main-game assets and five incident cards.
 function compactMode(){return stage===0||stage===2}
 const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
 const compactCardWeights=[["何事もなし",50],["援軍",20],["脱走",15],["粛清",10],["大地震",5]];
@@ -46,7 +48,7 @@ const compactAudio={
 function compactSound(kind){
  if(soundOff)return;
  const src=compactAudio[kind];if(!src)return;
- try{const a=new Audio(src);a.volume=kind==="turn"?.4:kind==="check"?.6:.62;a.play().catch(()=>{})}catch(e){}
+ try{const a=new Audio(src);a.volume=["move0","move1","kondo","hijikata","check"].includes(kind)?voiceLevel():fxLevel(.4);a.play().catch(()=>{})}catch(e){}
 }
 function hideCompactFx(){
  compactFxSerial++;
@@ -102,7 +104,7 @@ function compactCardReveal(){
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;$("compactCardPrompt").textContent="もう一度タップして閉じる";
  state.voiceDone=false;
  if(soundOff){state.voiceDone=true;return}
- const audio=new Audio(compactCardVoices[kind]);audio.volume=.7;let settled=false;
+ const audio=new Audio(compactCardVoices[kind]);audio.volume=voiceLevel();let settled=false;
  const done=()=>{if(settled)return;settled=true;if(compactIncident!==state)return;state.voiceDone=true;if(state.closeRequested)compactCardClose()};
  audio.onended=done;audio.onerror=done;audio.play().catch(done);setTimeout(done,7000);
 }
@@ -506,7 +508,7 @@ $("dialogueNext").onclick=()=>{
  const sortie=stage>=0&&stage<4&&at===dialog.length-1;
  if(sortie&&!soundOff){
   window.StoryBgm?.duck();
-  try{storySortieVoice.pause();storySortieVoice.currentTime=0;storySortieVoice.volume=.68;
+  try{storySortieVoice.pause();storySortieVoice.currentTime=0;storySortieVoice.volume=voiceLevel();
    const playing=storySortieVoice.play();if(playing?.catch)playing.catch(()=>{});
   }catch(e){}
  }
@@ -516,5 +518,13 @@ $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
 $("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では敵軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
 $("audioToggle").onclick=()=>{window.StoryBgm?.unlock();soundOff=!soundOff;window.StoryBgm?.setMuted(soundOff);$("audioToggle").textContent=soundOff?"♪ 音 OFF":"♪ 音 ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
+$("storyVolume").value=String(storyVolume);$("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
+window.StoryBgm?.setVolume(storyVolume);
+$("storyVolume").addEventListener("input",event=>{
+ storyVolume=Math.max(0,Math.min(100,Number(event.target.value)||0));
+ $("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
+ window.StoryBgm?.setVolume(storyVolume);
+ try{localStorage.setItem("shinsengumi-story-volume-v1",String(storyVolume))}catch(e){}
+});
 screenHome();
 })();
