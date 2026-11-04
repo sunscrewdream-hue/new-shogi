@@ -120,23 +120,41 @@
   return tapWithKingWarning(y,x);
  };
  const gameBoard=$('board');
+ const baseShowOfficer=showOfficer;
+ showOfficer=function(piece){
+  // Mouse users inspect a character by hovering; touch users inspect by tapping.
+  if(window.matchMedia?.('(hover: hover) and (pointer: fine)').matches)return false;
+  return baseShowOfficer(piece);
+ };
+ let hoveredBannerSide=null;
+ function clearHoveredBanner(){
+  if(hoveredBannerSide===null)return;
+  const side=hoveredBannerSide;hoveredBannerSide=null;
+  const panel=$(side===0?'officerPanel':'enemyOfficerPanel');
+  if(!panel.classList.contains('speaking'))clearCharacterBanner(side);
+ }
  gameBoard.addEventListener('pointerover',event=>{
   if(event.pointerType!=='mouse'||titleIsVisible()||ended||busy||incidentRunning||!playerTurnReady||(gameMode==='ai'&&turn!==0))return;
   const cell=event.target.closest('.sq');
   if(!cell||!gameBoard.contains(cell))return;
   const index=Array.prototype.indexOf.call(gameBoard.children,cell),piece=b?.[Math.floor(index/9)]?.[index%9];
-  if(piece&&piece.s!==turn){setCharacterBanner(piece.s,piece,'',0);cell.dataset.enemyPreview='yes'}
+  if(!piece){clearHoveredBanner();return}
+  if(hoveredBannerSide!==null&&hoveredBannerSide!==piece.s)clearHoveredBanner();
+  const panel=$(piece.s===0?'officerPanel':'enemyOfficerPanel');
+  if(panel.classList.contains('speaking'))return;
+  setCharacterBanner(piece.s,piece,'',0);
+  hoveredBannerSide=piece.s;
  });
  gameBoard.addEventListener('pointerout',event=>{
   if(event.pointerType!=='mouse')return;
   const cell=event.target.closest('.sq');
-  if(!cell||!cell.dataset.enemyPreview||cell.contains(event.relatedTarget))return;
-  delete cell.dataset.enemyPreview;
-  const index=Array.prototype.indexOf.call(gameBoard.children,cell),piece=b?.[Math.floor(index/9)]?.[index%9];
-  if(piece&&piece.s!==turn)clearCharacterBanner(piece.s);
+  if(!cell||cell.contains(event.relatedTarget))return;
+  clearHoveredBanner();
  });
+ gameBoard.addEventListener('pointerleave',clearHoveredBanner);
  const baseRender=render;
  render=function(){
+  clearHoveredBanner();
   baseRender();
   if(ruleSettings.abandonKing&&rulePreset!=='traditional'&&check(b,turn)&&!ended){
    $('checkHint').textContent='⚠ 王手！ 防ぐか、覚悟して主君を見捨てる手も選べます。';
