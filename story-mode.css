@@ -221,3 +221,30 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 #storyBoard,.story-token,.person-banner img,.popup-art{user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
 #storyBoard .sq{cursor:pointer}
 #storyBoard.input-locked .sq,#storyBoard .sq:disabled,.story-hand button:disabled{cursor:default}
+
+/* Completed 9x9 incident-card presentation is the visual source of truth. */
+.compact-card-overlay{box-sizing:border-box;overflow-y:auto;gap:12px;padding:12px 16px;background:rgba(8,8,12,.82)}
+.compact-card-face{position:relative;width:min(82vw,320px,50dvh);height:auto;aspect-ratio:2/3;min-height:0;max-height:none;flex-shrink:0;
+ padding:0;border:0;border-radius:14px;background-color:transparent;background-size:contain;background-position:center;background-repeat:no-repeat;
+ box-shadow:0 12px 35px #000b,0 0 20px #b98e4a44;animation:compactCardDrop .55s ease-out;transition:transform .45s}
+@keyframes compactCardDrop{0%{transform:translateY(-70px) scale(1.45);opacity:0}70%{transform:translateY(8px) scale(.96);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}
+.compact-card-face span{background:none;padding:0;border-radius:0}
+.compact-card-face #compactCardHeading{display:flex;max-width:90%;margin:auto;padding:0 4px;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+ font-size:clamp(28px,7.5vw,34px);line-height:1.4;font-weight:900;color:#ffefb7;letter-spacing:.04em;-webkit-text-stroke:.8px #382313;
+ text-shadow:0 3px 3px #060a0f,2px 2px 1px #120909,0 0 10px #0009;pointer-events:none}
+.compact-card-face #compactCardText{display:none}
+.compact-card-face.revealed{animation:compactCardFlip .55s ease-out;background-size:contain;border:0;background-color:transparent}
+.compact-card-face.revealed #compactCardHeading{display:none}
+.compact-card-face.revealed #compactCardText{display:flex;position:absolute;z-index:7;bottom:2.5%;left:5%;right:5%;width:auto;box-sizing:border-box;
+ max-height:44%;overflow-y:auto;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 9px;
+ border:1px solid rgba(245,210,142,.76);border-radius:9px;background:linear-gradient(135deg,rgba(21,25,32,.61),rgba(49,31,32,.58));
+ box-shadow:0 3px 13px rgba(0,0,0,.56),inset 0 1px rgba(255,255,255,.13);color:#fff4de;text-align:center;pointer-events:none;
+ font:800 clamp(12px,3.8vw,16px)/1.52 "Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;letter-spacing:.015em;text-shadow:0 1px 3px #000c;overflow-wrap:anywhere}
+#compactCardPrompt{box-sizing:border-box;max-width:min(92vw,410px);max-height:24dvh;overflow-y:auto;padding:9px 15px;border-radius:8px;
+ font:700 clamp(13px,3.5vw,16px)/1.55 system-ui,sans-serif;color:#ffefd9;background:rgba(22,15,14,.86);text-shadow:0 1px 4px #000}
+#compactCardPrompt:empty{display:none}
+.compact-incident-title{width:min(86vw,540px);max-height:28dvh;object-fit:contain}
+.compact-incident-title.show{animation:compactIncidentInkArrival .62s cubic-bezier(.15,.66,.25,1) both}
+@keyframes compactIncidentInkArrival{from{opacity:0;transform:scale(1.17) translateY(8px)}65%{opacity:1;transform:scale(.99) translateY(0)}100%{opacity:1;transform:translate(20%,124%)}}
+@media(max-height:680px){.compact-card-face.revealed #compactCardText{bottom:2%;max-height:47%;padding:7px;font-size:clamp(11px,3.5vw,14px)}}
+@media(prefers-reduced-motion:reduce){.compact-card-face,.compact-card-face.revealed,.compact-incident-title.show{animation:none}}
