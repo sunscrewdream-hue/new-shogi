@@ -322,3 +322,9 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  background-image:url("assets/story/board-ikedaya-tatami-v2.webp"),linear-gradient(#ebca90,#bb8b4b);
  background-size:100% 100%;background-position:center;background-repeat:no-repeat;
 }
+
+/* Invisible 5x6 hit cells: preserve their exact geometry and interaction,
+   but draw no artificial shogi-grid lines over Ikedaya's tatami and corridors. */
+#storyBoard[data-stage="0"] .sq{
+ border:0!important;
+}
