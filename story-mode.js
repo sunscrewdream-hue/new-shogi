@@ -403,9 +403,14 @@ function render(){
  for(const s of [0,1]){
   const hand=$("storyHand"+s);hand.replaceChildren();const groups={};g.hands[s].forEach(p=>groups[p.t]=(groups[p.t]||0)+1);
   if(!g.hands[s].length)hand.textContent="なし";
-  for(const t of Object.keys(groups)){const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.setAttribute("aria-label",(s===0?"自軍":"敵軍")+"の持駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
-   const token=document.createElement("span");token.className="story-token"+(s===1?" enemy":"");token.textContent=t;token.setAttribute("aria-hidden","true");
-   const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(token,count);
+  const names={歩:"fu",香:"kyosha",桂:"keima",銀:"gin",金:"kin",角:"kaku",飛:"hisha"};
+  for(const t of ["飛","角","金","銀","桂","香","歩"]){if(!groups[t])continue;
+   const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.setAttribute("aria-label",(s===0?"新選組":"薩長同盟")+"の持ち駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
+   const fig=document.createElement("img");fig.className="story-hand-art story-hand-figure";fig.src="assets/sprites/figures/"+(s===0?"shinsengumi_back":"saccho_front")+".webp";fig.alt="";fig.draggable=false;fig.decoding="async";
+   const letter=document.createElement("img");letter.className="story-hand-art story-hand-letter";letter.src="assets/sprites/letters/normal_"+names[t]+".webp";letter.alt="";letter.draggable=false;letter.decoding="async";
+   const fallback=document.createElement("span");fallback.className="story-hand-fallback";fallback.textContent=t;
+   const showFallback=()=>{fig.style.display="none";letter.style.display="none";fallback.style.display="grid"};fig.onerror=showFallback;letter.onerror=showFallback;
+   const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
  $("storyStatus").textContent=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
