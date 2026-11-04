@@ -61,9 +61,46 @@ function banner(s,p){
  $(prefix+"StoryRole").textContent=a.role+" ／ "+label(p);
  image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
 }
+// Main-game parity: pointer hover reveals the character without selecting or moving.
+let storyHoverSide=null,storyHoverBase=[null,null];
+function previewStoryUnit(p){
+ if(!p)return;const side=p.s;
+ const panel=$(side?"enemyStoryBanner":"playerStoryBanner");
+ if(storyHoverSide!==null&&storyHoverSide!==side)restoreStoryHover();
+ if(storyHoverSide===null){
+  const prefix=side?"enemy":"player";
+  storyHoverBase[side]={name:$(prefix+"StoryName").textContent,role:$(prefix+"StoryRole").textContent,src:$(prefix+"StoryArt").getAttribute("src")};
+ }
+ storyHoverSide=side;banner(side,p);
+}
+function restoreStoryHover(){
+ if(storyHoverSide===null)return;
+ const side=storyHoverSide,saved=storyHoverBase[side],prefix=side?"enemy":"player";
+ storyHoverSide=null;storyHoverBase[side]=null;
+ if(!saved)return;
+ $(prefix+"StoryName").textContent=saved.name;$(prefix+"StoryRole").textContent=saved.role;
+ const art=$(prefix+"StoryArt");if(saved.src)art.src=saved.src;
+}
+function storyCellFromPointer(event){
+ const root=$("storyBoard"),cell=event.target.closest?.(".sq");
+ if(!cell||!root.contains(cell)||!g)return null;
+ const i=Array.prototype.indexOf.call(root.children,cell),y=Math.floor(i/g.w),x=i%g.w;
+ return {cell,y,x,p:g.board[y]?.[x]};
+}
+$("storyBoard").addEventListener("pointerover",event=>{
+ if(event.pointerType!=="mouse"||ended||!g||busy)return;
+ const unit=storyCellFromPointer(event);
+ if(unit?.p)previewStoryUnit(unit.p);else restoreStoryHover();
+});
+$("storyBoard").addEventListener("pointerout",event=>{
+ if(event.pointerType!=="mouse")return;
+ const unit=storyCellFromPointer(event);
+ if(unit&&!unit.cell.contains(event.relatedTarget))restoreStoryHover();
+});
+$("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
- window.StoryBgm?.stop();
+ restoreStoryHover();window.StoryBgm?.stop();
  chooseView("storyHome");document.body.style.backgroundImage="";const el=$("storyChapters");el.replaceChildren();
  addButton("序章","壬生の誓い","物語のみ",true,false,()=>talk(-1));
  D.chapters.forEach((v,i)=>addButton("第"+(i+1)+"章",v.title,v.w+"×"+v.h+"盤",unlock>=i,unlock>i,()=>talk(i)));
@@ -119,6 +156,7 @@ function battle(i){
  banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();
 }
 function render(){
+ restoreStoryHover();
  if(!g||$("storyBattle").classList.contains("hidden"))return;
  const root=$("storyBoard");root.replaceChildren();
  const legal=!ended&&!busy&&g.side===0?g.legal(0):[];
@@ -154,6 +192,7 @@ function square(y,x){
    }makeMove(m,false);return;
   }
  }
+ if(p?.s===1){banner(1,p);return}
  selected=p?.s===0?{y,x}:null;if(p)banner(p.s,p);render();
 }
 function makeMove(m,prom){
