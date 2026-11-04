@@ -338,7 +338,24 @@
   previewReinforcementPortrait(target);
   showToast('隊士が合流する演出テスト（盤面と持ち駒の数は変わりません）');
  };
- testTools.append(awakeningTest,killTest,reinforcementTest);document.querySelector('.special-debug')?.insertAdjacentElement('afterend',testTools);
+ const desertionTest=document.createElement('button');desertionTest.type='button';desertionTest.textContent='🏃 脱走アニメテスト';
+ let desertionPreviewRunning=false;
+ desertionTest.onclick=async()=>{
+  if(titleIsVisible()||incidentRunning||desertionPreviewRunning||reinforcementPreviewRunning)return;
+  const targets=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(b[y][x]?.s===1&&b[y][x].t!=='玉')targets.push({y,x,p:b[y][x]});
+  targets.sort((a,z)=>Math.abs(a.x-4)+Math.abs(a.y-4)-Math.abs(z.x-4)-Math.abs(z.y-4));
+  const target=targets[0];if(!target){showToast('脱走させる駒がありません');return}
+  desertionPreviewRunning=true;desertionTest.disabled=true;
+  $('boardStage').scrollIntoView({block:'start',behavior:'instant'});
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  playSampleSfx('gravel');
+  const finish=()=>{desertionPreviewRunning=false;desertionTest.disabled=false;render()};
+  animateDesertion(target.y,target.x,target.p,finish);
+  // A canceled animation must not leave the test button disabled.
+  setTimeout(()=>{if(desertionPreviewRunning)finish()},2100);
+  showToast('脱走アニメテスト（盤面は変更しません）');
+ };
+ testTools.append(awakeningTest,killTest,reinforcementTest,desertionTest);document.querySelector('.special-debug')?.insertAdjacentElement('afterend',testTools);
 
  /* Autosave only at complete turn boundaries; the scene can always be restored. */
  function saveGame(key){
