@@ -85,3 +85,13 @@
  text-align:center;line-height:1.3;min-height:70px;
 }
 #dialogueNext.story-sortie-button:focus-visible{outline:3px solid #95d9dc;outline-offset:4px}
+
+/* Let the artwork take center stage without sacrificing legibility. */
+.story-hero{
+ background-image:linear-gradient(#0f1c251c,#080f1952),url("assets/visuals/intro_shinsengumi.webp");
+}
+.scene-overlay{background:linear-gradient(transparent 0%,#060a0c16 47%,#060a0c75 100%)}
+.chapter{background-image:linear-gradient(94deg,#16252fa6,#16252f8c),url("kyoto-autumn.webp")}
+#storyBoard .sq{background-color:transparent}
+#storyBattle .person-banner{background-color:#e6d3ad}
+#storyBattle .hand-container{background-image:linear-gradient(#162c3855,#10151a78),url("assets/visuals/edo_jail.png")}
