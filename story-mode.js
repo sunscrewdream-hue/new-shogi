@@ -166,7 +166,8 @@ function render(){
   btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(p?person(p).name+" "+label(p):"空きマス"));
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
-  if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add("hint");
+  if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add(p&&p.s===1?"capture-hint":"hint");
+  if(p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
   if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token)}
   btn.onclick=()=>square(y,x);root.append(btn);
  }
@@ -178,7 +179,8 @@ function render(){
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(token,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
- $("storyStatus").textContent=ended?"対局終了":busy?"兵器攻撃中…":g.side?"敵軍、思案中…":"あなたの手番"+(g.check(g.board,0)?"　⚠王手":"");
+ $("storyStatus").textContent=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
+ $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
 }
 function square(y,x){
  if(ended||busy||g.side!==0)return;
