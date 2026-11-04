@@ -618,7 +618,7 @@ const battleVoiceUrls={
  incidentDesertion:'assets/audio/events/incident_voice_desertion.mp3',
  incidentPurge:'assets/audio/events/incident_voice_purge.mp3',
  capture:'assets/audio/voice_capture_toraeta.mp3',
- loss:'assets/audio/voice_loss_munen.mp3',
+ loss:'assets/audio/voice_loss_custom.mp3',
  sacchoChesto:'assets/audio/saccho_voice_01_chesto.mp3',
  sacchoUryaa:'assets/audio/saccho_voice_02_uryaa.mp3',
  sacchoCapture:'assets/audio/saccho_voice_03_toraeta.mp3',
@@ -705,7 +705,7 @@ const sampleSfxPaths={
  desert:'assets/audio/sfx/gravel_run.mp3',
  quake:'assets/audio/sfx/rumble.mp3',
  finish:'assets/audio/sfx/taiko_dodon.mp3',
- move:'assets/audio/sfx/sword_swing.mp3',
+ move:'assets/audio/sfx/step_soil.mp3',
  gravel:'assets/audio/sfx/gravel_run.mp3',
  slash1:'assets/audio/sfx/sword_slash_1.mp3',
  slash2:'assets/audio/sfx/sword_slash_2.mp3',
@@ -754,7 +754,7 @@ function playSampleSfx(kind){
 }
 function fxTone(freq,type,at,dur,peak,endFreq){if(!audioCtx||audioCtx.state!=='running')return;let o=audioCtx.createOscillator(),g=audioCtx.createGain(),v=Number(el('volume').value)/100,t=audioCtx.currentTime+at;o.type=type;o.frequency.setValueAtTime(freq,t);if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,peak*v),t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(audioCtx.destination);o.start(t);o.stop(t+dur+.03)}function playFx(name){unlockAudio();if(playSampleSfx(name))return;if(!audioCtx||audioCtx.state!=='running')return;if(name==='drum'){fxTone(130,'sine',0,.65,.34,48);fxTone(70,'triangle',.015,.48,.16,42);fxTone(220,'triangle',0,.1,.08,85)}else if(name==='banner'||name==='turn'){fxTone(480,'sine',0,.38,.07,900);fxTone(700,'triangle',.13,.32,.045,420)}else if(name==='card'){fxTone(900,'triangle',0,.16,.08,300);fxTone(1100,'sine',.08,.15,.04,600)}else if(name==='flip'){fxTone(550,'triangle',0,.13,.1,1100);fxTone(880,'sine',.09,.26,.065,650)}else if(name==='reinforce'){fxTone(330,'sine',0,.32,.10,440);fxTone(440,'sine',.19,.45,.12,660)}else if(name==='desert'){fxTone(460,'triangle',0,.34,.1,230);fxTone(240,'sine',.21,.5,.09,110)}else if(name==='quake'){fxTone(85,'sawtooth',0,1.55,.12,42);fxTone(55,'triangle',.15,1.3,.23,33);fxTone(130,'sine',.5,.8,.15,60)}else if(name==='finish'){fxTone(220,'sine',0,.65,.18,110);fxTone(330,'triangle',.3,.85,.15,165)}}const back=['香','桂','銀','金','玉','金','銀','桂','香'],clone=x=>JSON.parse(JSON.stringify(x));let b,h,turn,sel,left,ended,busy,epoch=0,ply=0,used=[false,false];let playerTurnReady=false,pendingPromotion=null,captureArtSerial=0,portraitSerial=0;const el=id=>document.getElementById(id),inside=(y,x)=>y>=0&&y<9&&x>=0&&x<9;
 /* Opening cue uses one mastered sound file to avoid iOS restrictions on a delayed second play. */
-const titleIntroAudio=new Audio('assets/audio/title_intro_call_taiko.mp3');
+const titleIntroAudio=new Audio('assets/audio/title_intro_new.mp3');
 titleIntroAudio.preload='auto';titleIntroAudio.playsInline=true;titleIntroAudio.loop=false;
 const sortieVoiceAudio=new Audio('assets/audio/voice_iza_shutsujin.mp3');
 sortieVoiceAudio.preload='auto';sortieVoiceAudio.playsInline=true;sortieVoiceAudio.loop=false;
@@ -808,7 +808,7 @@ function changeCustomRule(input){
  if(input.dataset.rule==='cards'&&input.checked&&!['quake','desertion','purge','reinforce'].some(k=>customSettings[k]))customSettings.quake=true;
  selectRulePreset('custom');
 }
-let positionHistory=[];let captureCounts=[0,0],bloodMarks=[],actionSerial=0,bannerSerials=[0,0],bannerTimers=[null,null],noticeSerialHitokiri=0;
+let positionHistory=[];let captureCounts={},bloodMarks=[],actionSerial=0,bannerSerials=[0,0],bannerTimers=[null,null],noticeSerialHitokiri=0;
 function setCharacterBanner(side,p,caption='',duration=2500){
  if(!p||rulePreset==='traditional')return;
  updateDialogueBanner(side,p);
@@ -1129,18 +1129,22 @@ let noticeQueue=0;function commit(m,prom=false){
  const movingPiece=!m.drop?b[m.y]?.[m.x]:(handIdentities[turn][m.t]||[])[0];
  const originSide=movingPiece?.originSide??movingPiece?.s??turn,officer=movingPiece?.cid;
  const speaker={...(movingPiece||{}),s:speakerSide,t:m.drop?m.t:movingPiece?.t,originSide};
- const forcedKill=captured&&ruleSettings.hitokiri&&captureCounts[speakerSide]>=3;
+ const capturerKey=String(originSide)+':'+String(officer??'unknown');
+ const personCaptures=Number(captureCounts[capturerKey]||0);
+ const forcedKill=captured&&ruleSettings.hitokiri&&personCaptures>=3;
  if(rulePreset!=='traditional')setCharacterBanner(speakerSide,speaker,'',0);
  if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
  apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});
  lastMove={y:m.Y,x:m.X};
- if(forcedKill){captureCounts[speakerSide]=0;playFx('purge');markBlood(m.Y,m.X);flashHitokiri('人斬り・斬殺！')}
- else{sound(captured);if(captured&&ruleSettings.hitokiri&&++captureCounts[speakerSide]===3)flashHitokiri('人斬り覚醒');}
+ if(forcedKill){captureCounts[capturerKey]=0;playFx('purge');markBlood(m.Y,m.X);flashHitokiri('人斬り・斬殺！')}
+ else{sound(captured);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=personCaptures+1;if(captureCounts[capturerKey]===3)flashHitokiri('人斬り覚醒');}}
  const gaveCheck=check(b,1-speakerSide);
  const actor=originSide===0
   ?(officer===0?'kondoIsami':officer===1?'hijikataToshizo':chooseMoveVoice(speakerSide,captured,prom,gaveCheck))
   :(officer===0?'saigoTakamori':officer===2?'kidoTakayoshi':chooseMoveVoice(speakerSide,captured,prom,gaveCheck));
- const voiceKey=gaveCheck?'oute':actor;
+ const dedicatedDialogue=['kondoIsami','hijikataToshizo','saigoTakamori','kidoTakayoshi'].includes(actor);
+ const nearbyEnemy=b.some((row,Y)=>row.some((piece,X)=>piece&&piece.s!==speakerSide&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
+ const voiceKey=gaveCheck?'oute':dedicatedDialogue?actor:(nearbyEnemy&&Math.random()<.45?actor:null);
  sel=null;turn=1-turn;ply++;playerTurnReady=false;
  if(rulePreset==='traditional')positionHistory.push({key:positionKey(b,h,turn),mover:speakerSide,gaveCheck});
  if(quakeHoles.length){quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}
@@ -1164,7 +1168,7 @@ let noticeQueue=0;function commit(m,prom=false){
   const e=epoch;
   setTimeout(()=>{if(e!==epoch)return;animateCaptureEscort(speakerSide,m.Y,m.X,capturedPiece,()=>{animationCompleted=true;resume()})},160);
  }
- const voiceStart=()=>{if(thisEpoch===epoch&&!ended)playMoveBattleVoice(voiceKey,speakerSide,()=>{voiceCompleted=true;resume()})};
+ const voiceStart=()=>{if(thisEpoch!==epoch||ended)return;if(!voiceKey){voiceCompleted=true;resume();return}playMoveBattleVoice(voiceKey,speakerSide,()=>{voiceCompleted=true;resume()})};
  if(captured&&rulePreset!=='traditional')setTimeout(voiceStart,420);else voiceStart();
 }
 function tap(y,x){if(!playerTurnReady||ended||busy||incidentRunning||pendingCardSide!==null||(gameMode==='ai'&&turn!==0))return;let p=b[y][x],all=legalMoves(b,h,turn);if(sel){let m=all.find(m=>m.Y===y&&m.X===x&&(sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x));if(m){if(!m.drop&&promote(b[m.y][m.x],m.y,m.Y)&&!forced(b[m.y][m.x],m.Y)){askPromotion(m);return}commit(m,false);return}}sel=p?.s===turn?{y,x}:null;if(sel)showOfficer(p);render()}
@@ -1401,7 +1405,7 @@ function runIncidentEffect(){
   if(!didRemove){finish();return}
   if(effect.kind==='粛清'){playFx('purge');markBlood(effect.y,effect.x)}
   if(effect.kind==='援軍'){showCaptureArt(effect.side);incidentSfx()}
-  if(effect.kind==='脱走')incidentSfx();
+  if(effect.kind==='脱走'){incidentSfx();finish();return}
   const voice=effect.kind==='援軍'?(effect.side===1?'sacchoCapture':'capture')
               :(effect.owner===1?'sacchoLoss':'loss');
   const clip=playBattleVoice(voice,finish);
@@ -1541,4 +1545,4 @@ function cycleKyotoSeason(){setKyotoSeason(currentSeasonIndex+1)}
 setKyotoSeason(currentSeasonIndex);setInterval(()=>{const d=new Date();const month=d.getMonth()+1;const desired=Math.floor(((month-3+12)%12)/3);if(desired!==currentSeasonIndex)setKyotoSeason(desired)},60*60*1000);reset();
 /* Attempt first-page title playback. Browsers that block autoplay offer the replay button. */
 setTimeout(()=>{if(!document.hidden&&!el('titleScreen').classList.contains('hidden'))playTitleIntro()},240);
-</script></html>
+</script><script src="game-language.js" defer></script></html>

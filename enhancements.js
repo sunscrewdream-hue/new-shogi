@@ -15,7 +15,10 @@
  function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),3100)}
 
  /* A phone cannot autoplay without a gesture. The first title interaction unlocks it. */
- function syncTitleVolume(){titleAudio.volume=Math.min(.6,Number($('volume').value)/100)}
+ function syncTitleVolume(){titleAudio.volume=Math.min(.6,Number($('volume').value)/100)*(titleIntroAudio.paused?1:.18)}
+ titleIntroAudio.addEventListener('play',syncTitleVolume);
+ titleIntroAudio.addEventListener('ended',syncTitleVolume);
+ titleIntroAudio.addEventListener('pause',syncTitleVolume);
  function playTitleMusic(){
   if(!bgmEnabled||document.hidden||!titleIsVisible())return;
   syncTitleVolume();const p=titleAudio.play();if(p?.catch)p.catch(()=>{});
@@ -37,6 +40,8 @@
  startGame=function(){baseStart();stopTitleMusic()};
  const baseRestart=restartGame;
  restartGame=function(){baseRestart();stopTitleMusic()};
+ const baseReset=reset;
+ reset=function(){baseReset();captureCounts={}};
  $('volume').addEventListener('input',syncTitleVolume);
 
  /* PWA, fullscreen button, title/manual/navigation. */
@@ -170,6 +175,14 @@
   setTimeout(()=>{if(ep===epoch&&id===noticeSerialHitokiri)notice.classList.remove('show')},1800);
  };
 
+ /* These visual tests leave the actual match and character counters unchanged. */
+ const testTools=document.createElement('span');testTools.className='special-debug';testTools.id='hitokiriTestTools';
+ const awakeningTest=document.createElement('button');awakeningTest.type='button';awakeningTest.textContent='⚔ 人斬り覚醒テスト';
+ awakeningTest.onclick=()=>{if(titleIsVisible())return;flashHitokiri('人斬り覚醒');showToast('人斬り覚醒：演出プレビュー（捕縛数は変わりません）')};
+ const killTest=document.createElement('button');killTest.type='button';killTest.textContent='🩸 斬殺演出テスト';
+ killTest.onclick=()=>{if(titleIsVisible())return;const focus=lastMove||{y:4,x:4};playFx('purge');markBlood(focus.y,focus.x);flashHitokiri('人斬り・斬殺！');showToast('斬殺：演出プレビュー（駒は変わりません）')};
+ testTools.append(awakeningTest,killTest);document.querySelector('.special-debug')?.insertAdjacentElement('afterend',testTools);
+
  /* Autosave only at complete turn boundaries; the scene can always be restored. */
  function saveGame(key){
   if(!b||ended)return false;
@@ -190,7 +203,7 @@
   b=clone(data.b);h=clone(data.h);handIdentities=clone(data.handIdentities||[{},{}]);
   turn=data.turn;ply=data.ply||0;used=clone(data.used||[false,false]);left=clone(data.left||[0,0]);
   lastMove=data.lastMove||null;positionHistory=clone(data.positionHistory||[]);
-  captureCounts=clone(data.captureCounts||[0,0]);quakeHoles=clone(data.quakeHoles||[]);quakeCracks=clone(data.quakeCracks||[]);
+  captureCounts=Array.isArray(data.captureCounts)?{}:clone(data.captureCounts||{});quakeHoles=clone(data.quakeHoles||[]);quakeCracks=clone(data.quakeCracks||[]);
   rulePreset=data.rulePreset||'full';ruleSettings=clone(data.ruleSettings||allRules);customSettings=clone(data.customSettings||allRules);
   gameMode=data.gameMode==='local'?'local':'ai';aiLevel=[0,1,2].includes(data.aiLevel)?data.aiLevel:1;
   $('rulePreset').value=rulePreset;selectRulePreset(rulePreset);ruleSettings=clone(data.ruleSettings||allRules);
@@ -247,14 +260,16 @@
  const baseResolveCard=resolveCard;
  resolveCard=function(s){baseResolveCard(s);if(incidentEffect?.kind==='援軍')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する')};
 
- /* Transparent-versus-stage end animation using matching new bust art. */
+ /* One illustrated result scene: towering victor and kneeling defeated officer. */
  const baseVictory=showVictory;
  showVictory=function(winner,reason='詰み'){
   baseVictory(winner,reason);
   if($('endOverlay').classList.contains('show')){
-   $('endWinnerImage').src=winner===0?'assets/visuals/victory_kondo_cutout.webp':'assets/visuals/victory_saigo_cutout.webp';
-   $('endLoserImage').src=winner===0?'assets/visuals/victory_saigo_cutout.webp':'assets/visuals/victory_kondo_cutout.webp';
-   $('endText').textContent='勝負あった！ '+(winner===0?'新選組':'薩長同盟')+'の勝利';
+   $('endWinnerImage').src=winner===0?'assets/visuals/victory_shinsengumi_scene.webp':'assets/visuals/victory_saccho_scene.webp';
+   $('endWinnerImage').alt=(winner===0?'新選組':'薩長同盟')+'勝利、敗軍は膝をつく';
+   $('endLoserImage').style.display='none';
+   $('endText').textContent='勝負あった！';
+   $('endPanel').setAttribute('data-winning-side',winner===0?'shinsengumi':'saccho');
   }
  };
 

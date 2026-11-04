@@ -43,3 +43,33 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #endPanel button{min-width:126px}
 @media(orientation:portrait){#endPanel .endIllustration{width:69vw;height:64dvh;top:10%}#endWinnerImage{left:-26%}#endLoserImage{right:-28%}#endText{font-size:clamp(27px,9vw,50px)}}
 @media(prefers-reduced-motion:reduce){#endWinnerImage,#endLoserImage{animation:none!important}}
+
+/* Uniform ink stays readable over faint, historically themed ornament. */
+.shogi-token:after{background-image:url('assets/piece-pattern-shinsengumi.svg'),linear-gradient(140deg,#6192ab,var(--token-fill) 42%,#163f58);background-size:100% 100%;background-repeat:no-repeat}
+.shogi-token.enemy-token:after{background-image:url('assets/piece-pattern-saccho.svg'),linear-gradient(140deg,#cb7370,var(--token-fill) 42%,#6a242b)}
+.shogi-token.promoted-token:after{background-image:url('assets/piece-pattern-shinsengumi.svg'),linear-gradient(140deg,#8e6f34,#415f60 44%,#27475f)}
+.shogi-token.enemy-token.promoted-token:after{background-image:url('assets/piece-pattern-saccho.svg'),linear-gradient(140deg,#ae733d,#a13f40 48%,#571d20)}
+
+/* New blue-and-white dandara haori-inspired title background. */
+#titleScreen{background:radial-gradient(ellipse at 48% 35%,#257da0 0%,#125275 39%,#102f48 66%,#091728 100%)!important;isolation:isolate}
+#titleScreen:before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.67;background:url('assets/visuals/dandara_title_pattern.svg') center/cover no-repeat}
+#titleScreen:after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at center,#06172416,#02091477 90%)}
+#titleInner{position:relative;z-index:1;padding:clamp(12px,3vw,24px);border-radius:15px;background:linear-gradient(#061d2b29,#071824a8);box-shadow:0 15px 55px #03111f70}
+#titleSub,#titleFoot{color:#d3f0fa!important}
+#hitokiriTestTools{display:inline-flex;gap:5px;flex-wrap:wrap;justify-content:center}
+#hitokiriTestTools button{font-size:12px;font-weight:800;padding:9px;border:1px solid #b87954;border-radius:6px;background:#472525;color:#f4dac0}
+.language-toggle{display:inline-flex;justify-content:center;align-items:center;font-size:13px!important;font-weight:900!important;color:#fcdfa9!important;background:#19394d!important;border:1px solid #d4ae60!important;border-radius:6px;padding:8px 12px;margin:6px}
+
+/* Unframed full-screen victory art. One image includes both opposing figures. */
+#endOverlay{background:radial-gradient(ellipse at 50% 50%,#241d21,#090b13 76%)!important}
+#endPanel{width:100vw!important;max-width:none!important;max-height:100dvh!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+#endPanel .endIllustration#endWinnerImage{position:absolute!important;top:0!important;left:50%!important;right:auto!important;width:100vw!important;max-width:1500px!important;height:92dvh!important;max-height:none!important;object-fit:contain!important;object-position:center bottom!important;z-index:0!important;filter:drop-shadow(0 5px 12px #0009)!important;animation:victorySceneIn .8s cubic-bezier(.18,.86,.2,1.04) both!important}
+#endPanel .endIllustration#endLoserImage{display:none!important}
+@keyframes victorySceneIn{from{opacity:0;transform:translateX(-50%) translateY(10%) scale(.84)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+#endPanel:before,#endPanel:after{position:absolute;z-index:2;pointer-events:none;font-family:'Yu Mincho','Hiragino Mincho ProN',serif;font-weight:1000;line-height:1.05;font-style:italic;letter-spacing:.04em;text-shadow:2px 4px 0 #160908,4px 6px 12px #000,0 0 20px #0007;transform:skew(-8deg)}
+#endPanel:before{content:'勝利';left:4%;top:27%;color:#fbe296;font-size:clamp(46px,10.4vw,140px);-webkit-text-stroke:2px #b47323}
+#endPanel:after{content:'敗北';right:7%;top:63%;color:#f1eee7;font-size:clamp(35px,8vw,100px);-webkit-text-stroke:1px #53667b}
+#endPanel #endText{z-index:3!important;position:relative!important;margin:0 0 12px!important;font-size:clamp(27px,5.6vw,66px)!important;letter-spacing:.1em;color:#f6d48a!important;background:linear-gradient(90deg,transparent,#0b101cdd 25%,#0b101cdd 75%,transparent)!important}
+#endPanel #endActions{z-index:4!important;background:linear-gradient(transparent,#070b13e8)!important}
+@media(orientation:portrait){#endPanel .endIllustration#endWinnerImage{width:142vw!important;max-width:none!important;height:75dvh!important;top:8%!important}#endPanel:before{left:4%;top:22%;font-size:clamp(43px,14vw,85px)}#endPanel:after{right:6%;top:55%;font-size:clamp(30px,11vw,68px)}}
+@media(prefers-reduced-motion:reduce){#endPanel .endIllustration#endWinnerImage{animation:none!important;transform:translateX(-50%)}}

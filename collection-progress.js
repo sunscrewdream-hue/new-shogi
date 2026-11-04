@@ -14,7 +14,7 @@
  cards.forEach((card,i)=>{
   card.dataset.characterIndex=String(i);
   const portrait=card.querySelector('.portrait');portrait.textContent='';
-  const img=document.createElement('img');img.loading='lazy';img.alt='';img.src='assets/portraits/'+String(i+1).padStart(2,'0')+'.png';
+  const img=document.createElement('img');img.loading='lazy';img.alt='';img.src='assets/portraits/'+String(i+1).padStart(2,'0')+'.webp';
   portrait.append(img);
  });
  const refresh=()=>{
@@ -24,7 +24,7 @@
    const heading=card.querySelector('summary h3');heading.textContent=unlocked?names[i]:'未収録';
    const portrait=card.querySelector('.portrait');portrait.style.removeProperty('color');
    if(!unlocked){card.open=false;portrait.querySelector('img').style.display='none';portrait.textContent='？'}
-   else{if(!portrait.querySelector('img')){portrait.textContent='';const img=document.createElement('img');img.src='assets/portraits/'+String(i+1).padStart(2,'0')+'.png';img.loading='lazy';img.alt='';portrait.append(img)};portrait.querySelector('img').style.display='block'}
+   else{if(!portrait.querySelector('img')){portrait.textContent='';const img=document.createElement('img');img.src='assets/portraits/'+String(i+1).padStart(2,'0')+'.webp';img.loading='lazy';img.alt='';portrait.append(img)};portrait.querySelector('img').style.display='block'}
   });
   document.getElementById('collectionTotal').textContent=owned.size+' / 40';
   document.getElementById('collectionFill').style.width=(owned.size/40*100)+'%';
@@ -37,4 +37,5 @@
   refresh();
  };
  refresh();
+ const localization=document.createElement('script');localization.src='game-language.js';localization.defer=true;document.body.append(localization);
 })();
