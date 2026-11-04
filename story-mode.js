@@ -84,6 +84,7 @@ function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
  const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.remove("hidden");face.classList.remove("revealed");face.style.backgroundImage=`url("${side===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp"}")`;
+ face.style.animation="none";void face.offsetWidth;face.style.animation="";
  $("compactCardHeading").textContent=side===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";$("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
  $("compactIncidentBanner").classList.add("show");sfx("card");const game=epoch;
  setTimeout(()=>{if(game===epoch)$("compactIncidentBanner").classList.remove("show")},1250);
@@ -101,7 +102,7 @@ function compactCardReveal(){
   }
  }
  const face=$("compactCardFace");face.style.backgroundImage=`url("${compactCardFaces[kind]}")`;face.classList.add("revealed");
- $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;$("compactCardPrompt").textContent="もう一度タップして閉じる";
+ $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;$("compactCardPrompt").textContent="";
  state.voiceDone=false;
  if(soundOff){state.voiceDone=true;return}
  const audio=new Audio(compactCardVoices[kind]);audio.volume=voiceLevel();let settled=false;
