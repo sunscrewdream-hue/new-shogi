@@ -30,7 +30,7 @@ function sfx(t){
 function compactMode(){return stage===0||stage===2}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
- move1:"assets/audio/voice_saccho_move_chesto.mp3",
+ move1:"assets/audio/voice_saccho_move_taa.mp3",
  check:"assets/audio/voice_oute.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
