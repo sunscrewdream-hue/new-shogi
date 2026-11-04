@@ -290,3 +290,17 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  #storyBoard.small-board{width:min(84vw, 245px, max(170px, calc(83.333dvh - 250px)))!important}
  #storyBattle .person-banner{max-height:64px}
 }
+
+/* Completed-match sequence: transparent calligraphy ON THE BOARD first,
+   then the dark card overlay and card-drop animation after 1300ms. */
+.compact-incident-stage{position:fixed;inset:0;z-index:204;pointer-events:none;
+ display:grid;place-items:center;background:transparent}
+.compact-incident-stage .compact-incident-title{display:block;opacity:1;width:min(86vw,540px);height:auto;
+ max-height:28dvh;object-fit:contain;filter:drop-shadow(0 4px 9px #0009);
+ animation:compactIncidentInkArrival .62s cubic-bezier(.15,.66,.25,1) both}
+@keyframes compactIncidentInkArrival{
+ from{opacity:0;transform:scale(1.17) translateY(8px)}
+ 65%{opacity:1;transform:scale(.99) translateY(0)}
+ to{opacity:1;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){.compact-incident-stage .compact-incident-title{animation:none}}
