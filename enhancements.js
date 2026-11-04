@@ -248,7 +248,25 @@
  /* These visual tests leave the actual match and character counters unchanged. */
  const testTools=document.createElement('span');testTools.className='special-debug';testTools.id='hitokiriTestTools';
  const awakeningTest=document.createElement('button');awakeningTest.type='button';awakeningTest.textContent='⚔ 人斬り覚醒テスト';
- awakeningTest.onclick=()=>{if(titleIsVisible())return;flashHitokiri('人斬り覚醒');const seal=hitokiriSeals[turn];seal.classList.add('preview');const ep=epoch;setTimeout(()=>{if(ep===epoch)seal.classList.remove('preview')},2500);showToast('人斬り覚醒：演出プレビュー（捕縛数は変わりません）')};
+ let awakeningPreviewSide=null;
+ awakeningTest.onclick=()=>{
+  if(titleIsVisible())return;
+  if(awakeningPreviewSide!==null){
+   const side=awakeningPreviewSide;awakeningPreviewSide=null;
+   hitokiriSeals[side].classList.remove('preview');
+   awakeningTest.textContent='⚔ 人斬り覚醒テスト';
+   if(!hitokiriSeals[side].classList.contains('active'))clearCharacterBanner(side);
+   showToast('覚醒印プレビューを解除しました');return;
+  }
+  const side=gameMode==='ai'?0:turn;
+  const person=visibleBannerPersons[side]||b.flat().find(p=>p?.s===side&&p.t==='玉')||b.flat().find(p=>p?.s===side);
+  if(!person)return;
+  setCharacterBanner(side,person,'',0);
+  hitokiriSeals[side].classList.add('preview');
+  awakeningPreviewSide=side;
+  awakeningTest.textContent='⚔ 覚醒印テスト解除';
+  showToast('覚醒印をバナー中央に持続表示中（もう一度押すと解除）');
+ };
  const killTest=document.createElement('button');killTest.type='button';killTest.textContent='🩸 斬殺演出テスト';
  killTest.onclick=()=>{if(titleIsVisible())return;const focus=lastMove||{y:4,x:4};playFx('purge');markBlood(focus.y,focus.x);flashHitokiri('人斬り・斬殺！');showToast('斬殺：演出プレビュー（駒は変わりません）')};
  // The preview stages a defection without changing the saved board or captured-piece counts.
