@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false,compactTurnLocked=false,compactFxSerial=0;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={};
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t){
@@ -28,11 +28,13 @@ function sfx(t){
 // 5x6 only: reuse the finished game's ORIGINAL images and audio files.
 // Card mechanics are deliberately not introduced on compact chapter boards.
 function compactMode(){return stage===0||stage===2}
+function compactFighterKey(p){return String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown')}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  check:"assets/audio/voice_oute.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
+ kill:"assets/audio/sfx/purge_shukusei.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
 };
 function compactSound(kind){
@@ -104,6 +106,7 @@ function person(p){
 function banner(s,p){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
+ if(compactMode())$(prefix+"StoryBanner").classList.toggle("compact-awakened",(compactCaptures[compactFighterKey(p)]||0)>=3);else $(prefix+"StoryBanner").classList.remove("compact-awakened");
  $(prefix+"StoryName").textContent=a.name;
  $(prefix+"StoryRole").textContent=a.role+" ／ "+label(p);
  image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
@@ -147,7 +150,7 @@ $("storyBoard").addEventListener("pointerout",event=>{
 $("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
- hideCompactFx();restoreStoryHover();window.StoryBgm?.stop();
+ hideCompactFx();compactCaptures={};restoreStoryHover();window.StoryBgm?.stop();
  $("storyDevToggle").textContent=devPreview?"🛠 開発テスト：終了して通常表示へ":"🛠 開発テスト：全章を表示";
  $("storyDevToggle").setAttribute("aria-pressed",String(devPreview));
  $("storyDevNote").hidden=!devPreview;
@@ -199,7 +202,7 @@ function line(){
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
 function battle(i){
- hideCompactFx();
+ hideCompactFx();compactCaptures={};
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
@@ -252,8 +255,19 @@ function square(y,x){
  selected=p?.s===0?{y,x}:null;render();if(p)banner(p.s,p);
 }
 function makeMove(m,prom){
- const actor=g.side,{unit,captured}=g.move(m,prom);
- if(captured){sfx("capture");compactCapture(actor);if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound("move"+actor);else sfx("move");
+ const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
+ const key=compactFighterKey(source),before=compactCaptures[key]||0;
+ const willKill=compactMode()&&!m.drop&&!!g.board[m.Y][m.X]&&before>=3;
+ const {unit,captured}=g.move(m,prom,willKill);
+ if(compactMode()&&captured){
+  compactCaptures[key]=willKill?0:before+1;
+  if(willKill)compactSound("kill");
+  else if(compactCaptures[key]===3){
+   $("compactAwakenNotice").classList.add("show");const game=epoch;
+   setTimeout(()=>{if(game===epoch)$("compactAwakenNotice").classList.remove("show")},1600);
+  }
+ }
+ if(captured){if(!willKill)sfx("capture");compactCapture(actor);if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound("move"+actor);else sfx("move");
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(result){finish(result.winner,result.why);return}
  if(compactMode()){
