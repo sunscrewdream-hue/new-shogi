@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false,compactTurnLocked=false,compactFxSerial=0;
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t){
@@ -24,6 +24,53 @@ function sfx(t){
   noise.buffer=buf;filter.type="lowpass";filter.frequency.value=t==="cannon"?850:1600;gain.gain.value=t==="cannon"?.4:.2;
   noise.connect(filter).connect(gain).connect(audioContext.destination);noise.start();
  }catch(e){}
+}
+// 5x6 only: reuse the finished game's ORIGINAL images and audio files.
+// Card mechanics are deliberately not introduced on compact chapter boards.
+function compactMode(){return stage===0||stage===2}
+const compactAudio={
+ move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
+ move1:"assets/audio/voice_saccho_move_chesto.mp3",
+ check:"assets/audio/voice_oute.mp3",
+ slash:"assets/audio/sfx/sword_slash_2.mp3",
+ turn:"assets/audio/sfx/taiko_kaka.mp3"
+};
+function compactSound(kind){
+ if(soundOff)return;
+ const src=compactAudio[kind];if(!src)return;
+ try{const a=new Audio(src);a.volume=kind==="turn"?.4:kind==="check"?.6:.62;a.play().catch(()=>{})}catch(e){}
+}
+function hideCompactFx(){
+ compactFxSerial++;
+ compactTurnLocked=false;
+ $("compactTurnNotice").classList.remove("show");
+ $("compactCaptureNotice").classList.remove("show");
+}
+function compactTurn(side,after){
+ if(!compactMode()||ended)return after?.();
+ const stamp=++compactFxSerial,game=epoch;
+ compactTurnLocked=true;
+ const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
+ const title=side===0?"新選組の手番！":"敵軍の手番！";
+ art.src=side===0?"assets/turn-notice/turn_shinsengumi_illustrated.png":"assets/turn-notice/turn_enemy_illustrated.png";
+ art.alt=title;art.style.display="block";fallback.textContent=title;fallback.classList.add("hidden");
+ art.onerror=()=>{art.style.display="none";fallback.classList.remove("hidden")};
+ panel.classList.add("show");compactSound("turn");render();
+ setTimeout(()=>{
+  if(game!==epoch||stamp!==compactFxSerial||ended)return;
+  panel.classList.remove("show");
+  compactTurnLocked=false;render();
+  if(g.check(g.board,side))compactSound("check");
+  after?.();
+ },1800);
+}
+function compactCapture(side){
+ if(!compactMode())return;
+ const panel=$("compactCaptureNotice");
+ $("compactCaptureArt").src=side===0?"assets/visuals/capture_shinsengumi.webp":"assets/visuals/capture_saccho.webp";
+ panel.classList.remove("show");void panel.offsetWidth;panel.classList.add("show");
+ compactSound("slash");const game=epoch;
+ setTimeout(()=>{if(game===epoch)panel.classList.remove("show")},1500);
 }
 function popup(title,text,options,img){
  const modal=$("storyPopup");$("popupTitle").textContent=title;$("popupText").textContent=text;
@@ -100,7 +147,7 @@ $("storyBoard").addEventListener("pointerout",event=>{
 $("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
- restoreStoryHover();window.StoryBgm?.stop();
+ hideCompactFx();restoreStoryHover();window.StoryBgm?.stop();
  $("storyDevToggle").textContent=devPreview?"🛠 開発テスト：終了して通常表示へ":"🛠 開発テスト：全章を表示";
  $("storyDevToggle").setAttribute("aria-pressed",String(devPreview));
  $("storyDevNote").hidden=!devPreview;
@@ -152,6 +199,7 @@ function line(){
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
 function battle(i){
+ hideCompactFx();
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
@@ -159,13 +207,13 @@ function battle(i){
  board.classList.toggle("small-board",ch.w===5);
  document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
- banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();
+ banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();if(compactMode())compactTurn(0);
 }
 function render(){
  restoreStoryHover();
  if(!g||$("storyBattle").classList.contains("hidden"))return;
  const root=$("storyBoard");root.replaceChildren();
- const legal=!ended&&!busy&&g.side===0?g.legal(0):[];
+ const legal=!ended&&!busy&&!compactTurnLocked&&g.side===0?g.legal(0):[];
  const targets=selected?legal.filter(m=>selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x):[];
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
   const p=g.board[y][x],btn=document.createElement("button");btn.type="button";btn.className="sq";btn.setAttribute("role","gridcell");
@@ -180,7 +228,7 @@ function render(){
  for(const s of [0,1]){
   const hand=$("storyHand"+s);hand.replaceChildren();const groups={};g.hands[s].forEach(p=>groups[p.t]=(groups[p.t]||0)+1);
   if(!g.hands[s].length)hand.textContent="なし";
-  for(const t of Object.keys(groups)){const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.setAttribute("aria-label",(s===0?"自軍":"敵軍")+"の持駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||s===1||g.side!==0;
+  for(const t of Object.keys(groups)){const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.setAttribute("aria-label",(s===0?"自軍":"敵軍")+"の持駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
    const token=document.createElement("span");token.className="story-token"+(s===1?" enemy":"");token.textContent=t;token.setAttribute("aria-hidden","true");
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(token,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
@@ -189,7 +237,7 @@ function render(){
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
 }
 function square(y,x){
- if(ended||busy||g.side!==0)return;
+ if(ended||busy||compactTurnLocked||g.side!==0)return;
  const legal=g.legal(0),p=g.board[y][x];
  if(selected){
   const m=legal.find(m=>m.Y===y&&m.X===x&&(selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x));
@@ -205,9 +253,14 @@ function square(y,x){
 }
 function makeMove(m,prom){
  const actor=g.side,{unit,captured}=g.move(m,prom);
- if(captured){sfx("capture");if(actor===0)collect(captured);banner(1-actor,captured)}else sfx("move");
+ if(captured){sfx("capture");compactCapture(actor);if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound("move"+actor);else sfx("move");
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(result){finish(result.winner,result.why);return}
+ if(compactMode()){
+  if(g.side===1){busy=true;render();compactTurn(1,()=>{const id=epoch;setTimeout(()=>{if(id===epoch)computer()},420)});}
+  else compactTurn(0);
+  return;
+ }
  if(g.side===1){busy=true;render();const id=epoch;setTimeout(()=>{if(id===epoch)computer()},420)}
 }
 function computer(){
@@ -234,7 +287,7 @@ async function fire(kind){
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
 }
 function finish(winner,reason){
- if(ended)return;epoch++;ended=true;busy=false;render();if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
+ if(ended)return;epoch++;hideCompactFx();ended=true;busy=false;render();if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
  if(win&&!devPreview){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
