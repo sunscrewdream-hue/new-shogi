@@ -99,19 +99,19 @@
 /* Compact chapter boards: keep two portrait banners and both hands usable.
    5x6 scales with available viewport HEIGHT as well as width. 9x9 unchanged. */
 #storyBoard.small-board{
- width:min(90vw, 440px, calc((100dvh - 330px)*5/6))!important;
+ width:min(90vw, 440px, clamp(220px, calc(83.333dvh - 275px), 440px))!important;
  max-width:100%!important;
  border-width:3px!important;
  margin:4px auto!important;
 }
 @media(min-width:700px){
  #storyBoard.small-board{
-  width:min(440px, 46vw, calc((100dvh - 320px)*5/6))!important;
+  width:min(440px, 46vw, clamp(220px, calc(83.333dvh - 267px), 440px))!important;
  }
 }
 @media(max-height:700px){
  #storyBoard.small-board{
-  width:min(88vw, 370px, calc((100dvh - 285px)*5/6))!important;
+  width:min(88vw, 370px, clamp(200px, calc(83.333dvh - 238px), 370px))!important;
  }
  #storyBattle .person-banner{max-height:70px}
  #storyBattle .hand-container{min-height:35px}
