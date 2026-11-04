@@ -146,7 +146,10 @@ function line(){
  if(at>=dialog.length){const fn=onEnd;onEnd=null;fn();return}
  $("dialogueSpeaker").textContent=dialog[at][0];$("dialogueBody").textContent=dialog[at][1];
  $("dialogueCount").textContent=(at+1)+" / "+dialog.length;
- $("dialogueNext").textContent=at===dialog.length-1?(stage>=0&&stage<4?"出陣する ›":"物語を閉じる"):"続ける ›";
+ const sortie=at===dialog.length-1&&stage>=0&&stage<4;
+ $("dialogueNext").textContent=sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"続ける ›";
+ $("dialogueNext").classList.toggle("story-sortie-button",sortie);
+ $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
 function battle(i){
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
@@ -248,7 +251,18 @@ function leave(){
  popup("対局を中断しますか？","途中の対局は保存されません。",[["章選択へ",()=>{epoch++;ended=true;busy=false;screenHome()}],["戻る",()=>{}]]);
 }
 $( "storyDevToggle" ).onclick=()=>{devPreview=!devPreview;screenHome()};
-$("dialogueNext").onclick=()=>{at++;line()};
+const storySortieVoice=new Audio("assets/audio/voice_iza_shutsujin.mp3");
+storySortieVoice.preload="auto";storySortieVoice.playsInline=true;
+$("dialogueNext").onclick=()=>{
+ const sortie=stage>=0&&stage<4&&at===dialog.length-1;
+ if(sortie&&!soundOff){
+  window.StoryBgm?.duck();
+  try{storySortieVoice.pause();storySortieVoice.currentTime=0;storySortieVoice.volume=.68;
+   const playing=storySortieVoice.play();if(playing?.catch)playing.catch(()=>{});
+  }catch(e){}
+ }
+ at++;line();
+};
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
 $("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では敵軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
