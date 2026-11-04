@@ -51,6 +51,31 @@ function hideCompactFx(){
  $("compactCaptureNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;
+ $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
+}
+function compactIntro(){
+ if(!compactMode())return;
+ const game=epoch,root=$("compactIntroClash");root.classList.remove("show");void root.offsetWidth;root.classList.add("show");
+ setTimeout(()=>{if(game!==epoch||ended)return;root.classList.remove("show");busy=false;compactTurn(0,null,true)},2600);
+}
+function animateCompactEscort(side,y,x,captive,done){
+ // Adapted from the finished 9x9 game's animateCaptureEscort; board coordinates use g.w.
+ const cell=$("storyBoard").children[y*g.w+x],jail=$("storyHand"+side)?.closest(".hand-container");
+ const rect=cell?.getBoundingClientRect(),goal=jail?.getBoundingClientRect(),layer=$("compactActionLayer"),game=epoch;
+ if(!rect||!goal||!Element.prototype.animate||window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){setTimeout(done,180);return}
+ const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
+ const targetX=rect.left+rect.width/2-width/2,targetY=rect.top+rect.height/2-height/2;
+ const goalX=goal.left+goal.width/2-width/2,goalY=goal.top+goal.height/2-height/2;
+ const startX=side===0?-width-20:innerWidth+20;
+ function sprite(src,left,top){const img=document.createElement("img");img.src=src;img.alt="";Object.assign(img.style,{left:left+"px",top:top+"px",width:width+"px",height:height+"px"});layer.append(img);return img}
+ const guard=sprite("assets/sprites/figures/"+(side===0?"shinsengumi_back":"saccho_front")+".webp",startX,targetY);
+ const captiveSprite=sprite("assets/sprites/figures/"+(captive?.s===0?"shinsengumi_back":"saccho_front")+".webp",targetX,targetY);
+ const dx=targetX-startX,dy=goalY-targetY,carryX=goalX-targetX;
+ const animations=[
+  guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"}),
+  captiveSprite.animate([{offset:0,opacity:0},{offset:.38,opacity:0},{offset:.48,opacity:1},{offset:.87,opacity:1,transform:`translate(${carryX}px,${dy}px) scale(.7)`},{offset:1,opacity:0,transform:`translate(${carryX}px,${dy}px) scale(.5)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"})
+ ];
+ Promise.allSettled(animations.map(a=>a.finished)).then(()=>{guard.remove();captiveSprite.remove();if(game===epoch)done()});
 }
 function compactTurn(side,after,opening=false){
  if(!compactMode()||ended)return after?.();
@@ -234,7 +259,7 @@ function battle(i){
  board.classList.toggle("small-board",ch.w===5);
  document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
- banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();if(compactMode())compactTurn(0,null,true);
+ banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();if(compactMode()){busy=true;render();compactIntro()}
 }
 function render(){
  restoreStoryHover();
@@ -300,14 +325,16 @@ function makeMove(m,prom){
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
-  setTimeout(()=>{
+  const afterFx=()=>{
    if(id!==epoch||ended)return;
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
    if(g.side===1){compactTurn(1,()=>{if(id===epoch)setTimeout(()=>{if(id===epoch)computer()},420)});}
    else compactTurn(0);
-  },captured?1700:prom?600:320);
+  };
+  if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
+  else setTimeout(afterFx,captured?1700:prom?600:320);
   return;
  }
  if(result){finish(result.winner,result.why);return}
