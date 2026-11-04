@@ -119,3 +119,29 @@
 @media(max-height:520px){
  #storyBoard.small-board{width:min(80vw,270px)!important}
 }
+
+/* The original main-match artwork, only for compact 5x6 historical battles. */
+.compact-game-fx{
+ position:fixed;inset:0;z-index:90;
+ display:none;align-items:center;justify-content:center;
+ padding:env(safe-area-inset-top) 6vw env(safe-area-inset-bottom);
+ pointer-events:none;background:#07111c82;
+}
+.compact-game-fx.show{display:flex;animation:storyFxFade .22s ease-out both}
+.compact-game-fx img{
+ display:block;width:min(88vw,600px);max-height:78dvh;
+ object-fit:contain;filter:drop-shadow(0 8px 25px #000b);
+ animation:storyFxEnter .55s cubic-bezier(.2,.8,.2,1) both;
+}
+.compact-game-fx #compactTurnFallback{
+ padding:12px 22px;border:2px solid #ebd39b;
+ background:#112d40e8;color:#ffe3a7;text-align:center;
+ font:900 clamp(25px,7vw,55px) serif;
+}
+.compact-capture-fx{z-index:89;background:transparent}
+.compact-capture-fx img{width:min(92vw,650px);max-height:60dvh}
+@keyframes storyFxFade{from{opacity:0}to{opacity:1}}
+@keyframes storyFxEnter{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){
+ .compact-game-fx.show,.compact-game-fx img{animation:none}
+}
