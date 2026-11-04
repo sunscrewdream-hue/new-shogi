@@ -195,7 +195,7 @@ function square(y,x){
   }
  }
  if(p?.s===1){banner(1,p);return}
- selected=p?.s===0?{y,x}:null;if(p)banner(p.s,p);render();
+ selected=p?.s===0?{y,x}:null;render();if(p)banner(p.s,p);
 }
 function makeMove(m,prom){
  const actor=g.side,{unit,captured}=g.move(m,prom);
