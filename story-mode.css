@@ -140,8 +140,6 @@
  background:#112d40e8;color:#ffe3a7;text-align:center;
  font:900 clamp(25px,7vw,55px) serif;
 }
-.compact-capture-fx{z-index:89;background:transparent}
-.compact-capture-fx img{width:min(92vw,650px);max-height:60dvh}
 @keyframes storyFxFade{from{opacity:0}to{opacity:1}}
 @keyframes storyFxEnter{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){
