@@ -950,12 +950,11 @@ function updateDialogueBanner(side,p){
  const data=(ownOrigin===0?officerData:enemyOfficerData)[cid]||['名もなき隊士','隊士'];
  const prefix=side===0?'player':'enemy', panel=el(side===0?'officerPanel':'enemyOfficerPanel');
  const img=el(prefix+'BannerArt'),title=el(prefix+'BannerName'),role=el(prefix+'BannerRole');
- const useMaster=idx===2;
- img.src=useMaster?'assets/visuals/hijikata_dialogue_banner_v1.webp':'assets/dialogue_banners/person_'+String(idx).padStart(2,'0')+'.webp';
+ img.src='assets/dialogue_banners/person_'+String(idx).padStart(2,'0')+'.webp';
  img.alt=data[0]+'・'+data[1]+'・'+(p.t||'玉');
  title.textContent=data[0];
  role.textContent=data[1]+' ／ '+(p.t||'玉');
- panel.classList.toggle('art-includes-text',useMaster);
+ panel.classList.remove('art-includes-text');
 }
 function hideHijikataPortrait(){
  portraitSerial++;
