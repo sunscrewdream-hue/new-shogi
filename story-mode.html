@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14242d"><title>幕末物語｜新選組将棋</title><link rel="stylesheet" href="story-mode.css?v=boardfit20261105a"></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14242d"><title>幕末物語｜新選組将棋</title><link rel="stylesheet" href="story-mode.css?v=incidentsequence20261105a"></head>
 <body>
 <main id="storyApp">
  <div id="compactIntroClash" aria-hidden="true"><picture><source media="(orientation: portrait)" srcset="assets/visuals/intro_saccho_vertical.webp"><img class="introUpper" src="assets/visuals/intro_saccho.webp" alt=""></picture><picture><source media="(orientation: portrait)" srcset="assets/visuals/intro_shinsengumi_vertical.webp"><img class="introLower" src="assets/visuals/intro_shinsengumi.webp" alt=""></picture><span id="compactIntroFlash"></span></div>
  <div id="compactActionLayer" aria-hidden="true"></div>
- <div id="compactCardOverlay" class="compact-card-overlay hidden" role="dialog" aria-modal="true" aria-label="事件札"><img id="compactIncidentBanner" class="compact-incident-title" src="assets/cards/incident-title.png" alt="動乱の刻"><button id="compactCardFace" class="compact-card-face" type="button" aria-label="事件札をめくる"><span id="compactCardHeading">事件札</span><span id="compactCardText" class="compact-card-effect"></span></button><div id="compactCardPrompt">タップしてめくる</div></div>
+ <div id="compactIncidentStage" class="compact-incident-stage hidden" aria-hidden="true"><img id="compactIncidentBanner" class="compact-incident-title" src="assets/cards/incident-title.png" alt=""></div>
+ <div id="compactCardOverlay" class="compact-card-overlay hidden" role="dialog" aria-modal="true" aria-label="事件札"><button id="compactCardFace" class="compact-card-face" type="button" aria-label="事件札をめくる"><span id="compactCardHeading">事件札</span><span id="compactCardText" class="compact-card-effect"></span></button><div id="compactCardPrompt">タップしてめくる</div></div>
  <header class="story-header"><a class="back-link" href="card-ai-test.html">‹ 通常対局へ</a><img class="story-header-logo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async"><div class="story-audio-controls"><label for="storyVolume">音量 <input id="storyVolume" type="range" min="0" max="100" value="10" step="1"><output id="storyVolumeValue" for="storyVolume">10</output></label><button id="audioToggle" type="button" aria-pressed="true">♪ 音 ON</button></div></header>
  <section id="storyHome" class="view">
   <div class="story-hero"><div class="story-tag">誠の軌跡</div><h1>幕末物語</h1><p>志を胸に、時代を駆ける。<br>史実をたどりながら、盤上で新選組を指揮せよ。</p></div>
@@ -32,5 +33,5 @@
  <div id="storyPopup" class="popup hidden" role="dialog" aria-modal="true" aria-live="polite"><div class="popup-panel"><img id="popupArt" alt="" class="popup-art hidden"><h2 id="popupTitle"></h2><p id="popupText"></p><div id="popupButtons" class="popup-buttons"></div></div></div>
 </main>
 <script src="story-bgm.js?v=storyvolume20261105a" defer></script>
-<script src="story-data.js?v=story3" defer></script><script src="story-engine.js?v=compactcards20261105a" defer></script><script src="story-weapons.js?v=bgm20261105a" defer></script><script src="story-mode.js?v=handparity20261105a" defer></script>
+<script src="story-data.js?v=story3" defer></script><script src="story-engine.js?v=compactcards20261105a" defer></script><script src="story-weapons.js?v=bgm20261105a" defer></script><script src="story-mode.js?v=incidentsequence20261105a" defer></script>
 </body></html>
