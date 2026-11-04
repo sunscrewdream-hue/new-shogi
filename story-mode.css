@@ -72,3 +72,16 @@
 #storyDevToggle{width:min(100%,360px);min-height:42px;background:#263b43;color:#f5ddb0;font:700 14px system-ui;border:1px solid #c8a86e}
 #storyDevToggle[aria-pressed="true"]{background:#79502d;color:#fff2cf;border-color:#ffe0a1}
 .story-dev-note{font:12px/1.7 system-ui;color:#ecd5a2;margin:7px 4px 2px}
+
+/* Use the same approved 'いざ、出陣' button as the finished main title. */
+.dialogue-foot.story-sortie-foot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.dialogue-foot.story-sortie-foot #dialogueCount{align-self:center}
+#dialogueNext.story-sortie-button{
+ display:block;width:min(75vw,290px);max-width:100%;margin:8px auto 4px;
+ background:linear-gradient(#dfc58b,#ad803d);color:#17232b;
+ border:2px solid #f6dfaa;border-radius:5px;
+ font-family:serif;font-weight:900;font-size:27px;
+ padding:18px;box-shadow:0 7px 30px #0009;
+ text-align:center;line-height:1.3;min-height:70px;
+}
+#dialogueNext.story-sortie-button:focus-visible{outline:3px solid #95d9dc;outline-offset:4px}
