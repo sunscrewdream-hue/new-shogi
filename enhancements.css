@@ -122,3 +122,13 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
  #endPanel #endActions{padding-bottom:max(18px,env(safe-area-inset-bottom));gap:8px}
  #endPanel #endActions button{min-width:0;font-size:14px;padding:10px 12px}
 }
+
+/* Integrated title choices: retain the original finished intro, logo and normal match. */
+#titleModeActions{display:grid;grid-template-columns:1fr;gap:11px;width:min(84vw,400px);margin:2px auto 0}
+#titleModeActions .titleModeChoice{background:#152b34dd;border:1px solid #a98a54;border-radius:9px;padding:8px 10px 11px;box-shadow:0 4px 18px #0005}
+#titleModeActions .modeCaption{display:block;font-family:serif;letter-spacing:.16em;color:#f3d7a2;font-size:13px;margin:1px 0 5px}
+#titleModeActions #startGame{width:100%;max-width:none;margin:0;padding:12px;font-size:clamp(20px,5vw,26px)}
+#storyModeStart{display:block;box-sizing:border-box;width:100%;padding:12px 8px;border:2px solid #ead29a;border-radius:5px;background:linear-gradient(140deg,#314c53,#152f39);color:#ffe9bc;text-decoration:none;font:900 clamp(18px,5vw,24px) serif;box-shadow:0 5px 19px #0007}
+#storyModeStart:focus-visible{outline:3px solid #95d9dc;outline-offset:4px}
+#titleModeActions .modeInfo{display:block;margin-top:7px;color:#c8d3cd;font:12px system-ui;line-height:1.4}
+@media(max-height:700px){#titleModeActions{gap:6px}#titleModeActions .titleModeChoice{padding:5px 9px 7px}#titleModeActions .modeInfo{margin-top:3px;font-size:11px}}
