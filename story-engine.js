@@ -52,11 +52,11 @@ class StoryEngine{
   return !p.p&&!["玉","金"].includes(p.t)&&(p.s===0?(y<zone||Y<zone):(y>=h-zone||Y>=h-zone));
  }
  forced(p,Y,h=this.h){return !p.p&&((["歩","香"].includes(p.t)&&(p.s===0?Y===0:Y===h-1))||(p.t==="桂"&&(p.s===0?Y<=1:Y>=h-2)))}
- act(B,H,s,m,prom=false){
+ act(B,H,s,m,prom=false,kill=false){
   if(m.drop){const i=H[s].findIndex(p=>p.t===m.t);if(i<0)return null;const p=H[s].splice(i,1)[0];B[m.Y][m.X]={...p,s,p:false};return null}
   const captured=B[m.Y][m.X],p=B[m.y][m.x];B[m.y][m.x]=null;B[m.Y][m.X]=p;
   if(prom||this.forced(p,m.Y,B.length))p.p=true;
-  if(captured&&captured.t!=="玉")H[s].push({...captured,s,p:false});
+  if(captured&&captured.t!=="玉"&&!kill)H[s].push({...captured,s,p:false});
   return captured;
  }
  check(B,s){
@@ -82,9 +82,9 @@ class StoryEngine{
   return result;
  }
  king(s){for(const row of this.board)for(const p of row)if(p?.s===s&&p.t==="玉")return p;return null}
- move(m,prom=false){
+ move(m,prom=false,kill=false){
   const unit=m.drop?this.hands[this.side].find(p=>p.t===m.t):this.board[m.y][m.x];
-  const captured=this.act(this.board,this.hands,this.side,m,prom);
+  const captured=this.act(this.board,this.hands,this.side,m,prom,kill);
   this.last={y:m.Y,x:m.X};this.ply++;this.side=1-this.side;
   return {unit,captured};
  }
