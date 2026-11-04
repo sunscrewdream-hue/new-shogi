@@ -297,7 +297,16 @@
   setTimeout(()=>{if(ep===epoch)animateDefection(effect,p,proceed)},240);
  };
  const baseResolveCard=resolveCard;
- resolveCard=function(s){baseResolveCard(s);if(incidentEffect?.kind==='援軍')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する')};
+ const calmWind=new Audio('assets/audio/sfx/wind_calm_short.mp3');calmWind.preload='auto';calmWind.playsInline=true;
+ resolveCard=function(s){
+  baseResolveCard(s);
+  if(incidentEffect?.kind==='援軍')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する');
+  if(lastIncidentKind==='何事もなし'&&sampleSfxEnabled&&!document.hidden){
+   calmWind.pause();calmWind.currentTime=0;
+   calmWind.volume=Math.min(.32,Math.max(0,Number($('volume').value)/100*1.1));
+   const playing=calmWind.play();if(playing?.catch)playing.catch(()=>{});
+  }
+ };
 
  /* One illustrated result scene: towering victor and kneeling defeated officer. */
  const baseVictory=showVictory;
