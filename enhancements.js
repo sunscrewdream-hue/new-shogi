@@ -253,10 +253,10 @@
  killTest.onclick=()=>{if(titleIsVisible())return;const focus=lastMove||{y:4,x:4};playFx('purge');markBlood(focus.y,focus.x);flashHitokiri('人斬り・斬殺！');showToast('斬殺：演出プレビュー（駒は変わりません）')};
  // The preview stages a defection without changing the saved board or captured-piece counts.
  let reinforcementPreviewRunning=false;
- async function previewReinforcementPortrait(target){
-  if(reinforcementPreviewRunning)return;
-  const cell=$('board').children[target.y*9+target.x],hand=$('playerHandShell');
-  if(!cell||!hand)return;
+ async function previewReinforcementPortrait(target,receivingSide=0,onArrive=null){
+  if(reinforcementPreviewRunning){onArrive?.();return}
+  const cell=$('board').children[target.y*9+target.x],hand=$(receivingSide===0?'playerHandShell':'enemyHandShell');
+  if(!cell||!hand){onArrive?.();return}
   reinforcementPreviewRunning=true;reinforcementTest.disabled=true;
   const person=target.p;
   // Use the same full-body troop artwork as the desertion animation.
@@ -276,10 +276,10 @@
   if(!loaded){
    reinforcementPreviewRunning=false;reinforcementTest.disabled=false;
    showToast('援軍の隊士画像を読み込めませんでした');
-   return;
+   onArrive?.();return;
   }
   if(typeof portrait.decode==='function')try{await portrait.decode()}catch{}
-  if(titleIsVisible()||!cell.isConnected){reinforcementPreviewRunning=false;reinforcementTest.disabled=false;return}
+  if(titleIsVisible()||!cell.isConnected){reinforcementPreviewRunning=false;reinforcementTest.disabled=false;onArrive?.();return}
   // The debug button sits below the board. On phones, clicking it scrolls the
   // board offscreen; bring the board and receiving hand back into view first.
   $('boardStage').scrollIntoView({block:'start',behavior:'instant'});
@@ -301,11 +301,11 @@
    portrait.remove();cell.classList.remove('sprite-departing');
    const landing=document.createElement('div');
    Object.assign(landing.style,{position:'fixed',left:(to.left+to.width/2-35)+'px',top:(to.top+to.height/2-43)+'px',width:'70px',height:'86px',zIndex:'9999',pointerEvents:'none',display:'grid',placeItems:'center'});
-   landing.append(createToken(person.t,0,false));
+   landing.append(createToken(person.t,receivingSide,false));
    document.body.append(landing);
-   setCharacterBanner(0,person,'援軍として合流！',1100);
+   if(!onArrive)setCharacterBanner(receivingSide,person,'援軍として合流！',1100);
    let ended=false;
-   const end=()=>{if(ended)return;ended=true;landing.remove();reinforcementPreviewRunning=false;reinforcementTest.disabled=false};
+   const end=()=>{if(ended)return;ended=true;landing.remove();reinforcementPreviewRunning=false;reinforcementTest.disabled=false;onArrive?.()};
    if(typeof landing.animate==='function'&&!reducedGameMotion()){
     const arrive=landing.animate([{opacity:0,transform:'scale(.65)'},{opacity:1,transform:'scale(1.12)',offset:.45},{opacity:1,transform:'scale(1)',offset:.7},{opacity:0,transform:'scale(.85)'}],{duration:850,easing:'ease-out'});
     arrive.finished.then(end,end);
@@ -445,7 +445,7 @@
    clearCharacterBanner(effect.owner);setCharacterBanner(effect.side,p,'援軍として合流！',2000);
    render();if(!ended)queueTurnNotice(turn);
   };
-  setTimeout(()=>{if(ep===epoch)animateDefection(effect,p,proceed)},240);
+  setTimeout(()=>{if(ep===epoch)previewReinforcementPortrait({y:effect.y,x:effect.x,p},effect.side,proceed)},240);
  };
  const baseResolveCard=resolveCard;
  const calmWind=new Audio('assets/audio/sfx/wind_calm_short.mp3');calmWind.preload='auto';calmWind.playsInline=true;
