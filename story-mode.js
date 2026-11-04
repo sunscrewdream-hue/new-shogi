@@ -8,6 +8,11 @@ const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t){
  if(soundOff)return;
+ if(t==="cannon"||t==="rifle"||t==="blast"){
+  window.StoryBgm?.duck();
+  const a=new Audio("assets/story/audio/"+t+".mp3");a.volume=t==="cannon"?.75:.67;a.play().catch(()=>{});return;
+ }
+ if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_munen.mp3"};
  if(files[t]){const a=new Audio(files[t]);a.volume=t==="capture"?.83:.40;a.play().catch(()=>{});return}
  try{
@@ -58,6 +63,7 @@ function banner(s,p){
 }
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
+ window.StoryBgm?.stop();
  chooseView("storyHome");document.body.style.backgroundImage="";const el=$("storyChapters");el.replaceChildren();
  addButton("序章","壬生の誓い","物語のみ",true,false,()=>talk(-1));
  D.chapters.forEach((v,i)=>addButton("第"+(i+1)+"章",v.title,v.w+"×"+v.h+"盤",unlock>=i,unlock>i,()=>talk(i)));
@@ -91,6 +97,7 @@ function screenHome(){
  }
 }
 function talk(i){
+ window.StoryBgm?.play(i===4?"ending":"prologue");
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
  dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>battle(i);
  $("dialogueScene").className="scene-art scene-"+ch.scene;$("dialogueDate").textContent=ch.era;$("dialogueTitle").textContent=ch.title;chooseView("storyDialogue");line();
@@ -102,6 +109,7 @@ function line(){
  $("dialogueNext").textContent=at===dialog.length-1?(stage>=0&&stage<4?"出陣する ›":"物語を閉じる"):"続ける ›";
 }
 function battle(i){
+ window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
@@ -197,6 +205,6 @@ $("dialogueNext").onclick=()=>{at++;line()};
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
 $("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では敵軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
-$("audioToggle").onclick=()=>{soundOff=!soundOff;$("audioToggle").textContent=soundOff?"♪ 音 OFF":"♪ 音 ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
+$("audioToggle").onclick=()=>{window.StoryBgm?.unlock();soundOff=!soundOff;window.StoryBgm?.setMuted(soundOff);$("audioToggle").textContent=soundOff?"♪ 音 OFF":"♪ 音 ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
 screenHome();
 })();
