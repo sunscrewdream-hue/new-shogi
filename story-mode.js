@@ -38,6 +38,7 @@ const compactAudio={
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  check:"assets/audio/voice_oute.mp3",
+ quake:"assets/audio/sfx/rumble.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
@@ -121,7 +122,7 @@ function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
  if(effect.kind==="大地震"){
-  board.classList.add("compact-quake");compactSound("turn");
+  board.classList.add("compact-quake");compactSound("quake");
   setTimeout(()=>{
    if(game!==epoch)return;board.classList.remove("compact-quake");const plan=compactPlanQuake();
    if(plan){g.board=plan.B;g.last=null;compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
