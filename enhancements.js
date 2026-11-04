@@ -298,7 +298,7 @@
   const cleanup=()=>{
    if(finished)return;finished=true;
    try{flight?.cancel()}catch{}
-   portrait.remove();cell.classList.remove('sprite-departing');
+   portrait.remove();if(!onArrive)cell.classList.remove('sprite-departing');
    const landing=document.createElement('div');
    Object.assign(landing.style,{position:'fixed',left:(to.left+to.width/2-35)+'px',top:(to.top+to.height/2-43)+'px',width:'70px',height:'86px',zIndex:'9999',pointerEvents:'none',display:'grid',placeItems:'center'});
    landing.append(createToken(person.t,receivingSide,false));
