@@ -281,6 +281,10 @@
   }
   if(typeof portrait.decode==='function')try{await portrait.decode()}catch{}
   if(titleIsVisible()||!cell.isConnected){reinforcementPreviewRunning=false;reinforcementTest.disabled=false;return}
+  // The debug button sits below the board. On phones, clicking it scrolls the
+  // board offscreen; bring the board and receiving hand back into view first.
+  $('boardStage').scrollIntoView({block:'start',behavior:'instant'});
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const from=cell.getBoundingClientRect(),to=hand.getBoundingClientRect();
   const size=Math.min(180,Math.max(130,from.width*2.8));
   const startX=from.left+from.width/2-size/2,startY=from.top+from.height/2-size*.7;
