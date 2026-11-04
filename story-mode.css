@@ -7,3 +7,32 @@
 .story-king-card img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover}
 .story-king-card strong{display:block;font-size:clamp(10px,2.9vw,15px);margin-top:7px;white-space:nowrap}
 @media(max-width:400px){.story-king-grid{gap:4px}.story-king-card{padding:3px}}
+
+/* Story pieces share the approved main-game PNG token assets and ink glyphs.
+   Only proportional sizing differs for the 5x6 board; the design remains identical. */
+#storyBoard .story-token,.story-hand-piece .story-token{
+ --story-token-art:url("assets/pieces/shinsengumi_token.png");
+ display:grid;place-items:center;box-sizing:border-box;
+ position:relative;width:auto;height:88%;max-width:88%;
+ aspect-ratio:130/165;flex:none;margin:auto;
+ border:0;border-radius:0;padding:0;
+ clip-path:none;background:var(--story-token-art) center/100% 100% no-repeat;
+ color:#fffaf0;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',system-ui,sans-serif;
+ font-weight:900;font-size:clamp(15px,5.3vw,29px);line-height:1;
+ text-shadow:0 1px 2px #061924;
+ filter:drop-shadow(0 2px 2px #0008);pointer-events:none;user-select:none;
+}
+#storyBoard .story-token.enemy,.story-hand-piece .story-token.enemy{
+ --story-token-art:url("assets/pieces/saccho_token.png");
+ transform:rotate(180deg);
+}
+#storyBoard .story-token.promoted{color:#ffe297;text-shadow:0 1px 2px #34190d,0 0 8px #e9a33f}
+#storyBoard.small-board .story-token{font-size:clamp(20px,6.6vw,38px)}
+.story-hand-piece{position:relative!important;width:45px!important;height:55px!important;min-width:40px!important;padding:0!important;
+ display:grid!important;place-items:center!important;background:transparent!important;border:0!important;
+ box-shadow:none!important;overflow:visible!important}
+.story-hand-piece .story-token{height:95%;max-width:98%;font-size:22px}
+.story-hand-count{position:absolute;bottom:0;right:0;z-index:2;padding:1px 4px;border-radius:9px;
+ background:#102630;color:#ffe5a3;border:1px solid #d0a86d;font:700 11px system-ui}
+.story-hand-piece.selected{outline:2px solid #f8d166!important;outline-offset:0}
+.story-hand-piece:disabled{opacity:.75}
