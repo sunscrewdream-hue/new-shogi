@@ -236,6 +236,7 @@
  flashHitokiri=function(message){
   const notice=$('hitokiriNotice');
   const awakening=message.includes('覚醒');
+  if(awakening)playSampleSfx('slash1');
   const name=awakening?'人斬り覚醒！':'斬殺！';
   const image=document.createElement('img');image.src=awakening?'assets/visuals/hitokiri_red_calligraphy.webp':'assets/visuals/hitokiri_kill_calligraphy.webp';image.alt=name;
   notice.replaceChildren(image);
@@ -262,6 +263,7 @@
   const person=visibleBannerPersons[side]||b.flat().find(p=>p?.s===side&&p.t==='玉')||b.flat().find(p=>p?.s===side);
   if(!person)return;
   setCharacterBanner(side,person,'',0);
+  playSampleSfx('slash1');
   hitokiriSeals[side].classList.add('preview');
   awakeningPreviewSide=side;
   awakeningTest.textContent='⚔ 覚醒印テスト解除';
