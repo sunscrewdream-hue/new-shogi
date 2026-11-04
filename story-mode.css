@@ -248,3 +248,30 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 @keyframes compactIncidentInkArrival{from{opacity:0;transform:scale(1.17) translateY(8px)}65%{opacity:1;transform:scale(.99) translateY(0)}100%{opacity:1;transform:translate(20%,124%)}}
 @media(max-height:680px){.compact-card-face.revealed #compactCardText{bottom:2%;max-height:47%;padding:7px;font-size:clamp(11px,3.5vw,14px)}}
 @media(prefers-reduced-motion:reduce){.compact-card-face,.compact-card-face.revealed,.compact-incident-title.show{animation:none}}
+
+/* Hand layout and art parity with the finished 9x9 game. */
+.hand-container{position:relative;box-sizing:border-box;width:min(96vw,520px);max-width:520px;min-height:58px;margin:2px auto;
+ overflow:hidden;border:2px solid #775436;border-radius:5px;
+ background:linear-gradient(#1b0f0966,#1b0f095c),url("assets/neutral_edo_jail.webp") center 54%/cover no-repeat;
+ box-shadow:inset 0 0 0 1px #d3af7955,0 2px 6px #0005}
+.hand-container>span{position:absolute;z-index:2;top:2px;left:8px;color:#ffe6bd;
+ font-size:clamp(10px,2.65vw,13px);font-weight:800;text-shadow:0 1px 3px #000,0 0 8px #000}
+.story-hand{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;min-height:57px;
+ padding:17px 5px 3px;margin:0;width:100%}
+.story-hand-piece{position:relative!important;display:block!important;flex:none!important;
+ width:clamp(39px,9.7vw,49px)!important;height:clamp(40px,10.4vw,52px)!important;min-width:0!important;
+ margin:0!important;padding:0!important;background:transparent!important;border:1px solid transparent!important;
+ border-radius:6px!important;touch-action:manipulation}
+.story-hand-art{display:block;position:absolute;inset:0;margin:auto;width:auto;height:94%;max-width:95%;
+ object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.story-hand-figure{z-index:1;filter:drop-shadow(0 2px 3px #0009)}
+.story-hand-letter{z-index:2;filter:drop-shadow(0 1px 1px #000c)}
+.story-hand-fallback{display:none;position:absolute;inset:0;z-index:2;place-items:center;
+ font:900 23px "Yu Mincho",serif;color:#fff3d9;text-shadow:0 1px 4px #000}
+.story-hand-count{position:absolute;z-index:4;bottom:0;right:0;display:grid;place-items:center;
+ min-width:17px;height:16px;padding:0 2px;border:1px solid #edd8af;border-radius:10px;
+ background:#211e1ad9;color:#fff4cf;font:900 10px system-ui;text-shadow:0 1px 1px #000;pointer-events:none}
+.story-hand-piece.selected,.story-hand-piece:not(:disabled):focus-visible,.story-hand-piece:not(:disabled):hover{
+ outline:2px solid #ffd35f!important;outline-offset:1px!important;filter:drop-shadow(0 0 4px #ffd35f)}
+.story-hand-piece:disabled{opacity:.72;cursor:default}
+#storyHand1 .story-hand-piece:disabled{opacity:1}
