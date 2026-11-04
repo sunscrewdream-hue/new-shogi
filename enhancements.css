@@ -1,0 +1,45 @@
+/* Shinsengumi Shogi — legible tokens, stage and mobile fixes (2026-11-04). */
+html{overscroll-behavior:none}
+body{min-height:100svh;padding-bottom:max(8px,env(safe-area-inset-bottom));-webkit-touch-callout:none}
+.shogi-token{--token-fill:#326a83;--token-edge:#123546;position:relative;display:grid!important;place-items:center;box-sizing:border-box;width:87%;height:90%;margin:auto;inset:auto!important;aspect-ratio: .79;filter:drop-shadow(0 2px 2px #0009);isolation:isolate;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',system-ui,sans-serif;font-size:clamp(17px,5.3vw,29px);font-weight:900;line-height:1;color:#fffaf0;text-shadow:0 1px 2px #061924;pointer-events:none;transform:none}
+.shogi-token:before,.shogi-token:after{content:'';position:absolute;inset:0;z-index:-2;clip-path:polygon(50% 0,100% 23%,96% 100%,4% 100%,0 23%);background:var(--token-edge)}
+.shogi-token:after{inset:2px;z-index:-1;background:linear-gradient(140deg,#6192ab,var(--token-fill) 42%,#163f58);filter:none}
+.shogi-token.enemy-token{--token-fill:#9a3438;--token-edge:#521d20;transform:rotate(180deg)}
+.shogi-token.enemy-token:after{background:linear-gradient(140deg,#cb7370,var(--token-fill) 42%,#6a242b)}
+.shogi-token.promoted-token{color:#ffe297;text-shadow:0 1px 2px #34190d,0 0 8px #e9a33f}
+.shogi-token.promoted-token:after{background:linear-gradient(140deg,#8e6f34,#415f60 44%,#27475f)}
+.shogi-token.enemy-token.promoted-token:after{background:linear-gradient(140deg,#ae733d,#a13f40 48%,#571d20)}
+#board .sq .shogi-token.piece-layer{width:88%;height:91%;object-fit:initial;position:absolute;inset:4% 6%!important;margin:auto;font-size:clamp(17px,5.6vw,31px)}
+.hand-piece .shogi-token.piece-layer{width:88%;height:91%;top:0!important;left:5%!important;right:auto!important;margin:0;font-size:clamp(19px,5vw,26px)}
+body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
+.piece-layer.shogi-token{user-select:none;-webkit-user-select:none}
+#titleExtras{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin:7px auto 12px;max-width:400px}
+#titleExtras button{background:#263e49;color:#ffe9b3;border-color:#b89558;font-size:13px;font-weight:850;padding:9px 12px;margin:0}
+#titleLinks a{text-decoration:none}
+#quickSave{font-size:13px;font-weight:800}
+.collection-toast{position:fixed;z-index:195;top:calc(env(safe-area-inset-top) + 12px);left:50%;transform:translate(-50%,-15px);background:#172c36ee;color:#ffe4ab;border:2px solid #e6c47f;border-radius:11px;padding:10px 18px;box-shadow:0 7px 25px #000a;font-size:14px;font-weight:900;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;max-width:91vw}
+.collection-toast.show{opacity:1;transform:translate(-50%,0)}
+#abandonOverlay{display:none;position:fixed;inset:0;z-index:220;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:#090b10d9}
+#abandonOverlay.show{display:flex}
+#abandonPanel{width:min(92vw,380px);padding:25px 19px 17px;border:2px solid #b98e59;border-radius:12px;background:linear-gradient(150deg,#332a29,#141923);box-shadow:0 10px 40px #000c;color:#f8e5c8;text-align:center}
+#abandonPanel h2{font:900 clamp(23px,7vw,32px) 'Yu Mincho',serif;color:#f8d39d;margin:0 0 10px}
+#abandonPanel p{font-size:14px;line-height:1.7;margin:0 0 14px}
+#abandonPanel button{font-size:14px;font-weight:900;padding:10px 12px;margin:4px}
+#abandonYes{background:#7e2b2c;color:white;border-color:#cf7670}
+#hitokiriNotice{top:15%!important;width:min(92vw,650px)!important;max-width:none!important;filter:drop-shadow(0 10px 9px #000) drop-shadow(0 0 10px #a40b16);text-shadow:none!important;-webkit-text-stroke:0!important}
+#hitokiriNotice img{display:block;width:100%;height:auto}
+.dialogue-panel.hitokiri-banner:after{content:'人斬り覚醒';position:absolute;inset:auto 0 0;z-index:7;text-align:center;font:900 clamp(16px,5.4vw,27px) 'Yu Mincho',serif;color:#ffe4bd;text-shadow:0 2px 2px #290307,0 0 12px red;background:linear-gradient(transparent,#3c0913dc)}
+/* Victory: stage-height transparent cutouts, no framed postcard. */
+#endOverlay{background:radial-gradient(ellipse at 45% 35%,#613c33b8,#090e19ec 70%);padding:0;overflow:hidden}
+#endPanel{border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:visible;width:100vw;max-width:1100px;max-height:100dvh;height:100dvh;position:relative;padding:0!important;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;isolation:isolate}
+#endPanel .endIllustration{position:absolute;top:6%;width:55vw;max-width:570px;height:72dvh;max-height:none;object-fit:contain;object-position:bottom;margin:0;filter:drop-shadow(0 15px 18px #000d)}
+#endWinnerImage{left:-3%;z-index:-1;animation:enterVictor .8s cubic-bezier(.17,.9,.25,1.03) both}
+#endLoserImage{right:-7%;z-index:-2;opacity:.62;filter:grayscale(.55) brightness(.6) drop-shadow(0 9px 14px #000c)!important;transform:scaleX(-1);animation:enterDefeated .85s cubic-bezier(.15,.8,.27,1) both}
+@keyframes enterVictor{from{opacity:0;transform:translateX(-130%) scale(1.1)}to{opacity:1;transform:translateX(0) scale(1.1)}}
+@keyframes enterDefeated{from{opacity:0;transform:translateX(125%) scaleX(-1)}to{opacity:.68;transform:translateX(0) scaleX(-1)}}
+#endText{z-index:2;position:relative;margin:0 0 12px;padding:4px 18px;font-size:clamp(30px,8vw,65px);color:#fbe0a7;text-shadow:0 2px 3px #1b0506,0 0 18px #000;background:linear-gradient(90deg,transparent,#171419c9 22%,#171419d3 75%,transparent)}
+#endSurrender{position:absolute;z-index:3;top:10%;right:6%}
+#endActions{position:relative;z-index:3;width:100%;padding:12px 0 max(25px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#080a11ef);display:flex;justify-content:center;gap:12px}
+#endPanel button{min-width:126px}
+@media(orientation:portrait){#endPanel .endIllustration{width:69vw;height:64dvh;top:10%}#endWinnerImage{left:-26%}#endLoserImage{right:-28%}#endText{font-size:clamp(27px,9vw,50px)}}
+@media(prefers-reduced-motion:reduce){#endWinnerImage,#endLoserImage{animation:none!important}}

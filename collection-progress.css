@@ -1,0 +1,15 @@
+.collection-progress{margin:18px auto;padding:17px 18px;background:linear-gradient(120deg,#173742,#344f4f);color:#fff0cf;border:1px solid #b59a62;border-radius:12px;box-shadow:0 6px 22px #0002}
+.collection-progress strong{font:900 clamp(25px,6vw,36px) system-ui}
+.collection-bar{height:12px;border-radius:12px;background:#100f15a6;border:1px solid #bb9b56;margin:12px auto 9px;overflow:hidden}
+.collection-bar div{height:100%;width:0;background:linear-gradient(90deg,#5590a1,#f8c06a);transition:width .3s}
+.collection-progress button{font-weight:800;font-size:12px;padding:8px 12px;border:1px solid #bda36c;border-radius:6px;background:#f5e2b5;color:#24231f}
+.card.locked{filter:saturate(.45);opacity:.79}
+.card.locked summary{cursor:default}
+.card.locked .profile{display:none}
+.card.locked .portrait{background:linear-gradient(140deg,#2a353b,#111920);color:#9e987b;font:900 32px system-ui}
+.card.locked .role{visibility:hidden}
+.card.locked .open-hint{display:none}
+.card .portrait{overflow:hidden;position:relative}
+.card .portrait img{width:100%;height:100%;object-fit:cover;display:block}
+.card.unlocked{border-color:#b48a45;box-shadow:0 3px 10px #a57c4228}
+.card.unlocked .open-hint{color:#84531f}
