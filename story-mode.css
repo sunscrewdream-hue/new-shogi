@@ -319,7 +319,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 /* Ikedaya's tatami-and-corridor artwork is ONLY a background; the existing
    5x6 board dimensions and responsive height budget remain authoritative. */
 #storyBoard[data-stage="0"].small-board{
- background-image:url("assets/story/board-ikedaya-tatami-v2.webp"),linear-gradient(#ebca90,#bb8b4b);
+ background-image:url("assets/story/board-ikedaya-tatami-v3.webp"),linear-gradient(#ebca90,#bb8b4b);
  background-size:100% 100%;background-position:center;background-repeat:no-repeat;
 }
 
