@@ -157,7 +157,7 @@ function battle(i){
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
- document.body.style.backgroundImage="linear-gradient(#101721dd,#071016e0),url('assets/story/"+ch.scene+"-bg.webp'),url('kyoto-autumn.webp')";
+ document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();
 }
