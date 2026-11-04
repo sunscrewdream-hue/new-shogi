@@ -52,7 +52,6 @@ function hideCompactFx(){
  compactFxSerial++;
  compactTurnLocked=false;
  $("compactTurnNotice").classList.remove("show");
- $("compactCaptureNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;
  compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];$("compactCardOverlay").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
@@ -145,7 +144,7 @@ function compactApplyIncident(effect){
   const B=g.clone(g.board);B[y][x]=null;if(!compactSafeBoard(B)){finish();return}
   g.board[y][x]=null;
   if(kind==="援軍"){
-   g.hands[side].push({...p,s:side,p:false});banner(side,p);compactCapture(side);
+   g.hands[side].push({...p,s:side,p:false});banner(side,p);
    render();animateCompactEscort(side,y,x,p,finish);
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
@@ -202,14 +201,6 @@ function compactTurn(side,after,opening=false){
   if(g.check(g.board,side))compactSound("check");
   after?.();
  },1800);
-}
-function compactCapture(side){
- if(!compactMode())return;
- const panel=$("compactCaptureNotice");
- $("compactCaptureArt").src=side===0?"assets/visuals/capture_shinsengumi.webp":"assets/visuals/capture_saccho.webp";
- panel.classList.remove("show");void panel.offsetWidth;panel.classList.add("show");
- compactSound("slash");const game=epoch;
- setTimeout(()=>{if(game===epoch)panel.classList.remove("show")},1500);
 }
 function compactCalligraphy(kill){
  const panel=$("compactAwakenNotice"),art=$("compactAwakenArt");
@@ -431,7 +422,7 @@ function makeMove(m,prom){
    compactCalligraphy(false);
   }
  }
- if(captured){if(!willKill)sfx("capture");compactCapture(actor);if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound(actor===0&&source?.origin===0&&source?.cid===0?"kondo":actor===0&&source?.origin===0&&source?.cid===1?"hijikata":"move"+actor);else sfx("move");
+ if(captured){if(!willKill){sfx("capture");if(compactMode())compactSound("slash")}if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound(actor===0&&source?.origin===0&&source?.cid===0?"kondo":actor===0&&source?.origin===0&&source?.cid===1?"hijikata":"move"+actor);else sfx("move");
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(compactMode()){
   busy=true;render();const id=epoch;
