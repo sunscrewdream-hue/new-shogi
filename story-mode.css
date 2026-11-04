@@ -133,6 +133,8 @@
  object-fit:contain;filter:drop-shadow(0 8px 25px #000b);
  animation:storyFxEnter .55s cubic-bezier(.2,.8,.2,1) both;
 }
+/* Match the approved 9x9 turn-notice scale exactly (card-ai-test.html). */
+#compactTurnNotice img{width:min(47vw,370px);max-height:37dvh}
 .compact-game-fx #compactTurnFallback{
  padding:12px 22px;border:2px solid #ebd39b;
  background:#112d40e8;color:#ffe3a7;text-align:center;
