@@ -176,7 +176,10 @@ function animateCompactEscort(side,y,x,captive,done){
  const startX=side===0?-width-20:innerWidth+20;
  function sprite(src,left,top){const img=document.createElement("img");img.src=src;img.alt="";Object.assign(img.style,{left:left+"px",top:top+"px",width:width+"px",height:height+"px"});layer.append(img);return img}
  const guard=sprite("assets/sprites/figures/"+(side===0?"shinsengumi_back":"saccho_front")+".webp",startX,targetY);
- const captiveSprite=sprite("assets/sprites/figures/"+(captive?.s===0?"shinsengumi_back":"saccho_front")+".webp",targetX,targetY);
+ // The captive is a small shogi token, not a second running character sprite.
+ const captiveSprite=document.createElement("span");captiveSprite.className="compact-captive-token"+(captive?.s===1?" enemy":"");
+ captiveSprite.textContent=captive?label(captive):"駒";
+ Object.assign(captiveSprite.style,{left:targetX+width*.25+"px",top:targetY+height*.45+"px",width:width*.5+"px",height:width*.58+"px"});layer.append(captiveSprite);
  const dx=targetX-startX,dy=goalY-targetY,carryX=goalX-targetX;
  const animations=[
   guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"}),
@@ -210,15 +213,20 @@ function compactCalligraphy(kill){
  const game=epoch;setTimeout(()=>{if(game===epoch)panel.classList.remove("show")},1600);
 }
 function compactCheckSources(){
- if(!compactMode()||!g?.check(g.board,g.side))return new Set();
+ const result={attackers:new Set(),rays:new Set(),paths:[]};
+ if(!compactMode()||!g?.check(g.board,g.side))return result;
  let king=null;for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]?.s===g.side&&g.board[y][x]?.t==="玉")king={y,x};
- if(!king)return new Set();
- const squares=new Set();
+ if(!king)return result;
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
   const p=g.board[y][x];if(p?.s!==1-g.side)continue;
-  if(g.steps(g.board,y,x,true).some(m=>m.Y===king.y&&m.X===king.x))squares.add(y+":"+x);
+  if(!g.steps(g.board,y,x,true).some(m=>m.Y===king.y&&m.X===king.x))continue;
+  result.attackers.add(y+":"+x);result.paths.push({fromY:y,fromX:x,toY:king.y,toX:king.x});
+  const dy=king.y-y,dx=king.x-x,rook=p.t==="飛"&&(dy===0||dx===0),bishop=p.t==="角"&&Math.abs(dy)===Math.abs(dx),lance=p.t==="香"&&dx===0;
+  if((rook||bishop||lance)&&Math.max(Math.abs(dy),Math.abs(dx))>1){
+   const count=Math.max(Math.abs(dy),Math.abs(dx));for(let k=1;k<count;k++)result.rays.add((y+k*Math.sign(dy))+":"+(x+k*Math.sign(dx)));
+  }
  }
- return squares;
+ return result;
 }
 function popup(title,text,options,img){
  const modal=$("storyPopup");$("popupTitle").textContent=title;$("popupText").textContent=text;
@@ -374,12 +382,21 @@ function render(){
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
   if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add(p&&p.s===1?"capture-hint":"hint");
   if(p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
-  if(attackers.has(y+":"+x))btn.classList.add("compact-check-attacker");
+  if(attackers.attackers.has(y+":"+x))btn.classList.add("compact-check-attacker");
+  if(attackers.rays.has(y+":"+x))btn.classList.add("compact-check-ray");
   if(compactIncidentMarks.includes(y+":"+x))btn.classList.add("compact-incident-target");
   if(compactMode()&&g.isHole(y,x))btn.classList.add("compact-hole");
   if(compactArrival?.y===y&&compactArrival.x===x)btn.classList.add("compact-arrival");
   if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token)}
   btn.onclick=()=>square(y,x);root.append(btn);
+ }
+ if(attackers.paths.length){
+  const ns="http://www.w3.org/2000/svg",overlay=document.createElementNS(ns,"svg");
+  overlay.setAttribute("class","compact-check-lines");overlay.setAttribute("viewBox",`0 0 ${g.w*100} ${g.h*100}`);overlay.setAttribute("preserveAspectRatio","none");overlay.setAttribute("aria-hidden","true");
+  for(const path of attackers.paths){const line=document.createElementNS(ns,"line");
+   line.setAttribute("x1",String(path.fromX*100+50));line.setAttribute("y1",String(path.fromY*100+50));
+   line.setAttribute("x2",String(path.toX*100+50));line.setAttribute("y2",String(path.toY*100+50));overlay.append(line);
+  }root.append(overlay);
  }
  for(const s of [0,1]){
   const hand=$("storyHand"+s);hand.replaceChildren();const groups={};g.hands[s].forEach(p=>groups[p.t]=(groups[p.t]||0)+1);
