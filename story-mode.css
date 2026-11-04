@@ -145,3 +145,13 @@
 @media(prefers-reduced-motion:reduce){
  .compact-game-fx.show,.compact-game-fx img{animation:none}
 }
+
+/* Original main-game hitokiri assets; compact chapters only. */
+.compact-awaken-fx{z-index:91;background:transparent}
+.compact-awaken-fx img{width:min(82vw,550px);max-height:45dvh}
+#storyBattle .person-banner.compact-awakened::after{
+ content:"";position:absolute;z-index:3;pointer-events:none;
+ width:29%;height:85%;left:34%;bottom:2%;
+ background:url("assets/visuals/hitokiri_red_calligraphy.webp") center/contain no-repeat;
+ filter:drop-shadow(0 2px 3px #210404);
+}
