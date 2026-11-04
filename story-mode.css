@@ -66,3 +66,9 @@
  #storyBoard{margin:4px auto}
  .battle-bottom{margin:9px auto}
 }
+
+/* Development preview is deliberately separate from story progression. */
+.story-dev-controls{max-width:620px;margin:14px auto 12px;text-align:center;padding:9px;border:1px dashed #a68c5f8a;border-radius:8px;background:#112831b8}
+#storyDevToggle{width:min(100%,360px);min-height:42px;background:#263b43;color:#f5ddb0;font:700 14px system-ui;border:1px solid #c8a86e}
+#storyDevToggle[aria-pressed="true"]{background:#79502d;color:#fff2cf;border-color:#ffe0a1}
+.story-dev-note{font:12px/1.7 system-ui;color:#ecd5a2;margin:7px 4px 2px}
