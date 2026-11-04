@@ -253,58 +253,78 @@
  killTest.onclick=()=>{if(titleIsVisible())return;const focus=lastMove||{y:4,x:4};playFx('purge');markBlood(focus.y,focus.x);flashHitokiri('人斬り・斬殺！');showToast('斬殺：演出プレビュー（駒は変わりません）')};
  // The preview stages a defection without changing the saved board or captured-piece counts.
  let reinforcementPreviewRunning=false;
- function previewReinforcementPortrait(target){
+ async function previewReinforcementPortrait(target){
   if(reinforcementPreviewRunning)return;
   const cell=$('board').children[target.y*9+target.x],hand=$('playerHandShell');
   if(!cell||!hand)return;
-  reinforcementPreviewRunning=true;
-  reinforcementTest.disabled=true;
+  reinforcementPreviewRunning=true;reinforcementTest.disabled=true;
   const person=target.p,origin=person.originSide??person.s;
   const index=(origin===0?1:21)+(Number.isInteger(person.cid)?person.cid:0);
+  const id=String(index).padStart(2,'0');
+  const portrait=document.createElement('img');
+  // Wait for an actual decoded image before the timer begins. Slow mobile networks
+  // otherwise finish the entire flight before the portrait becomes visible.
+  async function loadPortrait(src){
+   return new Promise(resolve=>{
+    portrait.onload=()=>resolve(true);
+    portrait.onerror=()=>resolve(false);
+    portrait.src=src;
+    if(portrait.complete)resolve(portrait.naturalWidth>0);
+   });
+  }
+  let loaded=await loadPortrait('assets/portraits/'+id+'.webp');
+  if(!loaded)loaded=await loadPortrait('assets/dialogue_banners/person_'+id+'.webp');
+  if(!loaded){
+   reinforcementPreviewRunning=false;reinforcementTest.disabled=false;
+   showToast('隊士画像を読み込めませんでした：'+id);
+   return;
+  }
+  if(typeof portrait.decode==='function')try{await portrait.decode()}catch{}
+  if(titleIsVisible()||!cell.isConnected){reinforcementPreviewRunning=false;reinforcementTest.disabled=false;return}
   const from=cell.getBoundingClientRect(),to=hand.getBoundingClientRect();
-  const size=Math.min(124,Math.max(78,from.width*1.9));
+  const size=Math.min(180,Math.max(130,from.width*2.8));
   const startX=from.left+from.width/2-size/2,startY=from.top+from.height/2-size*.7;
   const endX=to.left+to.width/2-size/2,endY=to.top+to.height/2-size*.7;
-  const portrait=document.createElement('img');
-  portrait.src='assets/portraits/'+String(index).padStart(2,'0')+'.webp';
-  portrait.onerror=()=>{portrait.src='assets/dialogue_banners/person_'+String(index).padStart(2,'0')+'.webp';portrait.onerror=null};
   portrait.alt='援軍となる隊士';
-  Object.assign(portrait.style,{position:'fixed',left:startX+'px',top:startY+'px',width:size+'px',height:size*1.4+'px',objectFit:'contain',zIndex:'220',pointerEvents:'none',filter:'drop-shadow(0 6px 9px #000a)'});
+  Object.assign(portrait.style,{position:'fixed',display:'block',visibility:'visible',opacity:'1',left:startX+'px',top:startY+'px',width:size+'px',height:size*1.4+'px',objectFit:'contain',zIndex:'9999',pointerEvents:'none',filter:'drop-shadow(0 7px 10px #000c)'});
   document.body.append(portrait);
   cell.classList.add('sprite-departing');
   playSampleSfx('gravel');
-  const duration=reducedGameMotion()?450:1750;
+  const duration=reducedGameMotion()?800:2000;
   let finished=false,flight=null;
   const cleanup=()=>{
    if(finished)return;finished=true;
    try{flight?.cancel()}catch{}
-   portrait.remove();
-   cell.classList.remove('sprite-departing');
+   portrait.remove();cell.classList.remove('sprite-departing');
    const landing=document.createElement('div');
-   Object.assign(landing.style,{position:'fixed',left:(to.left+to.width/2-35)+'px',top:(to.top+to.height/2-43)+'px',width:'70px',height:'86px',zIndex:'221',pointerEvents:'none',display:'grid',placeItems:'center'});
+   Object.assign(landing.style,{position:'fixed',left:(to.left+to.width/2-35)+'px',top:(to.top+to.height/2-43)+'px',width:'70px',height:'86px',zIndex:'9999',pointerEvents:'none',display:'grid',placeItems:'center'});
    landing.append(createToken(person.t,0,false));
    document.body.append(landing);
    setCharacterBanner(0,person,'援軍として合流！',1100);
-   const end=()=>{landing.remove();reinforcementPreviewRunning=false;reinforcementTest.disabled=false};
+   let ended=false;
+   const end=()=>{if(ended)return;ended=true;landing.remove();reinforcementPreviewRunning=false;reinforcementTest.disabled=false};
    if(typeof landing.animate==='function'&&!reducedGameMotion()){
     const arrive=landing.animate([{opacity:0,transform:'scale(.65)'},{opacity:1,transform:'scale(1.12)',offset:.45},{opacity:1,transform:'scale(1)',offset:.7},{opacity:0,transform:'scale(.85)'}],{duration:850,easing:'ease-out'});
     arrive.finished.then(end,end);
    }else setTimeout(end,850);
+   setTimeout(end,1000);
   };
   const dx=endX-startX,dy=endY-startY;
-  if(typeof portrait.animate==='function'){
-   flight=portrait.animate([
-    {transform:'translate(0,0) scale(.8)',opacity:0},
-    {transform:'translate(0,0) scale(1)',opacity:1,offset:.12},
-    {transform:`translate(${dx*.45}px,${dy*.38-25}px) scale(1.05)`,opacity:1,offset:.55},
-    {transform:`translate(${dx}px,${dy}px) scale(.7)`,opacity:0}
-   ],{duration,easing:'ease-in-out',fill:'forwards'});
-   flight.finished.then(cleanup,cleanup);
-  }else{
-   portrait.style.transition=`transform ${duration}ms ease-in-out,opacity ${duration}ms ease-in-out`;
-   requestAnimationFrame(()=>{portrait.style.transform=`translate(${dx}px,${dy}px) scale(.7)`;portrait.style.opacity='0'});
-  }
-  setTimeout(cleanup,duration+150);
+  // Hold the fully loaded portrait on the board before moving it.
+  setTimeout(()=>{
+   if(typeof portrait.animate==='function'){
+    flight=portrait.animate([
+     {transform:'translate(0,0) scale(1)',opacity:1},
+     {transform:`translate(${dx*.40}px,${dy*.35-20}px) scale(1.1)`,opacity:1,offset:.52},
+     {transform:`translate(${dx}px,${dy}px) scale(.8)`,opacity:1}
+    ],{duration,easing:'ease-in-out',fill:'forwards'});
+    flight.finished.then(cleanup,cleanup);
+   }else{
+    portrait.style.transition=`transform ${duration}ms ease-in-out`;
+    requestAnimationFrame(()=>{portrait.style.transform=`translate(${dx}px,${dy}px) scale(.8)`});
+   }
+   setTimeout(cleanup,duration+150);
+  },350);
  }
  const reinforcementTest=document.createElement('button');reinforcementTest.type='button';reinforcementTest.textContent='🏃 援軍アニメテスト';
  reinforcementTest.onclick=()=>{
