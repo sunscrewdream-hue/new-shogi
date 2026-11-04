@@ -876,14 +876,14 @@ function animateSprite(node,frames,duration,done){
 function animateCaptureEscort(side,Y,X,captive,finished){
  const rect=spriteRect(Y,X),jail=el(side===0?'playerHandShell':'enemyHandShell')?.getBoundingClientRect(),ep=epoch,serial=++actionSerial;
  if(!rect||!jail||rulePreset==='traditional'){finished?.();return}
- const width=Math.max(58,rect.width*1.35),height=width*1.28;
+ const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
  const startX=side===0?-width-16:innerWidth+width,startY=rect.top-height*.25;
  const targetX=rect.left+rect.width/2-width/2,targetY=rect.top+rect.height/2-height/2;
  const jailX=jail.left+jail.width/2-width/2,jailY=jail.top+jail.height/2-height/2;
  const entering=side===0?-1:1;
  const guard=createActionSprite('assets/sprites/figures/'+(side===0?'shinsengumi_back':'saccho_front')+'.webp',startX,startY,width,height);
  const dx=targetX-startX,dy=targetY-startY,ex=jailX-startX,ey=jailY-startY;
- const unit=createActionSprite('assets/sprites/figures/'+(captive?.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left+rect.width*.1,rect.top+rect.height*.05,rect.width*.8,rect.height*.9);
+ const unit=createActionSprite('assets/sprites/figures/'+(captive?.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left+rect.width/2-width/2,rect.top+rect.height/2-height/2,width,height);
  let remaining=2;
  const done=()=>{if(--remaining===0&&ep===epoch&&serial===actionSerial)finished?.()};
  animateSprite(guard,[
@@ -906,7 +906,8 @@ function animateDesertion(y,x,piece,finished){
  const rect=spriteRect(y,x),ep=epoch,serial=++actionSerial;
  if(!rect||reducedGameMotion()){setTimeout(finished,180);return}
  const node=el('board').children[y*9+x];node?.classList.add('sprite-departing');
- const ghost=createActionSprite('assets/sprites/figures/'+(piece.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left,rect.top,rect.width,rect.height);
+ const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
+ const ghost=createActionSprite('assets/sprites/figures/'+(piece.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left+rect.width/2-width/2,rect.top+rect.height/2-height/2,width,height);
  const exitX=(piece.s===0?-innerWidth:innerWidth),exitY=-rect.top-100;
  animateSprite(ghost,[
  {offset:0,opacity:1,transform:'translateX(0) rotate(0)'},
