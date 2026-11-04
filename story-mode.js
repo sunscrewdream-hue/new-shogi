@@ -40,6 +40,7 @@ const compactAudio={
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  check:"assets/audio/voice_oute.mp3",
+ banner:"assets/audio/sfx/taiko_dodon.mp3",
  quake:"assets/audio/sfx/rumble.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
@@ -56,7 +57,7 @@ function hideCompactFx(){
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;
- compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];$("compactCardOverlay").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
+ compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
 function compactPickCard(){let roll=Math.random()*100;for(const [name,weight] of compactCardWeights){roll-=weight;if(roll<0)return name}return "何事もなし"}
@@ -83,11 +84,14 @@ function compactPlanQuake(){
 function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.remove("hidden");face.classList.remove("revealed");face.style.backgroundImage=`url("${side===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp"}")`;
- face.style.animation="none";void face.offsetWidth;face.style.animation="";
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");face.style.backgroundImage=`url("${side===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp"}")`;
  $("compactCardHeading").textContent=side===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";$("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
- $("compactIncidentBanner").classList.add("show");sfx("card");const game=epoch;
- setTimeout(()=>{if(game===epoch)$("compactIncidentBanner").classList.remove("show")},1250);
+ const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
+ stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
+ compactSound("banner");
+ setTimeout(()=>{if(game!==epoch||compactIncident!==incident||incident.revealed)return;
+  stage.classList.add("hidden");overlay.classList.remove("hidden");face.style.animation="none";void face.offsetWidth;face.style.animation="";sfx("card");
+ },1300);
 }
 function compactCardReveal(){
  const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.kind=compactPickCard();
