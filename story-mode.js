@@ -129,14 +129,16 @@ function render(){
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
   if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add("hint");
-  if(p){const token=document.createElement("div"),text=document.createElement("span");token.className="token"+(p.s?" enemy":"")+(p.p?" promoted":"");text.textContent=label(p);token.append(text);btn.append(token)}
+  if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token)}
   btn.onclick=()=>square(y,x);root.append(btn);
  }
  for(const s of [0,1]){
   const hand=$("storyHand"+s);hand.replaceChildren();const groups={};g.hands[s].forEach(p=>groups[p.t]=(groups[p.t]||0)+1);
   if(!g.hands[s].length)hand.textContent="なし";
-  for(const t of Object.keys(groups)){const b=document.createElement("button");b.textContent=t+" ×"+groups[t];b.disabled=ended||busy||s===1||g.side!==0;
-   if(s===0&&selected?.drop&&selected.t===t)b.className="selected";b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
+  for(const t of Object.keys(groups)){const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.setAttribute("aria-label",(s===0?"自軍":"敵軍")+"の持駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||s===1||g.side!==0;
+   const token=document.createElement("span");token.className="story-token"+(s===1?" enemy":"");token.textContent=t;token.setAttribute("aria-hidden","true");
+   const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(token,count);
+   if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
  $("storyStatus").textContent=ended?"対局終了":busy?"兵器攻撃中…":g.side?"敵軍、思案中…":"あなたの手番"+(g.check(g.board,0)?"　⚠王手":"");
 }
