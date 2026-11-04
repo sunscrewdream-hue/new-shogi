@@ -96,7 +96,7 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 .dialogue-panel.hitokiri-kill-banner:after{background-image:url('assets/visuals/hitokiri_kill_calligraphy.webp')}
 
 /* The awakening mark is a personal red-ink seal ON the portrait, not a temporary banner. */
-.dialogue-panel .hitokiri-stamp{position:absolute;z-index:9;left:8%;top:5%;width:84%;height:90%;object-fit:contain;object-position:center;pointer-events:none;opacity:0;transform-origin:center;transform:rotate(-7deg) scale(1);filter:drop-shadow(0 2px 2px #290000b0) drop-shadow(0 0 5px #a40000a0)}
+.dialogue-panel .hitokiri-stamp{position:absolute;z-index:9;left:26%;bottom:2%;top:auto;width:48%;height:43%;object-fit:contain;object-position:center;pointer-events:none;opacity:0;transform-origin:center;transform:rotate(-7deg) scale(1);filter:drop-shadow(0 2px 2px #290000b0) drop-shadow(0 0 5px #a40000a0)}
 .dialogue-panel.has-portrait .hitokiri-stamp.active,.dialogue-panel.has-portrait .hitokiri-stamp.preview{opacity:1;transform:rotate(-7deg) scale(1);animation:hitokiriSealImpact .48s cubic-bezier(.14,1.18,.26,1) both}
 @keyframes hitokiriSealImpact{0%{opacity:0;transform:rotate(-7deg) scale(3.1)}48%{opacity:1;transform:rotate(-7deg) scale(.86)}76%{opacity:1;transform:rotate(-7deg) scale(1.1)}100%{opacity:1;transform:rotate(-7deg) scale(1)}}
 .dialogue-panel.hitokiri-banner:after,.dialogue-panel.hitokiri-kill-banner:after{content:none!important;display:none!important}
