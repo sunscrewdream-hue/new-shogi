@@ -285,7 +285,7 @@
   $('boardStage').scrollIntoView({block:'start',behavior:'instant'});
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const from=cell.getBoundingClientRect(),to=hand.getBoundingClientRect();
-  const size=Math.min(180,Math.max(130,from.width*2.8));
+  const size=Math.min(90,Math.max(65,from.width*1.4));
   const startX=from.left+from.width/2-size/2,startY=from.top+from.height/2-size*.7;
   const endX=to.left+to.width/2-size/2,endY=to.top+to.height/2-size*.7;
   portrait.alt='援軍となる隊士';
