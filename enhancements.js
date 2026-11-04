@@ -113,7 +113,7 @@
  const tapWithKingWarning=tap;
  tap=function(y,x){
   const piece=b?.[y]?.[x];
-  if(piece&&piece.s!==turn&&!titleIsVisible()&&!ended&&!busy&&!incidentRunning){
+  if(piece&&piece.s!==turn&&!titleIsVisible()&&!ended&&!busy&&!incidentRunning&&playerTurnReady&&(gameMode!=='ai'||turn===0)){
    const canCapture=sel&&legalMoves(b,h,turn).some(m=>!m.drop&&m.Y===y&&m.X===x&&m.y===sel.y&&m.x===sel.x);
    if(!canCapture){setCharacterBanner(piece.s,piece,'',3000);return}
   }
@@ -121,7 +121,7 @@
  };
  const gameBoard=$('board');
  gameBoard.addEventListener('pointerover',event=>{
-  if(event.pointerType!=='mouse'||titleIsVisible()||ended||incidentRunning)return;
+  if(event.pointerType!=='mouse'||titleIsVisible()||ended||busy||incidentRunning||!playerTurnReady||(gameMode==='ai'&&turn!==0))return;
   const cell=event.target.closest('.sq');
   if(!cell||!gameBoard.contains(cell))return;
   const index=Array.prototype.indexOf.call(gameBoard.children,cell),piece=b?.[Math.floor(index/9)]?.[index%9];
