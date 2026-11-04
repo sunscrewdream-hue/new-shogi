@@ -85,7 +85,8 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #checkRouteOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:12;overflow:visible;pointer-events:none;filter:drop-shadow(0 0 2px #240600)}
 
 /* Defection runs from the source cell to the real hand position in viewport pixels. */
-.defection-flight{position:fixed!important;z-index:190!important;pointer-events:none!important;inset:auto!important;display:grid;place-items:center;transform-origin:center center}
+.defection-flight{position:fixed!important;z-index:190!important;pointer-events:none!important;display:grid;place-items:center;transform-origin:center center}
+.sq.sprite-departing > *{visibility:hidden!important}
 .defection-flight .shogi-token{width:auto!important;height:90%!important;max-width:90%!important;margin:auto!important;inset:auto!important;position:relative!important}
 
 /* Pure red ink lettering, with no plaque, gradient, or secondary ornament. */
