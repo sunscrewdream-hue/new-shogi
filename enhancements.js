@@ -41,7 +41,7 @@
  const baseRestart=restartGame;
  restartGame=function(){baseRestart();stopTitleMusic()};
  const baseReset=reset;
- reset=function(){baseReset();captureCounts={};for(const seal of hitokiriSeals)seal.classList.remove('active','preview');visibleBannerPersons.fill(null)};
+ reset=function(){baseReset();captureCounts={};for(const seal of hitokiriSeals)seal.classList.remove('active','preview');visibleBannerPersons.fill(null);awakeningPreviewSide=null;awakeningTest.textContent='⚔ 人斬り覚醒テスト'};
  $('volume').addEventListener('input',syncTitleVolume);
 
  /* PWA, fullscreen button, title/manual/navigation. */
