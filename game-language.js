@@ -124,3 +124,15 @@
  setLang(lang);
  window.setShinsengumiLanguage=setLang;
 })();
+
+/* Story mode entry: preserve the existing standard-match title menu. */
+(function(){
+ function addStoryEntry(){
+  const menu=document.getElementById("titleLinks");
+  if(!menu||document.getElementById("storyModeEntry"))return;
+  const link=document.createElement("a");link.id="storyModeEntry";link.href="story-mode.html";
+  link.innerHTML="⚔ ストーリーモード <span aria-hidden=\"true\">›</span>";
+  menu.prepend(link);
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",addStoryEntry,{once:true});else addStoryEntry();
+})();
