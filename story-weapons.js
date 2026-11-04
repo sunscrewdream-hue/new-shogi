@@ -43,7 +43,7 @@ async function fire(g,kind,isActive,onSound){
  if(kind==="cannon"){onSound?.("cannon");await projectile(g,kind,shot.x,shot.y,isActive)}
  else{onSound?.("rifle");await projectile(g,kind,shot.x,shot.y,isActive)}
  if(!visible(isActive)){clear();return null}
- if(shot.y>=0)await impact(g,shot.y,shot.x,kind,isActive);
+ if(shot.y>=0){if(kind==="cannon")onSound?.("blast");await impact(g,shot.y,shot.x,kind,isActive);}
  clear();if(!visible(isActive))return null;
  const hit=shot.y>=0?g.destroy(shot.y,shot.x):null;
  return {hit,x:shot.x,y:shot.y,kind};
