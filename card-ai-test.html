@@ -385,13 +385,13 @@ body.quake-world::before{animation:kyotoWorldQuake 1.65s ease-out both;will-chan
 }
 .hand-piece .piece-figure{z-index:1;filter:drop-shadow(0 2px 3px #0009)}
 .hand-piece .piece-letter{z-index:2;filter:drop-shadow(0 1px 1px #000c)}
-.hand-piece .piece-letter.enemy{transform:rotate(180deg)}
+.hand-piece .piece-letter.enemy{transform:none}
 .hand-piece .hand-fallback{
  display:none;position:absolute;inset:0;z-index:2;place-items:center;
  font-family:"Yu Mincho",serif;font-size:23px;font-weight:900;
  color:#fff3d9;text-shadow:0 1px 4px #000;
 }
-.hand-piece .hand-fallback.enemy{transform:rotate(180deg)}
+.hand-piece .hand-fallback.enemy{transform:none}
 .hand-piece .hand-count{
  position:absolute;z-index:4;bottom:0;right:0;display:grid;place-items:center;
  min-width:20px;height:19px;padding:0 2px;border-radius:10px;
@@ -523,7 +523,44 @@ body::before{filter:saturate(1.025) contrast(1.015)}
 /* Face-to-face orientation: controls and labels face the seated player. */
 body.local-match #hand1 .piece-letter.enemy,body.local-match #hand1 .hand-fallback.enemy{transform:none}
 body.local-match #turnNotice.red,body.local-match #cardOverlay.ai-turn,body.local-match #promotionOverlay.enemy-turn,body.local-match #captureOverlay.enemy-turn{transform:rotate(180deg)}
-</style><div id="introClash" aria-hidden="true"><img class="introUpper" src="assets/visuals/intro_saccho.webp" alt=""><img class="introLower" src="assets/visuals/intro_shinsengumi.webp" alt=""><span id="introFlash"></span></div><div id="titleScreen"><div id="titleInner"><h1 id="titleMain"><img id="titleLogo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async" fetchpriority="high"></h1><div id="titleSub">幕末動乱・盤上決戦</div><div id="modePicker" aria-label="対戦形式"><button class="mode-option selected" id="modeAi" type="button" onclick="selectGameMode('ai')">⚔ AI対戦</button><button class="mode-option" id="modeLocal" type="button" onclick="selectGameMode('local')">⚔ 二人対戦</button></div><div id="difficultyPicker"><label for="aiLevel">AIの強さ　</label><select id="aiLevel" onchange="aiLevel=Number(this.value)"><option value="0">初級</option><option value="1" selected>中級（標準）</option><option value="2">上級</option></select></div><button id="startGame" onclick="startGame()">いざ、出陣</button><button id="titleSoundReplay" type="button" onclick="playTitleIntro()" aria-label="新選組将棋のタイトルコールと太鼓3連打を再生">🔊 タイトルコールを聴く</button><nav id="titleLinks" aria-label="タイトルメニュー"><a href="collection.html">仮のコレクションページ <span aria-hidden="true">›</span></a><a href="history.html">新選組の歴史 <span aria-hidden="true">›</span></a><a href="rules.html">将棋の遊び方 <span aria-hidden="true">›</span></a></nav><div id="titleFoot">事件札が戦局を変える</div></div></div><section id="enemyOfficerPanel" class="dialogue-panel" aria-live="polite"><img id="enemyBannerArt" class="dialogue-art" src="assets/dialogue_banners/person_21.webp" alt=""><div class="dialogue-copy"><div id="enemyBannerName" class="dialogue-name">西郷隆盛</div><div id="enemyBannerRole" class="dialogue-role">薩摩・維新指導者 ／ 玉</div><div id="enemyBannerVoice" class="dialogue-voice"></div></div></section><section id="enemyHandShell" class="hand-shell enemy-hand-shell"><div id="enemyHandLabel" class="hand-label">敵軍の持ち駒</div><div id="hand1" class="hand"></div></section><div id="battleInfo"><span id="status"></span><span id="cardCountdown"></span></div><div id="checkHint" role="status" aria-live="polite"></div><div id="quakeHoleHint" role="status" aria-live="polite"></div><div id="boardStage"><div id="board"></div></div><section id="officerPanel" class="dialogue-panel" aria-live="polite"><img id="playerBannerArt" class="dialogue-art" src="assets/dialogue_banners/person_01.webp" alt=""><div class="dialogue-copy"><div id="playerBannerName" class="dialogue-name">近藤勇</div><div id="playerBannerRole" class="dialogue-role">局長 ／ 玉</div><div id="playerBannerVoice" class="dialogue-voice"></div></div></section><div id="turnNotice" role="status" aria-live="polite"><span class="turnWords"><img id="turnBanner" class="turn-art" src="assets/turn-notice/turn_shinsengumi_illustrated.png" alt="新選組の手番！" width="887" height="887" decoding="async" fetchpriority="high"><span id="turnBannerFallback" class="turnFallback"></span></span></div><section id="playerHandShell" class="hand-shell"><div class="hand-label">あなたの持ち駒</div><div id="hand0" class="hand"></div></section><button onclick="restartGame()">最初から</button><button onclick="surrender()">降参</button><button onclick="returnToTitle()">タイトルへ戻る</button><a class="game-menu-link" href="rules.html" target="_blank" rel="noopener">将棋の遊び方</a><button onclick="drawPreview()">🎴 カード演出テスト</button><button onclick="previewEarthquake()">🌋 地震演出テスト</button><button onclick="testSound()">♪ 効果音テスト</button><button id="sfxToggle" onclick="toggleSampleSfx()">効果音：ON</button><button id="voiceToggle" onclick="toggleVoice()">⚔ 掛け声：ON</button><button onclick="previewVoiceClips(0)" title="新選組の掛け声を試聴">新選組の声</button><button onclick="previewVoiceClips(1)" title="薩長同盟軍の掛け声6種類を試聴">薩長の声</button><button id="bgmToggle" onclick="toggleBgm()">♪ BGM：ON</button><label>音量 <input id="volume" type="range" min="0" max="100" value="10" style="width:110px;vertical-align:middle"></label><div id="audioStatus" style="font-size:12px">音声：未確認</div><div id="bgmStatus" style="font-size:12px">BGM：ON（出陣時に再生）</div><div id="event"></div><div id="incidentBanner" aria-label="動乱の刻" role="status"><img src="assets/cards/incident-title.png" alt="動乱の刻" width="1600" height="900" decoding="async"></div><div id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endText"><div id="endPanel"><div id="endSurrender"></div><img id="endWinnerImage" class="endIllustration" src="" alt="勝利"><img id="endLoserImage" class="endIllustration" src="" alt="敗北"><div id="endText">勝負あり！</div><div id="endActions"><button onclick="restartGame()">もう一局！</button><button onclick="returnToTitle()">タイトルへ戻る</button></div></div></div><div id="promotionOverlay" role="dialog" aria-modal="true" aria-labelledby="promotionTitle"><div id="promotionPanel"><h2 id="promotionTitle">成るか、成らぬか</h2><p>駒を成り駒に変化させますか？</p><div id="promotionActions"><button onclick="choosePromotion(true)">成る！</button><button onclick="choosePromotion(false)">成らぬ</button></div></div></div><div id="captureOverlay" aria-hidden="true"><img id="captureArt" src="" alt=""></div><div id="cardOverlay"><div id="cardFace" role="button" tabindex="0" aria-label="事件札をめくる" onclick="flipCard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard()}"><div id="cardTitle">事件札</div><div id="cardDetail">局中に何が起こるか…</div><div id="cardEffectPanel" aria-live="polite"><div id="cardEffectText"></div><div id="cardCloseHint">もう一度タップして閉じる</div></div></div><div id="cardPrompt">カードをタップしてめくる</div></div><small>事件札は双方4手番ごとに出現・タップでめくる・手番消費なし。札は有利/不利/何もなし。盤面をタップして指します。</small><script>
+
+/* Rule presets: available before the match, without crowding the title screen. */
+#ruleModePicker{font-size:14px;color:#f5deb0;margin:0 auto 10px}
+#rulePreset{max-width:90vw;padding:6px 8px;border-radius:5px;background:#fff0c4;color:#24170d;font-size:13px;font-weight:750}
+#customRules{max-width:min(88vw,355px);margin:0 auto 12px;padding:6px 10px 9px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px;text-align:left;border:1px solid #bda16c;border-radius:7px;color:#fff2d3;font:700 12px system-ui}
+#customRules[hidden]{display:none}
+#customRules legend{padding:0 5px}
+#customRules label{display:flex;gap:5px;align-items:center;cursor:pointer}
+#customRules input{accent-color:#d5ad60;cursor:pointer}
+body.traditional-match .special-debug,body.traditional-match #cardCountdown{display:none!important}
+/* Portrait only for selections, speech and significant events; use empty slot for turn messaging. */
+.dialogue-art,.dialogue-copy{opacity:0;transition:opacity .24s ease}
+.dialogue-panel.has-portrait .dialogue-art,.dialogue-panel.has-portrait .dialogue-copy{opacity:1}
+.dialogue-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px 24px;
+ color:#f1d7a4;font:800 clamp(13px,3.6vw,21px) system-ui,-apple-system,"Noto Sans JP",sans-serif;
+ letter-spacing:.055em;text-shadow:0 2px 5px #000c;text-align:center;
+ background:linear-gradient(120deg,rgba(20,31,39,.9),rgba(61,42,36,.78)),url("assets/neutral_edo_jail.webp") center/cover;
+ opacity:1;transition:opacity .24s}
+.dialogue-panel.has-portrait .dialogue-status{opacity:0;pointer-events:none}
+body.local-match #enemyOfficerPanel .dialogue-status{transform:none}
+/* Transient captured/fleeing sprites are in a fixed layer so render() cannot interrupt them. */
+#actionLayer{position:fixed;inset:0;z-index:155;pointer-events:none;overflow:visible}
+#actionLayer img{position:fixed;display:block;object-fit:contain;filter:drop-shadow(0 3px 7px #000c);will-change:transform,opacity}
+#board .sq.sprite-departing .piece-layer,#board .sq.sprite-departing .piece-fallback{visibility:hidden}
+#hitokiriNotice{position:fixed;z-index:160;top:19%;left:50%;transform:translate(-50%,-15px) rotate(-5deg);width:max-content;max-width:92vw;pointer-events:none;
+ font:900 clamp(29px,9vw,57px) "Yu Mincho","Noto Serif JP",serif;color:#ffe1c8;letter-spacing:.13em;
+ -webkit-text-stroke:1px #42060c;text-shadow:0 3px 1px #27050a,0 0 20px #df1028;opacity:0;transition:opacity .25s,transform .25s}
+#hitokiriNotice.show{opacity:1;transform:translate(-50%,0) rotate(-5deg)}
+#board .sq.blood-mark{position:relative}
+#board .sq.blood-mark:after{content:"";position:absolute;inset:-6%;z-index:18;pointer-events:none;
+ background:url("assets/visuals/blood_splatter.webp") center/100% 100% no-repeat;animation:bloodFade 2.3s ease-out forwards}
+@keyframes bloodFade{0%{opacity:0;transform:scale(.55) rotate(-18deg)}14%{opacity:1;transform:scale(1.08) rotate(0)}55%{opacity:1}100%{opacity:0}}
+@media(orientation:portrait){#introClash.show .introUpper{animation-name:introUpperVertical}
+ #introClash.show .introLower{animation-name:introLowerVertical}}
+@keyframes introUpperVertical{0%,7%{transform:translateY(-115%)}42%,49%{transform:translateY(0)}100%{transform:translateY(125%)}}
+@keyframes introLowerVertical{0%,7%{transform:translateY(115%)}42%,49%{transform:translateY(0)}100%{transform:translateY(-125%)}}
+@media(prefers-reduced-motion:reduce){#actionLayer img,#hitokiriNotice{animation:none!important;transition:none!important}}
+</style><div id="introClash" aria-hidden="true"><picture><source media="(orientation: portrait)" srcset="assets/visuals/intro_saccho_vertical.webp"><img class="introUpper" src="assets/visuals/intro_saccho.webp" alt=""></picture><picture><source media="(orientation: portrait)" srcset="assets/visuals/intro_shinsengumi_vertical.webp"><img class="introLower" src="assets/visuals/intro_shinsengumi.webp" alt=""></picture><span id="introFlash"></span></div><div id="titleScreen"><div id="titleInner"><h1 id="titleMain"><img id="titleLogo" src="logo-shinsengumi-gold-crossed-swords.webp" alt="新選組将棋" width="2172" height="724" decoding="async" fetchpriority="high"></h1><div id="titleSub">幕末動乱・盤上決戦</div><div id="modePicker" aria-label="対戦形式"><button class="mode-option selected" id="modeAi" type="button" onclick="selectGameMode('ai')">⚔ AI対戦</button><button class="mode-option" id="modeLocal" type="button" onclick="selectGameMode('local')">⚔ 二人対戦</button></div><div id="difficultyPicker"><label for="aiLevel">AIの強さ　</label><select id="aiLevel" onchange="aiLevel=Number(this.value)"><option value="0">初級</option><option value="1" selected>中級（標準）</option><option value="2">上級</option></select></div><div id="ruleModePicker"><label for="rulePreset">対局ルール　</label><select id="rulePreset" onchange="selectRulePreset(this.value)"><option value="full">新選組将棋（全要素ON・推奨）</option><option value="custom">カスタム対局</option><option value="traditional">通常将棋</option></select></div><fieldset id="customRules" hidden><legend>特殊ルール設定</legend><label><input type="checkbox" data-rule="cards" checked onchange="changeCustomRule(this)">事件札</label><label><input type="checkbox" data-rule="quake" checked onchange="changeCustomRule(this)">地震と穴</label><label><input type="checkbox" data-rule="desertion" checked onchange="changeCustomRule(this)">脱走</label><label><input type="checkbox" data-rule="purge" checked onchange="changeCustomRule(this)">粛清</label><label><input type="checkbox" data-rule="reinforce" checked onchange="changeCustomRule(this)">援軍</label><label><input type="checkbox" data-rule="hitokiri" checked onchange="changeCustomRule(this)">人斬り</label></fieldset><button id="startGame" onclick="startGame()">いざ、出陣</button><button id="titleSoundReplay" type="button" onclick="playTitleIntro()" aria-label="新選組将棋のタイトルコールと太鼓3連打を再生">🔊 タイトルコールを聴く</button><nav id="titleLinks" aria-label="タイトルメニュー"><a href="collection.html">仮のコレクションページ <span aria-hidden="true">›</span></a><a href="history.html">新選組の歴史 <span aria-hidden="true">›</span></a><a href="rules.html">将棋の遊び方 <span aria-hidden="true">›</span></a></nav><div id="titleFoot">事件札が戦局を変える</div></div></div><section id="enemyOfficerPanel" class="dialogue-panel" aria-live="polite"><img id="enemyBannerArt" class="dialogue-art" src="assets/dialogue_banners/person_21.webp" alt=""><div class="dialogue-copy"><div id="enemyBannerName" class="dialogue-name">西郷隆盛</div><div id="enemyBannerRole" class="dialogue-role">薩摩・維新指導者 ／ 玉</div><div id="enemyBannerVoice" class="dialogue-voice"></div></div><div class="dialogue-status" id="enemyBannerStatus">薩長同盟、出陣を待つ</div></section><section id="enemyHandShell" class="hand-shell enemy-hand-shell"><div id="enemyHandLabel" class="hand-label">敵軍の持ち駒</div><div id="hand1" class="hand"></div></section><div id="battleInfo"><span id="status"></span><span id="cardCountdown"></span></div><div id="checkHint" role="status" aria-live="polite"></div><div id="quakeHoleHint" role="status" aria-live="polite"></div><div id="boardStage"><div id="board"></div></div><section id="officerPanel" class="dialogue-panel" aria-live="polite"><img id="playerBannerArt" class="dialogue-art" src="assets/dialogue_banners/person_01.webp" alt=""><div class="dialogue-copy"><div id="playerBannerName" class="dialogue-name">近藤勇</div><div id="playerBannerRole" class="dialogue-role">局長 ／ 玉</div><div id="playerBannerVoice" class="dialogue-voice"></div></div><div class="dialogue-status" id="playerBannerStatus">新選組、出陣を待つ</div></section><div id="turnNotice" role="status" aria-live="polite"><span class="turnWords"><img id="turnBanner" class="turn-art" src="assets/turn-notice/turn_shinsengumi_illustrated.png" alt="新選組の手番！" width="887" height="887" decoding="async" fetchpriority="high"><span id="turnBannerFallback" class="turnFallback"></span></span></div><section id="playerHandShell" class="hand-shell"><div class="hand-label">あなたの持ち駒</div><div id="hand0" class="hand"></div></section><button onclick="restartGame()">最初から</button><button onclick="surrender()">降参</button><button onclick="returnToTitle()">タイトルへ戻る</button><a class="game-menu-link" href="rules.html" target="_blank" rel="noopener">将棋の遊び方</a><button class="special-debug" onclick="drawPreview()">🎴 カード演出テスト</button><button class="special-debug" onclick="previewEarthquake()">🌋 地震演出テスト</button><button onclick="testSound()">♪ 効果音テスト</button><button id="sfxToggle" onclick="toggleSampleSfx()">効果音：ON</button><button id="voiceToggle" onclick="toggleVoice()">⚔ 掛け声：ON</button><button onclick="previewVoiceClips(0)" title="新選組の掛け声を試聴">新選組の声</button><button onclick="previewVoiceClips(1)" title="薩長同盟軍の掛け声6種類を試聴">薩長の声</button><button id="bgmToggle" onclick="toggleBgm()">♪ BGM：ON</button><label>音量 <input id="volume" type="range" min="0" max="100" value="10" style="width:110px;vertical-align:middle"></label><div id="audioStatus" style="font-size:12px">音声：未確認</div><div id="bgmStatus" style="font-size:12px">BGM：ON（出陣時に再生）</div><div id="event"></div><div id="incidentBanner" aria-label="動乱の刻" role="status"><img src="assets/cards/incident-title.png" alt="動乱の刻" width="1600" height="900" decoding="async"></div><div id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endText"><div id="endPanel"><div id="endSurrender"></div><img id="endWinnerImage" class="endIllustration" src="" alt="勝利"><img id="endLoserImage" class="endIllustration" src="" alt="敗北"><div id="endText">勝負あり！</div><div id="endActions"><button onclick="restartGame()">もう一局！</button><button onclick="returnToTitle()">タイトルへ戻る</button></div></div></div><div id="promotionOverlay" role="dialog" aria-modal="true" aria-labelledby="promotionTitle"><div id="promotionPanel"><h2 id="promotionTitle">成るか、成らぬか</h2><p>駒を成り駒に変化させますか？</p><div id="promotionActions"><button onclick="choosePromotion(true)">成る！</button><button onclick="choosePromotion(false)">成らぬ</button></div></div></div><div id="captureOverlay" aria-hidden="true"><img id="captureArt" src="" alt=""></div><div id="actionLayer" aria-hidden="true"></div><div id="hitokiriNotice" aria-live="polite"></div><div id="cardOverlay"><div id="cardFace" role="button" tabindex="0" aria-label="事件札をめくる" onclick="flipCard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard()}"><div id="cardTitle">事件札</div><div id="cardDetail">局中に何が起こるか…</div><div id="cardEffectPanel" aria-live="polite"><div id="cardEffectText"></div><div id="cardCloseHint">もう一度タップして閉じる</div></div></div><div id="cardPrompt">カードをタップしてめくる</div></div><small>事件札は双方4手番ごとに出現・タップでめくる・手番消費なし。札は有利/不利/何もなし。盤面をタップして指します。</small><script>
 let audioCtx=null;function unlockAudio(){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}document.addEventListener('pointerdown',unlockAudio,{passive:true});function sound(capture){unlockAudio();if(playSampleSfx(capture?'slash':'move')){el('audioStatus').textContent='音声：効果音再生中';return;}if(!audioCtx||audioCtx.state!=='running'){el('audioStatus').textContent='音声：再生待ち（もう一度タップ）';return;}el('audioStatus').textContent='音声：再生中';let volume=Number(el('volume')?.value||85)/100;let now=audioCtx.currentTime;for(let i=0;i<(capture?2:1);i++){let osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type=capture?'square':'triangle';osc.frequency.setValueAtTime(capture?(i?570:420):310,now+i*.055);osc.frequency.exponentialRampToValueAtTime(capture?(i?280:210):155,now+i*.055+.075);gain.gain.setValueAtTime(.0001,now+i*.055);gain.gain.exponentialRampToValueAtTime((capture?.22:.17)*volume,now+i*.055+.007);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.055+.095);osc.connect(gain).connect(audioCtx.destination);osc.start(now+i*.055);osc.stop(now+i*.055+.105)}}let bgmEnabled=true;
 const bgmAudio=new Audio('./honor_in_the_silence_96kbps.mp3');
 bgmAudio.loop=true;bgmAudio.preload='auto';bgmAudio.playsInline=true;
@@ -756,14 +793,60 @@ function playIntroClash(){
 }
 function stopIntroClash(){el('introClash').classList.remove('show')}
 let gameMode="ai",aiLevel=1;
+const allRules={cards:true,quake:true,desertion:true,purge:true,reinforce:true,hitokiri:true};
+let rulePreset="full",customSettings={...allRules},ruleSettings={...allRules};
+function selectRulePreset(value){
+ rulePreset=['full','custom','traditional'].includes(value)?value:'full';
+ ruleSettings=rulePreset==='traditional'?Object.fromEntries(Object.keys(allRules).map(k=>[k,false]))
+  :rulePreset==='custom'?{...customSettings}:{...allRules};
+ const box=el('customRules');box.hidden=rulePreset!=='custom';
+ box.querySelectorAll('[data-rule]').forEach(input=>{input.checked=!!customSettings[input.dataset.rule];input.disabled=input.dataset.rule!=='cards'&&input.dataset.rule!=='hitokiri'&&!customSettings.cards});
+}
+function changeCustomRule(input){
+ customSettings[input.dataset.rule]=input.checked;
+ if(input.dataset.rule==='cards'&&!input.checked)for(const key of ['quake','desertion','purge','reinforce'])customSettings[key]=false;
+ if(input.dataset.rule==='cards'&&input.checked&&!['quake','desertion','purge','reinforce'].some(k=>customSettings[k]))customSettings.quake=true;
+ selectRulePreset('custom');
+}
+let positionHistory=[];let captureCounts=[0,0],bloodMarks=[],actionSerial=0,bannerSerials=[0,0],bannerTimers=[null,null],noticeSerialHitokiri=0;
+function setCharacterBanner(side,p,caption='',duration=2500){
+ if(!p||rulePreset==='traditional')return;
+ updateDialogueBanner(side,p);
+ const panel=el(side?'enemyOfficerPanel':'officerPanel'),serial=++bannerSerials[side],ep=epoch;
+ if(bannerTimers[side])clearTimeout(bannerTimers[side]);
+ panel.classList.add('has-portrait');
+ const label=el(side?'enemyBannerVoice':'playerBannerVoice');
+ label.textContent=caption;
+ if(duration>0)bannerTimers[side]=setTimeout(()=>{if(epoch===ep&&bannerSerials[side]===serial&&!panel.classList.contains('speaking'))clearCharacterBanner(side)},duration);
+}
+function clearCharacterBanner(side){
+ ++bannerSerials[side];
+ if(bannerTimers[side])clearTimeout(bannerTimers[side]);
+ bannerTimers[side]=null;
+ const panel=el(side?'enemyOfficerPanel':'officerPanel');
+ panel.classList.remove('has-portrait','speaking');
+ el(side?'enemyBannerVoice':'playerBannerVoice').textContent='';
+}
+function setBannerStatus(side,text){el(side?'enemyBannerStatus':'playerBannerStatus').textContent=text}
+function flashHitokiri(text){
+ const n=el('hitokiriNotice'),serial=++noticeSerialHitokiri,ep=epoch;
+ n.textContent=text;n.classList.add('show');
+ setTimeout(()=>{if(ep===epoch&&noticeSerialHitokiri===serial)n.classList.remove('show')},1550);
+}
+function markBlood(y,x){
+ const key=y+','+x,ep=epoch;
+ if(!bloodMarks.includes(key))bloodMarks.push(key);
+ render();setTimeout(()=>{if(ep!==epoch)return;bloodMarks=bloodMarks.filter(v=>v!==key);render()},2300);
+}
+
 function selectGameMode(mode){gameMode=mode==="local"?"local":"ai";el("modeAi").classList.toggle("selected",gameMode==="ai");el("modeLocal").classList.toggle("selected",gameMode==="local");el("difficultyPicker").style.display=gameMode==="ai"?"block":"none";}
 function startGame(){
  unlockAudio();stopTitleIntro();stopSortieVoice();
- el('titleScreen').classList.add('hidden');document.body.classList.toggle('local-match',gameMode==='local');el('enemyHandLabel').textContent=gameMode==='local'?'あなたの持ち駒':'敵軍の持ち駒';aiLevel=Number(el('aiLevel').value);reset();window.scrollTo(0,0);
- startBgm();playSortieVoice();playIntroClash();
+ el('titleScreen').classList.add('hidden');document.body.classList.toggle('local-match',gameMode==='local');document.body.classList.toggle('traditional-match',rulePreset==='traditional');el('enemyHandLabel').textContent=gameMode==='local'?'あなたの持ち駒':'敵軍の持ち駒';aiLevel=Number(el('aiLevel').value);reset();window.scrollTo(0,0);
+ startBgm();if(rulePreset!=='traditional'){playSortieVoice();playIntroClash();}
  const e=epoch;
  // The original board is simply revealed underneath the two crossing art layers.
- setTimeout(()=>{if(e===epoch)showTurnNotice(0)},2650);
+ setTimeout(()=>{if(e===epoch)showTurnNotice(0)},rulePreset==='traditional'?280:2650);
 }
 function restartGame(){el('endOverlay').classList.remove('show');startGame()}const officerData=[["近藤勇","局長"],["土方歳三","副長"],["沖田総司","一番隊組長"],["井上源三郎","六番隊組長"],["山南敬助","総長"],["永倉新八","二番隊組長"],["斎藤一","三番隊組長"],["藤堂平助","八番隊組長"],["原田左之助","十番隊組長"],["武田観柳斎","五番隊組長"],["谷三十郎","七番隊組長"],["島田魁","隊士"],["尾形俊太郎","諸士調役"],["山崎烝","監察"],["松原忠司","四番隊組長"],["佐々木愛次郎","隊士"],["河合耆三郎","勘定方"],["中村五郎","隊士"],["安藤早太郎","隊士"],["新見錦","初期幹部"]];const enemyOfficerData=[["西郷隆盛","薩摩・維新指導者"],["大久保利通","薩摩・藩政指導者"],["木戸孝允","長州・維新指導者"],["大山巌","薩摩・藩士"],["山県有朋","長州・奇兵隊出身"],["黒田清隆","薩摩・藩士"],["伊藤博文","長州・藩士"],["桐野利秋","薩摩・藩士"],["高杉晋作","長州・奇兵隊創設者"],["村田新八","薩摩・藩士"],["桂久武","薩摩・藩士"],["小松帯刀","薩摩・家老"],["西郷従道","薩摩・藩士"],["川村純義","薩摩・藩士"],["寺島宗則","薩摩・藩士"],["大村益次郎","長州・軍制改革者"],["井上馨","長州・藩士"],["久坂玄瑞","長州・藩士"],["前原一誠","長州・藩士"],["品川弥二郎","長州・藩士"]];function showCaptureArt(side){
  const root=el('captureOverlay');
@@ -771,6 +854,69 @@ function restartGame(){el('endOverlay').classList.remove('show');startGame()}con
  root.classList.toggle('enemy-turn',gameMode==='local'&&side===1);root.classList.remove('show');void root.offsetWidth;root.classList.add('show');
  const id=++captureArtSerial,e=epoch;
  setTimeout(()=>{if(e===epoch&&id===captureArtSerial)root.classList.remove('show')},1530);
+}
+/* Character-piece motion uses a fixed overlay independent of board re-renders. */
+function spriteRect(y,x){const node=el('board').children[y*9+x];return node?.getBoundingClientRect?.()||null}
+function reducedGameMotion(){return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches}
+function createActionSprite(src,left,top,width,height){
+ const node=document.createElement('img');
+ node.src=src;node.alt='';node.draggable=false;
+ Object.assign(node.style,{left:left+'px',top:top+'px',width:width+'px',height:height+'px'});
+ el('actionLayer').append(node);return node;
+}
+function animateSprite(node,frames,duration,done){
+ if(!node.animate||reducedGameMotion()){
+  setTimeout(()=>{node.remove();done?.()},reducedGameMotion()?180:duration);return;
+ }
+ const motion=node.animate(frames,{duration,easing:'ease-in-out',fill:'forwards'});
+ let settled=false;
+ const finish=()=>{if(settled)return;settled=true;motion.cancel();node.remove();done?.()};
+ motion.onfinish=finish;motion.oncancel=finish;
+}
+function animateCaptureEscort(side,Y,X,captive,finished){
+ const rect=spriteRect(Y,X),jail=el(side===0?'playerHandShell':'enemyHandShell')?.getBoundingClientRect(),ep=epoch,serial=++actionSerial;
+ if(!rect||!jail||rulePreset==='traditional'){finished?.();return}
+ const width=Math.max(58,rect.width*1.35),height=width*1.28;
+ const startX=side===0?-width-16:innerWidth+width,startY=rect.top-height*.25;
+ const targetX=rect.left+rect.width/2-width/2,targetY=rect.top+rect.height/2-height/2;
+ const jailX=jail.left+jail.width/2-width/2,jailY=jail.top+jail.height/2-height/2;
+ const entering=side===0?-1:1;
+ const guard=createActionSprite('assets/sprites/figures/'+(side===0?'shinsengumi_back':'saccho_front')+'.webp',startX,startY,width,height);
+ const dx=targetX-startX,dy=targetY-startY,ex=jailX-startX,ey=jailY-startY;
+ const unit=createActionSprite('assets/sprites/figures/'+(captive?.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left+rect.width*.1,rect.top+rect.height*.05,rect.width*.8,rect.height*.9);
+ let remaining=2;
+ const done=()=>{if(--remaining===0&&ep===epoch&&serial===actionSerial)finished?.()};
+ animateSprite(guard,[
+ {offset:0,opacity:0,transform:'translate(0,0) scale(.8)'},
+ {offset:.27,opacity:1,transform:`translate(${dx}px,${dy}px) scale(1.07)`},
+ {offset:.43,opacity:1,transform:`translate(${dx+entering*4}px,${dy+4}px) rotate(${entering*7}deg)`},
+ {offset:.83,opacity:1,transform:`translate(${ex}px,${ey}px) scale(.96)`},
+ {offset:1,opacity:0,transform:`translate(${ex}px,${ey}px) scale(.8)`}
+ ],1380,done);
+ const carryX=jail.left+jail.width/2-(rect.left+rect.width*.5),carryY=jail.top+jail.height/2-(rect.top+rect.height*.5);
+ animateSprite(unit,[
+ {offset:0,opacity:0,transform:'scale(1)'},
+ {offset:.30,opacity:0,transform:'scale(1)'},
+ {offset:.44,opacity:1,transform:'translate(0,0) rotate(-11deg)'},
+ {offset:.84,opacity:1,transform:`translate(${carryX}px,${carryY}px) scale(.65) rotate(12deg)`},
+ {offset:1,opacity:0,transform:`translate(${carryX}px,${carryY}px) scale(.55)`}
+ ],1380,done);
+}
+function animateDesertion(y,x,piece,finished){
+ const rect=spriteRect(y,x),ep=epoch,serial=++actionSerial;
+ if(!rect||reducedGameMotion()){setTimeout(finished,180);return}
+ const node=el('board').children[y*9+x];node?.classList.add('sprite-departing');
+ const ghost=createActionSprite('assets/sprites/figures/'+(piece.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left,rect.top,rect.width,rect.height);
+ const exitX=(piece.s===0?-innerWidth:innerWidth),exitY=-rect.top-100;
+ animateSprite(ghost,[
+ {offset:0,opacity:1,transform:'translateX(0) rotate(0)'},
+ {offset:.10,transform:'translateX(-5px) rotate(-8deg)'},
+ {offset:.20,transform:'translateX(6px) rotate(8deg)'},
+ {offset:.30,transform:'translateX(-5px) rotate(-7deg)'},
+ {offset:.40,transform:'translateX(4px) rotate(5deg)'},
+ {offset:.65,opacity:1,transform:`translate(${exitX*.42}px,${exitY*.2}px) rotate(-17deg) scale(.92)`},
+ {offset:1,opacity:0,transform:`translate(${exitX}px,${exitY}px) rotate(16deg) scale(.5)`}
+ ],1450,()=>{node?.classList.remove('sprite-departing');if(ep===epoch&&serial===actionSerial)finished?.()});
 }
 function askPromotion(move){
  if(pendingPromotion||ended)return;
@@ -812,26 +958,27 @@ function updateDialogueBanner(side,p){
 }
 function hideHijikataPortrait(){
  portraitSerial++;
- for(const side of [0,1]){const panel=el(side?'enemyOfficerPanel':'officerPanel');panel.classList.remove('speaking');el(side?'enemyBannerVoice':'playerBannerVoice').textContent='';}
+ for(const side of [0,1])clearCharacterBanner(side);
 }
-function showHijikataPortrait(piece){if(!piece)return false;updateDialogueBanner(piece.s??turn,piece);return true}
+function showHijikataPortrait(piece){if(!piece)return false;setCharacterBanner(piece.s??turn,piece);return true}
 function playMoveBattleVoice(kind,side,onCompleted){
  const panel=el(side===0?'officerPanel':'enemyOfficerPanel'),label=el(side===0?'playerBannerVoice':'enemyBannerVoice');
  const e=epoch,id=++portraitSerial;
- panel.classList.add('speaking');label.textContent='⚔ 掛け声を再生中';
+ if(rulePreset==='traditional'){clearCharacterBanner(side);if(onCompleted)onCompleted();return}
+ panel.classList.add('has-portrait','speaking');label.textContent='⚔ 掛け声を再生中';
  let done=false;
- const finish=()=>{if(done)return;done=true;if(e===epoch&&id===portraitSerial){panel.classList.remove('speaking');label.textContent='';if(onCompleted)onCompleted();}};
+ const finish=()=>{if(done)return;done=true;if(e===epoch&&id===portraitSerial){clearCharacterBanner(side);if(onCompleted)onCompleted();}};
  const clip=playBattleVoice(kind,finish);
  if(!clip){finish();return}
  setTimeout(finish,15000);
 }
-function showOfficer(p){if(p)updateDialogueBanner(p.s??turn,p)}
-let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;captureArtSerial++;el('promotionOverlay').classList.remove('show','promote-shine');el('captureOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];quakeCracks=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];ended=false;busy=false;el('event').textContent='';updateDialogueBanner(0,{s:0,cid:0,t:'玉'});updateDialogueBanner(1,{s:1,cid:0,t:'玉'});render()}
+function showOfficer(p){if(p)setCharacterBanner(p.s??turn,p,'',2600)}
+let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;captureArtSerial++;actionSerial++;el('actionLayer').replaceChildren();bloodMarks=[];captureCounts=[0,0];positionHistory=[];el('hitokiriNotice').classList.remove('show');el('promotionOverlay').classList.remove('show','promote-shine');el('captureOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];quakeCracks=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];positionHistory=[{key:positionKey(b,h,0),mover:null,gaveCheck:false}];ended=false;busy=false;el('event').textContent='';updateDialogueBanner(0,{s:0,cid:0,t:'玉'});updateDialogueBanner(1,{s:1,cid:0,t:'玉'});setBannerStatus(0,'新選組、出陣を待つ');setBannerStatus(1,'薩長同盟、出陣を待つ');render()}
 function moves(B,y,x,attack=false){let p=B[y][x];if(!p)return[];let d=p.s?1:-1,out=[];function add(dy,dx,slide=false){let Y=y+dy,X=x+dx;while(inside(Y,X)){if(isQuakeHole(Y,X))break;let q=B[Y][X];if(q&&q.s===p.s)break;if(q?.t==='玉'&&!attack)break;out.push([Y,X]);if(q||!slide)break;Y+=dy;X+=dx}}let gold=[[d,-1],[d,0],[d,1],[0,-1],[0,1],[-d,0]],silver=[[d,-1],[d,0],[d,1],[-d,-1],[-d,1]];if(p.t==='玉')[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v));else if(p.t==='金'||p.p&&['歩','香','桂','銀'].includes(p.t))gold.forEach(v=>add(...v));else if(p.t==='銀')silver.forEach(v=>add(...v));else if(p.t==='歩')add(d,0);else if(p.t==='桂'){add(2*d,-1);add(2*d,1)}else if(p.t==='香')add(d,0,true);else if(p.t==='飛'){[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v,true));if(p.p)[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v))}else if(p.t==='角'){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v,true));if(p.p)[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v))}return out}
 function check(B,s){let king;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===s&&B[y][x].t==='玉')king=[y,x];if(!king)return true;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===1-s&&moves(B,y,x,true).some(v=>v[0]===king[0]&&v[1]===king[1]))return true;return false}
 function promote(p,y,Y){return !p.p&&['歩','香','桂','銀','飛','角'].includes(p.t)&&(p.s?y>=6||Y>=6:y<=2||Y<=2)}
 function forced(p,Y){return !p.p&&(['歩','香'].includes(p.t)&&(p.s?Y===8:Y===0)||p.t==='桂'&&(p.s?Y>=7:Y<=1))}
-function apply(B,H,s,m,prom=false,ids=null){
+function apply(B,H,s,m,prom=false,ids=null,flags=null){
  if(m.drop){
   // The type-only hand UI uses first-in-first-out order for distinct people of the same type.
   const identity=ids?.[s]?.[m.t]?.shift()||null;
@@ -840,7 +987,7 @@ function apply(B,H,s,m,prom=false,ids=null){
   return;
  }
  let p=B[m.y][m.x],q=B[m.Y][m.X];
- if(q){
+ if(q&&!flags?.kill){
   H[s][q.t]=(H[s][q.t]||0)+1;
   // Keep the original character identity even when the piece changes allegiance.
   if(ids)(ids[s][q.t]??=[]).push({cid:q.cid,originSide:q.originSide??q.s});
@@ -849,7 +996,40 @@ function apply(B,H,s,m,prom=false,ids=null){
  if(prom||forced(p,m.Y))p.p=true;
 }
 function isQuakeHole(y,x){return quakeHoles.some(v=>v.y===y&&v.x===x)}
-function legalMoves(B,H,s){let out=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=B[y][x];if(p?.s!==s)continue;for(let [Y,X] of moves(B,y,x)){let m={y,x,Y,X};let bb=clone(B),hh=clone(H);apply(bb,hh,s,m);if(!check(bb,s))out.push(m)}}for(let t of Object.keys(H[s]))if(H[s][t]>0)for(let Y=0;Y<9;Y++)for(let X=0;X<9;X++){if(B[Y][X]||isQuakeHole(Y,X))continue;if(['歩','香'].includes(t)&&(s?Y===8:Y===0)||t==='桂'&&(s?Y>=7:Y<=1))continue;if(t==='歩'&&B.some(r=>r[X]?.s===s&&r[X]?.t==='歩'&&!r[X]?.p))continue;let m={drop:true,t,Y,X},bb=clone(B),hh=clone(H);apply(bb,hh,s,m);if(!check(bb,s))out.push(m)}return out}
+function isPawnDropMate(B,H,s,m){
+ if(!m.drop||m.t!=='歩')return false;
+ const kingY=m.Y+(s?1:-1),kingX=m.X;
+ if(!inside(kingY,kingX)||B[kingY][kingX]?.t!=='玉'||B[kingY][kingX]?.s===s)return false;
+ const bb=clone(B),hh=clone(H);apply(bb,hh,s,m);
+ return check(bb,1-s)&&!legalMoves(bb,hh,1-s,false).length;
+}
+function legalMoves(B,H,s,checkPawnMate=true){let out=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=B[y][x];if(p?.s!==s)continue;for(let [Y,X] of moves(B,y,x)){let m={y,x,Y,X};let bb=clone(B),hh=clone(H);apply(bb,hh,s,m);if(!check(bb,s))out.push(m)}}for(let t of Object.keys(H[s]))if(H[s][t]>0)for(let Y=0;Y<9;Y++)for(let X=0;X<9;X++){if(B[Y][X]||isQuakeHole(Y,X))continue;if(['歩','香'].includes(t)&&(s?Y===8:Y===0)||t==='桂'&&(s?Y>=7:Y<=1))continue;if(t==='歩'&&B.some(r=>r[X]?.s===s&&r[X]?.t==='歩'&&!r[X]?.p))continue;let m={drop:true,t,Y,X},bb=clone(B),hh=clone(H);apply(bb,hh,s,m);if(!check(bb,s)&&!(checkPawnMate&&isPawnDropMate(B,H,s,m)))out.push(m)}return out}
+function positionKey(B,H,s){
+ const cells=B.flat().map(p=>p?(p.s+':'+p.t+(p.p?'成':'')):'-').join(',');
+ const hands=[0,1].map(side=>['飛','角','金','銀','桂','香','歩'].map(t=>(H[side][t]||0)).join(',')).join('|');
+ return s+'|'+cells+'|'+hands;
+}
+function repetitionVerdict(){
+ const last=positionHistory.at(-1);if(!last)return null;
+ const ids=[];for(let i=0;i<positionHistory.length;i++)if(positionHistory[i].key===last.key)ids.push(i);
+ if(ids.length<4)return null;
+ const segment=positionHistory.slice(ids.at(-4)+1);
+ for(const s of [0,1]){
+  const my=segment.filter(entry=>entry.mover===s);
+  if(my.length&&my.every(entry=>entry.gaveCheck))return {loser:s};
+ }
+ return {loser:null};
+}
+function showRepetitionDraw(){
+ if(ended)return;
+ ended=true;busy=false;playerTurnReady=false;noticeSerial++;noticeQueue++;
+ const box=el('endOverlay');
+ el('endWinnerImage').style.display='none';el('endLoserImage').style.display='none';
+ el('endSurrender').textContent='千日手';
+ el('endText').textContent='同一局面が4回・指し直し';
+ el('event').textContent='千日手：引き分け。もう一局を選ぶと最初から対局します。';
+ box.classList.remove('enemy-win');box.classList.add('show');render();
+}
 function showVictory(winner,reason='詰み'){
  if(ended)return;
  ended=true;busy=false;playerTurnReady=false;
@@ -864,6 +1044,7 @@ function showVictory(winner,reason='詰み'){
  const overlay=el('endOverlay');
  el('promotionOverlay').classList.remove('show');
  el('captureOverlay').classList.remove('show');
+ el('endWinnerImage').style.display='';el('endLoserImage').style.display='';
  el('endWinnerImage').src=winner===0?'assets/visuals/victory_kondo.webp':'assets/visuals/victory_saigo.webp';
  el('endLoserImage').src=winner===0?'assets/visuals/defeat_saigo.webp':'assets/visuals/defeat_kondo.webp';
  el('endWinnerImage').alt=(winner===0?'近藤勇':'西郷隆盛')+'の勝利';
@@ -905,38 +1086,86 @@ function gameEnd(){
  }
  return false;
 }
-function scheduleAI(){if(gameMode!=='ai'||pendingCardSide!==null||ended)return;busy=true;render();let e=epoch;setTimeout(()=>{if(e===epoch&&pendingCardSide===null&&gameMode==='ai')ai()},aiLevel===2?1350:aiLevel===1?1050:800)}let noticeSerial=0;function showTurnNotice(side){if(ended)return;playerTurnReady=false;let n=el('turnNotice'),id=++noticeSerial,e=epoch;let title=side===0?'新選組の手番！':'敵軍の手番！',banner=el('turnBanner'),backup=el('turnBannerFallback');banner.src=side===0?'assets/turn-notice/turn_shinsengumi_illustrated.png':'assets/turn-notice/turn_enemy_illustrated.png';banner.alt=title;banner.style.display='block';backup.textContent=title;backup.style.display='none';banner.onerror=()=>{banner.style.display='none';backup.style.display='block'};n.className='on '+(side===0?'blue':'red');playFx('turn');render();setTimeout(()=>{if(e!==epoch||id!==noticeSerial)return;n.className='';playerTurnReady=(gameMode==='local'||side===0)&&turn===side&&!ended&&!busy&&!incidentRunning&&pendingCardSide===null;render()},1800)}function queueTurnNotice(side){playerTurnReady=false;let e=epoch,id=++noticeQueue;render();setTimeout(()=>{if(e!==epoch||id!==noticeQueue||pendingCardSide!==null||ended)return;showTurnNotice(side);if(side===1&&gameMode==='ai')setTimeout(()=>{if(e===epoch&&id===noticeQueue&&pendingCardSide===null&&!ended)scheduleAI()},1900)},side===1?1400:1800)}let noticeQueue=0;function commit(m,prom=false){
- const captured=!m.drop&&!!b[m.Y][m.X],speakerSide=turn;
+function scheduleAI(){
+ if(gameMode!=='ai'||pendingCardSide!==null||ended)return;
+ busy=true;render();const e=epoch;
+ setTimeout(()=>{if(e===epoch&&pendingCardSide===null&&gameMode==='ai')ai()},aiLevel===2?1350:aiLevel===1?1050:800);
+}
+let noticeSerial=0;
+function showTurnNotice(side){
+ if(ended)return;playerTurnReady=false;
+ if(rulePreset==='traditional'){
+  playerTurnReady=(gameMode==='local'||side===0)&&turn===side&&!busy&&pendingCardSide===null;
+  render();if(side===1&&gameMode==='ai')scheduleAI();return;
+ }
+ const n=el('turnNotice'),id=++noticeSerial,e=epoch;
+ const title=side===0?'新選組の手番！':'敵軍の手番！',banner=el('turnBanner'),backup=el('turnBannerFallback');
+ banner.src=side===0?'assets/turn-notice/turn_shinsengumi_illustrated.png':'assets/turn-notice/turn_enemy_illustrated.png';
+ banner.alt=title;banner.style.display='block';backup.textContent=title;backup.style.display='none';
+ banner.onerror=()=>{banner.style.display='none';backup.style.display='block'};
+ n.className='on '+(side===0?'blue':'red');
+ playFx('turn');render();
+ setTimeout(()=>{
+  if(e!==epoch||id!==noticeSerial)return;
+  n.className='';
+  playerTurnReady=(gameMode==='local'||side===0)&&turn===side&&!ended&&!busy&&!incidentRunning&&pendingCardSide===null;
+  render();
+ },1800);
+}
+function queueTurnNotice(side){
+ playerTurnReady=false;
+ if(rulePreset==='traditional'){showTurnNotice(side);return}
+ const e=epoch,id=++noticeQueue;render();
+ setTimeout(()=>{
+  if(e!==epoch||id!==noticeQueue||pendingCardSide!==null||ended)return;
+  showTurnNotice(side);
+  if(side===1&&gameMode==='ai')setTimeout(()=>{
+   if(e===epoch&&id===noticeQueue&&pendingCardSide===null&&!ended)scheduleAI()
+  },1900);
+ },side===1?1400:1800);
+}
+let noticeQueue=0;function commit(m,prom=false){
+ const speakerSide=turn,capturedPiece=!m.drop?b[m.Y][m.X]:null,captured=!!capturedPiece;
  const movingPiece=!m.drop?b[m.y]?.[m.x]:(handIdentities[turn][m.t]||[])[0];
  const originSide=movingPiece?.originSide??movingPiece?.s??turn,officer=movingPiece?.cid;
  const speaker={...(movingPiece||{}),s:speakerSide,t:m.drop?m.t:movingPiece?.t,originSide};
- updateDialogueBanner(speakerSide,speaker);
- apply(b,h,turn,m,prom,handIdentities);
- lastMove={y:m.Y,x:m.X};sound(captured);
+ const forcedKill=captured&&ruleSettings.hitokiri&&captureCounts[speakerSide]>=3;
+ if(rulePreset!=='traditional')setCharacterBanner(speakerSide,speaker,'',0);
+ if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
+ apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});
+ lastMove={y:m.Y,x:m.X};
+ if(forcedKill){captureCounts[speakerSide]=0;playFx('purge');markBlood(m.Y,m.X);flashHitokiri('人斬り・斬殺！')}
+ else{sound(captured);if(captured&&ruleSettings.hitokiri&&++captureCounts[speakerSide]===3)flashHitokiri('人斬り覚醒');}
  const gaveCheck=check(b,1-speakerSide);
  const actor=originSide===0
   ?(officer===0?'kondoIsami':officer===1?'hijikataToshizo':chooseMoveVoice(speakerSide,captured,prom,gaveCheck))
   :(officer===0?'saigoTakamori':officer===2?'kidoTakayoshi':chooseMoveVoice(speakerSide,captured,prom,gaveCheck));
  const voiceKey=gaveCheck?'oute':actor;
  sel=null;turn=1-turn;ply++;playerTurnReady=false;
+ if(rulePreset==='traditional')positionHistory.push({key:positionKey(b,h,turn),mover:speakerSide,gaveCheck});
  if(quakeHoles.length){quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}
  if(speakerSide===1){aiMoveSpot={y:m.Y,x:m.X};const e=epoch;setTimeout(()=>{if(e===epoch){aiMoveSpot=null;render()}},1400)}
  render();
+ let voiceCompleted=false,animationCompleted=!captured||forcedKill||rulePreset==='traditional';
  const thisEpoch=epoch;
- const afterVoice=()=>{
-  if(thisEpoch!==epoch||ended||!el('titleScreen').classList.contains('hidden'))return;
+ const resume=()=>{
+  if(!voiceCompleted||!animationCompleted||thisEpoch!==epoch||ended||!el('titleScreen').classList.contains('hidden'))return;
+  if(rulePreset==='traditional'){
+   const repetition=repetitionVerdict();
+   if(repetition){if(repetition.loser===null)showRepetitionDraw();else showVictory(1-repetition.loser,'連続王手の千日手');return}
+  }
   if(gameEnd())return;
-  if(ply%8===(speakerSide===0?7:0)){
+  if(ruleSettings.cards&&ply%8===(speakerSide===0?7:0)){
    pendingCardSide=speakerSide;const e=epoch;
    setTimeout(()=>{if(e===epoch&&pendingCardSide===speakerSide)startIncident(speakerSide,true)},250);
   }else if(pendingCardSide===null)queueTurnNotice(turn);
  };
- if(captured){
-  setTimeout(()=>{if(thisEpoch===epoch&&!ended&&el('titleScreen').classList.contains('hidden'))showCaptureArt(speakerSide)},520);
+ if(captured&&!forcedKill&&rulePreset!=='traditional'){
+  const e=epoch;
+  setTimeout(()=>{if(e!==epoch)return;animateCaptureEscort(speakerSide,m.Y,m.X,capturedPiece,()=>{animationCompleted=true;resume()})},160);
  }
- if(captured&&(voiceKey==='capture'||voiceKey==='sacchoCapture')){
-  setTimeout(()=>{if(thisEpoch===epoch&&!ended)playMoveBattleVoice(voiceKey,speakerSide,afterVoice)},520);
- }else playMoveBattleVoice(voiceKey,speakerSide,afterVoice);
+ const voiceStart=()=>{if(thisEpoch===epoch&&!ended)playMoveBattleVoice(voiceKey,speakerSide,()=>{voiceCompleted=true;resume()})};
+ if(captured&&rulePreset!=='traditional')setTimeout(voiceStart,420);else voiceStart();
 }
 function tap(y,x){if(!playerTurnReady||ended||busy||incidentRunning||pendingCardSide!==null||(gameMode==='ai'&&turn!==0))return;let p=b[y][x],all=legalMoves(b,h,turn);if(sel){let m=all.find(m=>m.Y===y&&m.X===x&&(sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x));if(m){if(!m.drop&&promote(b[m.y][m.x],m.y,m.Y)&&!forced(b[m.y][m.x],m.Y)){askPromotion(m);return}commit(m,false);return}}sel=p?.s===turn?{y,x}:null;if(sel)showOfficer(p);render()}
 function aiValue(p){const v={玉:200,飛:13,角:11,金:8,銀:6,桂:4,香:4,歩:1.5}[p.t]||1;return v+(p.p?({飛:3,角:3,銀:2,桂:2,香:2,歩:2}[p.t]||0):0)}
@@ -996,7 +1225,7 @@ function ai(){
  if(m.drop){commit(m,prom)}
  else{aiMoveSpot={y:m.y,x:m.x};render();const e=epoch;setTimeout(()=>{if(e!==epoch)return;aiMoveSpot=null;commit(m,prom)},650)}
 }
-let pendingCardSide=null,cardRevealed=false,lastMove=null,incidentTarget=null,incidentEffect=null,incidentRunning=false,aiMoveSpot=null,lastIncidentKind='何事もなし';
+let pendingCardSide=null,cardRevealed=false,cardVoiceDone=true,cardCloseRequested=false,lastMove=null,incidentTarget=null,incidentEffect=null,incidentRunning=false,aiMoveSpot=null,lastIncidentKind='何事もなし';
 const incidentCardFaces={
  '何事もなし':'assets/cards/events/calm.webp',
  '大地震':'assets/cards/events/earthquake.webp',
@@ -1007,13 +1236,16 @@ const incidentCardFaces={
 // Probabilities are provisional pending game balancing: calm 50%, aid 20%, desertion 15%, purge 10%, quake 5%.
 const incidentDrawWeights=[['何事もなし',50],['援軍',20],['脱走',15],['粛清',10],['大地震',5]];
 function pickIncidentKind(roll=Math.random()){
- let threshold=roll*100;
- for(const [kind,weight] of incidentDrawWeights){threshold-=weight;if(threshold<0)return kind}
+ const names={'援軍':'reinforce','脱走':'desertion','粛清':'purge','大地震':'quake'};
+ const available=incidentDrawWeights.filter(([kind])=>kind==='何事もなし'||ruleSettings[names[kind]]);
+ const total=available.reduce((v,[,weight])=>v+weight,0);
+ let threshold=roll*total;
+ for(const [kind,weight] of available){threshold-=weight;if(threshold<0)return kind}
  return '何事もなし';
 }
-function drawPreview(){if(pendingCardSide!==null)return;startIncident(turn)}
+function drawPreview(){if(!ruleSettings.cards||pendingCardSide!==null)return;startIncident(turn)}
 function startIncident(s,queued=false){
- if(ended||pendingCardSide!==null&&!queued)return;
+ if(ended||!ruleSettings.cards||pendingCardSide!==null&&!queued)return;
  pendingCardSide=s;
  playerTurnReady=false;
  let e=epoch;
@@ -1025,7 +1257,7 @@ function startIncident(s,queued=false){
  },1300);
 }
 function draw(s){
- pendingCardSide=s;cardRevealed=false;lastIncidentKind='何事もなし';
+ pendingCardSide=s;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;lastIncidentKind='何事もなし';
  const face=el('cardFace');
  face.classList.remove('revealed','ai-card');
  face.style.backgroundImage='';
@@ -1051,14 +1283,22 @@ function revealCard(){
  // Remove only the faction prefix; preserve specific unit/effect details.
  el('cardEffectText').textContent=el('event').textContent.replace(/^(?:薩長同盟|新選組)の事件札：/,'');
  el('cardPrompt').textContent='';
- playBattleVoice(incidentVoiceByKind[lastIncidentKind]);
+ cardVoiceDone=false;
+ const e=epoch;
+ const release=()=>{if(e!==epoch)return;cardVoiceDone=true;if(cardCloseRequested)finishCardClose()};
+ const clip=playBattleVoice(incidentVoiceByKind[lastIncidentKind],release);
+ if(!clip)release();else setTimeout(release,15000);
+}
+function finishCardClose(){
+ if(pendingCardSide===null)return;
+ pendingCardSide=null;cardCloseRequested=false;
+ el('cardOverlay').classList.remove('show');runIncidentEffect();
 }
 function flipCard(){
  if(pendingCardSide===null)return;
  if(!cardRevealed){revealCard();return}
- pendingCardSide=null;
- el('cardOverlay').classList.remove('show');
- runIncidentEffect();
+ if(!cardVoiceDone){cardCloseRequested=true;el('cardCloseHint').textContent='セリフ再生後に進みます…';return}
+ finishCardClose();
 }
 function incidentSfx(){unlockAudio();if(!audioCtx||audioCtx.state!=='running')return;let t=audioCtx.currentTime,v=Number(el('volume')?.value||85)/100;for(let i=0;i<2;i++){let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(i?980:650,t+i*.12);o.frequency.exponentialRampToValueAtTime(i?420:310,t+i*.12+.15);g.gain.setValueAtTime(.0001,t+i*.12);g.gain.exponentialRampToValueAtTime(Math.max(.001,v*.17),t+i*.12+.015);g.gain.exponentialRampToValueAtTime(.0001,t+i*.12+.19);o.connect(g).connect(audioCtx.destination);o.start(t+i*.12);o.stop(t+i*.12+.2)}}function quakePlan(){for(let count=6;count>=3;count--)for(let attempt=0;attempt<75;attempt++){let bb=clone(b),candidates=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(bb[y][x]&&bb[y][x].t!=='玉')candidates.push([y,x]);for(let i=candidates.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[candidates[i],candidates[j]]=[candidates[j],candidates[i]]}let moved=0,shifts=[];for(let [y,x] of candidates){if(moved>=count)break;let targets=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let Y=y+dy,X=x+dx;if((dy||dx)&&inside(Y,X)&&!bb[Y][X])targets.push([Y,X])}if(!targets.length)continue;let [Y,X]=targets[Math.floor(Math.random()*targets.length)];bb[Y][X]=bb[y][x];bb[y][x]=null;shifts.push({y,x,Y,X});moved++}if(moved===count&&!check(bb,0)&&!check(bb,1)&&legalMoves(bb,h,0).length&&legalMoves(bb,h,1).length)return {board:bb,count,shifts}}return null}let quakeMarks=[],quakeMove=null,quakeLanding=null,quakeHoles=[],quakeCracks=[];
 function quakeEffect(){
@@ -1128,36 +1368,48 @@ function quakeEffect(){
   nextShift();
  },1750);
 }
-function previewEarthquake(){if(ended||busy||incidentRunning||pendingCardSide!==null)return;playerTurnReady=false;quakeEffect()}
+function previewEarthquake(){if(!ruleSettings.quake||ended||busy||incidentRunning||pendingCardSide!==null)return;playerTurnReady=false;quakeEffect()}
 function runIncidentEffect(){
  if(!incidentEffect){if(!ended)queueTurnNotice(turn);return}
  const effect=incidentEffect;incidentEffect=null;
  if(effect.kind==='大地震'){quakeEffect();return}
  incidentRunning=true;busy=true;playerTurnReady=false;
- // In a purge, play the supplied impact only when the target piece disappears.
+ const person=b[effect.y]?.[effect.x];
+ if(person)setCharacterBanner(effect.owner,person,effect.kind,0);
  if(effect.kind!=='粛清')playFx(effect.kind==='援軍'?'reinforce':'desert');
  incidentTarget={y:effect.y,x:effect.x};render();
  const e=epoch;
- setTimeout(()=>{
+ let completed=false;
+ const finish=()=>{
+  if(completed||e!==epoch)return;completed=true;
+  incidentRunning=false;busy=false;incidentTarget=null;
+  clearCharacterBanner(effect.owner);
+  render();if(!ended)queueTurnNotice(turn);
+ };
+ const resolve=()=>{
   if(e!==epoch)return;
   const p=b[effect.y][effect.x],didRemove=!!p&&p.s===effect.owner&&p.t!=='玉';
   if(didRemove){
    b[effect.y][effect.x]=null;
    if(effect.kind==='援軍'){
-     h[effect.side][p.t]=(h[effect.side][p.t]||0)+1;
-     (handIdentities[effect.side][p.t]??=[]).push({cid:p.cid,originSide:p.originSide??p.s});
-    }
+    h[effect.side][p.t]=(h[effect.side][p.t]||0)+1;
+    (handIdentities[effect.side][p.t]??=[]).push({cid:p.cid,originSide:p.originSide??p.s});
+    setCharacterBanner(effect.side,p,'援軍',2300);
+   }
   }
-  incidentTarget=null;
-  if(didRemove){
-   if(effect.kind==='粛清')playFx('purge');
-   if(effect.kind==='粛清'||effect.kind==='脱走')playBattleVoice(effect.owner===1?'sacchoLoss':'loss');
-   else if(effect.kind==='援軍'){playBattleVoice(effect.side===1?'sacchoCapture':'capture');showCaptureArt(effect.side)}
-   if(effect.kind!=='粛清')incidentSfx();
-  }
-  incidentRunning=false;busy=false;render();
-  if(!ended)queueTurnNotice(turn);
- },1600);
+  incidentTarget=null;render();
+  if(!didRemove){finish();return}
+  if(effect.kind==='粛清'){playFx('purge');markBlood(effect.y,effect.x)}
+  if(effect.kind==='援軍'){showCaptureArt(effect.side);incidentSfx()}
+  if(effect.kind==='脱走')incidentSfx();
+  const voice=effect.kind==='援軍'?(effect.side===1?'sacchoCapture':'capture')
+              :(effect.owner===1?'sacchoLoss':'loss');
+  const clip=playBattleVoice(voice,finish);
+  if(!clip)finish();else setTimeout(finish,15000);
+ };
+ if(effect.kind==='脱走'&&person){
+  setTimeout(()=>{if(e===epoch)animateDesertion(effect.y,effect.x,person,resolve)},390);
+ }else setTimeout(resolve,1450);
 }
 function eligibleIncidentTargets(owner,allowedTypes=null){
  const safe=[];
@@ -1246,13 +1498,17 @@ function makeHandPiece(s,t,count){
  btn.onclick=()=>{if(btn.disabled)return;sel={drop:true,t};render()};
  return btn;
 }
-function render(){let ownTurns=Math.floor(ply/2)+(turn===0?1:0);let next=4-((ownTurns-1+400)%4);el('cardCountdown').textContent=pendingCardSide!==null?'🎴 事件札が出現！':('🎴 '+(turn?(gameMode==='ai'?'AI':'薩長'):'新選組')+'：札まで'+(next===4?4:next)+'手');el('status').textContent=(turn?'敵軍':'新撰組')+'の手番'+(check(b,turn)?'【王手】':'')+(busy?'　🤔 思考中…':'');el('status').className=busy?'thinking':'';
+function render(){let ownTurns=Math.floor(ply/2)+(turn===0?1:0);let next=4-((ownTurns-1+400)%4);el('cardCountdown').textContent=!ruleSettings.cards?'':pendingCardSide!==null?'🎴 事件札が出現！':('🎴 '+(turn?(gameMode==='ai'?'AI':'薩長'):'新選組')+'：札まで'+(next===4?4:next)+'手');el('status').textContent=(turn?'敵軍':'新撰組')+'の手番'+(check(b,turn)?'【王手】':'')+(busy?'　🤔 思考中…':'');el('status').className=busy?'thinking':'';
+const statusFor=side=>ended?'勝負あり':pendingCardSide!==null?'事件札を確認中':incidentRunning?'事件発生中…':turn===side
+ ?check(b,side)?'王手！ 防御してください':(side===1&&gameMode==='ai'?'敵軍、思案中…':'あなたの手番')
+ :(side===0?'薩長同盟の手番':'新選組の手番');
+setBannerStatus(0,statusFor(0));setBannerStatus(1,statusFor(1));
 el('quakeHoleHint').textContent=quakeCracks.length?'⚠ 地面に亀裂が入った！':quakeHoles.length?'⚠ 崩落マスは進入・駒打ち不可（あと'+Math.max(0,quakeHoles[0].expiresPly-ply)+'手）':'';
  let threats=ended?{kings:new Set(),attackers:new Set(),rays:new Set()}:getCheckThreats(b);
 el('checkHint').textContent=threats.kings.size
  ?'⚠ 王手！ 王の移動・攻め駒の捕獲・合駒で防いでください。'
  :'';
-let hints=[];if(sel)hints=legalMoves(b,h,turn).filter(m=>sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x).map(m=>m.Y+','+m.X);let root=el('board');root.classList.toggle('input-locked',!playerTurnReady);root.setAttribute('aria-disabled',String(!playerTurnReady));root.innerHTML='';for(let y=0;y<9;y++)for(let x=0;x<9;x++){let d=document.createElement('div'),p=b[y][x];d.className='sq'+(threats.kings.has(y+','+x)?' check-king':'')+(threats.attackers.has(y+','+x)?' check-attacker':'')+(threats.rays.has(y+','+x)?' check-ray':'')+(quakeMarks.includes(y+','+x)?' quake-mark':'')+(quakeCracks.some(v=>v.y===y&&v.x===x)?' quake-crack':'')+(isQuakeHole(y,x)?' quake-hole':'')+(quakeMove&&quakeMove.y===y&&quakeMove.x===x?' quake-origin':'')+(quakeMove&&quakeMove.Y===y&&quakeMove.X===x?' quake-destination':'')+(quakeLanding&&quakeLanding.y===y&&quakeLanding.x===x?' quake-landing':'')+(sel&&!sel.drop&&sel.y===y&&sel.x===x?' sel':'')+(hints.includes(y+','+x)?(p&&p.s===1?' capture-hint':' hint'):'')+(lastMove&&lastMove.y===y&&lastMove.x===x?' last-move':'')+(incidentTarget&&incidentTarget.y===y&&incidentTarget.x===x?' incident-target':'');if(quakeMove&&quakeMove.y===y&&quakeMove.x===x){d.style.setProperty('--quake-dx',(quakeMove.X-x)*100+'%');d.style.setProperty('--quake-dy',(quakeMove.Y-y)*100+'%')}if(p){
+let hints=[];if(sel)hints=legalMoves(b,h,turn).filter(m=>sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x).map(m=>m.Y+','+m.X);let root=el('board');root.classList.toggle('input-locked',!playerTurnReady);root.setAttribute('aria-disabled',String(!playerTurnReady));root.innerHTML='';for(let y=0;y<9;y++)for(let x=0;x<9;x++){let d=document.createElement('div'),p=b[y][x];d.className='sq'+(threats.kings.has(y+','+x)?' check-king':'')+(threats.attackers.has(y+','+x)?' check-attacker':'')+(threats.rays.has(y+','+x)?' check-ray':'')+(quakeMarks.includes(y+','+x)?' quake-mark':'')+(quakeCracks.some(v=>v.y===y&&v.x===x)?' quake-crack':'')+(isQuakeHole(y,x)?' quake-hole':'')+(quakeMove&&quakeMove.y===y&&quakeMove.x===x?' quake-origin':'')+(quakeMove&&quakeMove.Y===y&&quakeMove.X===x?' quake-destination':'')+(quakeLanding&&quakeLanding.y===y&&quakeLanding.x===x?' quake-landing':'')+(sel&&!sel.drop&&sel.y===y&&sel.x===x?' sel':'')+(hints.includes(y+','+x)?(p&&p.s===1?' capture-hint':' hint'):'')+(lastMove&&lastMove.y===y&&lastMove.x===x?' last-move':'')+(incidentTarget&&incidentTarget.y===y&&incidentTarget.x===x?' incident-target':'')+(bloodMarks.includes(y+','+x)?' blood-mark':'');if(quakeMove&&quakeMove.y===y&&quakeMove.x===x){d.style.setProperty('--quake-dx',(quakeMove.X-x)*100+'%');d.style.setProperty('--quake-dy',(quakeMove.Y-y)*100+'%')}if(p){
  const label=p.p?({歩:'と',香:'杏',桂:'圭',銀:'全',飛:'龍',角:'馬'}[p.t]||p.t):p.t;
  const figure=p.s===0?'shinsengumi_back':'saccho_front';
  const types={歩:'fu',香:'kyosha',桂:'keima',銀:'gin',金:'kin',角:'kaku',飛:'hisha',玉:'ou',王:'ou'};
