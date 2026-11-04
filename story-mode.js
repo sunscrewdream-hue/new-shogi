@@ -294,8 +294,18 @@ function banner(s,p){
 }
 // Main-game parity: pointer hover reveals the character without selecting or moving.
 let storyHoverSide=null,storyHoverBase=[null,null];
+function canPreviewStoryHover(){
+ return !!g&&!ended&&!busy&&!compactTurnLocked&&g.side===0
+  &&!$("storyBattle").classList.contains("hidden")
+  &&!$("compactTurnNotice").classList.contains("show")
+  &&!$("compactIntroClash").classList.contains("show")
+  &&!$("compactAwakenNotice").classList.contains("show")
+  &&$("compactCardOverlay").classList.contains("hidden")
+  &&$("compactIncidentStage").classList.contains("hidden")
+  &&$("storyPopup").classList.contains("hidden");
+}
 function previewStoryUnit(p){
- if(!p)return;const side=p.s;
+ if(!p||!canPreviewStoryHover())return;const side=p.s;
  const panel=$(side?"enemyStoryBanner":"playerStoryBanner");
  if(storyHoverSide!==null&&storyHoverSide!==side)restoreStoryHover();
  if(storyHoverSide===null){
@@ -319,7 +329,8 @@ function storyCellFromPointer(event){
  return {cell,y,x,p:g.board[y]?.[x]};
 }
 $("storyBoard").addEventListener("pointerover",event=>{
- if(event.pointerType!=="mouse"||ended||!g||busy)return;
+ if(event.pointerType!=="mouse")return;
+ if(!canPreviewStoryHover()){restoreStoryHover();return}
  const unit=storyCellFromPointer(event);
  if(unit?.p)previewStoryUnit(unit.p);else restoreStoryHover();
 });
@@ -400,7 +411,7 @@ function render(){
  restoreStoryHover();
  if(!g||$("storyBattle").classList.contains("hidden"))return;
  const root=$("storyBoard");
- const inputLocked=ended||busy||compactTurnLocked||g.side!==0;
+ const inputLocked=!canPreviewStoryHover();
  root.classList.toggle("input-locked",inputLocked);
  root.setAttribute("aria-disabled",String(inputLocked));
  root.replaceChildren();
