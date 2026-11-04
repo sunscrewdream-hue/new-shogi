@@ -373,8 +373,12 @@ function battle(i){
 function render(){
  restoreStoryHover();
  if(!g||$("storyBattle").classList.contains("hidden"))return;
- const root=$("storyBoard");root.replaceChildren();
- const legal=!ended&&!busy&&!compactTurnLocked&&g.side===0?g.legal(0):[];
+ const root=$("storyBoard");
+ const inputLocked=ended||busy||compactTurnLocked||g.side!==0;
+ root.classList.toggle("input-locked",inputLocked);
+ root.setAttribute("aria-disabled",String(inputLocked));
+ root.replaceChildren();
+ const legal=!inputLocked?g.legal(0):[];
  const targets=selected?legal.filter(m=>selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x):[];
  const attackers=compactCheckSources();
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
