@@ -95,3 +95,27 @@
 #storyBoard .sq{background-color:transparent}
 #storyBattle .person-banner{background-color:#e6d3ad}
 #storyBattle .hand-container{background-image:linear-gradient(#162c3855,#10151a78),url("assets/visuals/edo_jail.png")}
+
+/* Compact chapter boards: keep two portrait banners and both hands usable.
+   5x6 scales with available viewport HEIGHT as well as width. 9x9 unchanged. */
+#storyBoard.small-board{
+ width:min(90vw, 440px, calc((100dvh - 330px)*5/6))!important;
+ max-width:100%!important;
+ border-width:3px!important;
+ margin:4px auto!important;
+}
+@media(min-width:700px){
+ #storyBoard.small-board{
+  width:min(440px, 46vw, calc((100dvh - 320px)*5/6))!important;
+ }
+}
+@media(max-height:700px){
+ #storyBoard.small-board{
+  width:min(88vw, 370px, calc((100dvh - 285px)*5/6))!important;
+ }
+ #storyBattle .person-banner{max-height:70px}
+ #storyBattle .hand-container{min-height:35px}
+}
+@media(max-height:520px){
+ #storyBoard.small-board{width:min(80vw,270px)!important}
+}
