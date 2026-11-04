@@ -214,3 +214,10 @@
  background:url("assets/visuals/hitokiri_red_calligraphy.webp") center/contain no-repeat;
  filter:drop-shadow(0 2px 3px #210404);
 }
+/* Match the completed 9x9 game's non-editable UI cursor and text-selection policy. */
+body{user-select:none;-webkit-user-select:none;caret-color:transparent;cursor:default}
+button,a,input[type=range]{cursor:pointer}
+input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto}
+#storyBoard,.story-token,.person-banner img,.popup-art{user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+#storyBoard .sq{cursor:pointer}
+#storyBoard.input-locked .sq,#storyBoard .sq:disabled,.story-hand button:disabled{cursor:default}
