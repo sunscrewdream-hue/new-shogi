@@ -258,9 +258,9 @@
   const cell=$('board').children[target.y*9+target.x],hand=$('playerHandShell');
   if(!cell||!hand)return;
   reinforcementPreviewRunning=true;reinforcementTest.disabled=true;
-  const person=target.p,origin=person.originSide??person.s;
-  const index=(origin===0?1:21)+(Number.isInteger(person.cid)?person.cid:0);
-  const id=String(index).padStart(2,'0');
+  const person=target.p;
+  // Use the same full-body troop artwork as the desertion animation.
+  const figureSrc='assets/sprites/figures/'+(person.s===0?'shinsengumi_back':'saccho_front')+'.webp';
   const portrait=document.createElement('img');
   // Wait for an actual decoded image before the timer begins. Slow mobile networks
   // otherwise finish the entire flight before the portrait becomes visible.
@@ -272,11 +272,10 @@
     if(portrait.complete)resolve(portrait.naturalWidth>0);
    });
   }
-  let loaded=await loadPortrait('assets/portraits/'+id+'.webp');
-  if(!loaded)loaded=await loadPortrait('assets/dialogue_banners/person_'+id+'.webp');
+  const loaded=await loadPortrait(figureSrc);
   if(!loaded){
    reinforcementPreviewRunning=false;reinforcementTest.disabled=false;
-   showToast('隊士画像を読み込めませんでした：'+id);
+   showToast('援軍の隊士画像を読み込めませんでした');
    return;
   }
   if(typeof portrait.decode==='function')try{await portrait.decode()}catch{}
