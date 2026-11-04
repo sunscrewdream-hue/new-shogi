@@ -13,7 +13,7 @@ function sfx(t){
   const a=new Audio("assets/story/audio/"+t+".mp3");a.volume=t==="cannon"?.75:.67;a.play().catch(()=>{});return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_munen.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_custom.mp3"};
  if(files[t]){const a=new Audio(files[t]);a.volume=t==="capture"?.83:.40;a.play().catch(()=>{});return}
  try{
   audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
