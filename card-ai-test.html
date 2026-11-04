@@ -1032,7 +1032,7 @@ function showVictory(winner,reason='詰み'){
  stopQuakeBattle();
  const overlay=el('endOverlay');
  el('promotionOverlay').classList.remove('show');
- 
+
  el('endWinnerImage').style.display='';el('endLoserImage').style.display='';
  el('endWinnerImage').src=winner===0?'assets/visuals/victory_kondo.webp':'assets/visuals/victory_saigo.webp';
  el('endLoserImage').src=winner===0?'assets/visuals/defeat_saigo.webp':'assets/visuals/defeat_kondo.webp';
