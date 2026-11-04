@@ -275,3 +275,18 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  outline:2px solid #ffd35f!important;outline-offset:1px!important;filter:drop-shadow(0 0 4px #ffd35f)}
 .story-hand-piece:disabled{opacity:.72;cursor:default}
 #storyHand1 .story-hand-piece:disabled{opacity:1}
+
+/* The 5x6 board is taller than it is wide: reserve space for BOTH banners
+   and BOTH captured-piece trays. Never exceed the completed game's 520px board. */
+#storyBoard.small-board{
+ width:min(90vw, 300px, max(195px, calc(83.333dvh - 300px)))!important;
+ max-width:520px!important;
+ margin:3px auto!important;
+}
+@media(min-width:700px){
+ #storyBoard.small-board{width:min(300px, 38vw, max(195px, calc(83.333dvh - 300px)))!important}
+}
+@media(max-height:620px){
+ #storyBoard.small-board{width:min(84vw, 245px, max(170px, calc(83.333dvh - 250px)))!important}
+ #storyBattle .person-banner{max-height:64px}
+}
