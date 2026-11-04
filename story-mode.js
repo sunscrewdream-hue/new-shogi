@@ -3,28 +3,46 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,audioContext=null,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,voiceEnabled=true,fxEnabled=true,audioContext=null,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
-const fxLevel=base=>Math.min(1,base*storyVolume/10);
+// Match finished match's SFX gain (.021 per slider point; capped at .5).
+const fxLevel=()=>Math.min(.5,storyVolume/100*2.1);
+const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
+const storyQuakeBattle=new Audio("assets/audio/sfx/battle_charge_mono_64kbps.mp3");let quakeBattleRuns=0;
+storyQuakeBattle.preload="auto";storyQuakeBattle.playsInline=true;
+function stopStoryQuakeBattle(){storyQuakeBattle.pause();storyQuakeBattle.currentTime=0;quakeBattleRuns=0}
+storyQuakeBattle.addEventListener("ended",()=>{if(quakeBattleRuns!==1||!fxEnabled||document.hidden)return;quakeBattleRuns=2;storyQuakeBattle.currentTime=0;storyQuakeBattle.play().catch(()=>{})});
+function playStoryQuakeBattle(){if(!fxEnabled||document.hidden)return;stopStoryQuakeBattle();quakeBattleRuns=1;storyQuakeBattle.volume=Math.min(.5,storyVolume/100*2.4);storyQuakeBattle.play().catch(()=>{})}
+function stopStoryClip(channel){const a=channel==="voice"?activeStoryVoice:activeStoryFx;if(a){a.pause();a.currentTime=0}if(channel==="voice")activeStoryVoice=null;else activeStoryFx=null}
+function playStoryClip(path,channel="fx",onDone=null){
+ if(channel==="voice"?!voiceEnabled:!fxEnabled){onDone?.();return null}
+ if(document.hidden){onDone?.();return null}
+ let a=storyClipCache.get(path);if(!a){a=new Audio(path);a.preload=channel==="voice"?"auto":"none";a.playsInline=true;storyClipCache.set(path,a)}
+ stopStoryClip(channel);a.currentTime=0;a.volume=channel==="voice"?voiceLevel():fxLevel();
+ if(channel==="voice")activeStoryVoice=a;else activeStoryFx=a;
+ let settled=false;const finish=()=>{if(settled)return;settled=true;a.removeEventListener("ended",finish);a.removeEventListener("error",finish);a.removeEventListener("pause",finish);onDone?.()};
+ if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish)}
+ a.play().catch(finish);return a;
+}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t){
- if(soundOff)return;
  if(t==="cannon"||t==="rifle"||t==="blast"){
   window.StoryBgm?.duck();
-  const a=new Audio("assets/story/audio/"+t+".mp3");a.volume=fxLevel(t==="cannon"?.65:.57);a.play().catch(()=>{});return;
+  playStoryClip("assets/story/audio/"+t+".mp3");return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_custom.mp3"};
- if(files[t]){const a=new Audio(files[t]);a.volume=["capture","win","loss"].includes(t)?voiceLevel():fxLevel(.35);a.play().catch(()=>{});return}
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_custom.mp3"};
+ if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx");return}
+ if(!fxEnabled)return;
  try{
   audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
   if(audioContext.state==="suspended")audioContext.resume();
   const dur=t==="cannon"?.8:.28,buf=audioContext.createBuffer(1,Math.floor(audioContext.sampleRate*dur),audioContext.sampleRate),data=buf.getChannelData(0);
   for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/data.length*(t==="cannon"?5:10));
   const noise=audioContext.createBufferSource(),filter=audioContext.createBiquadFilter(),gain=audioContext.createGain();
-  noise.buffer=buf;filter.type="lowpass";filter.frequency.value=t==="cannon"?850:1600;gain.gain.value=fxLevel(t==="cannon"?.4:.2);
+  noise.buffer=buf;filter.type="lowpass";filter.frequency.value=t==="cannon"?850:1600;gain.gain.value=fxLevel();
   noise.connect(filter).connect(gain).connect(audioContext.destination);noise.start();
  }catch(e){}
 }
@@ -39,19 +57,31 @@ const compactAudio={
  kondo:"assets/audio/voice_kondo_isami_king_move.mp3",
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
+ sacchoCapture:"assets/audio/saccho_voice_03_toraeta.mp3",
+ sacchoLoss:"assets/audio/saccho_voice_04_munen.mp3",
+ saigo:"assets/audio/voice_saigo_takamori.mp3",
+ kido:"assets/audio/voice_kido_takayoshi.mp3",
+ sacchoCheck:"assets/audio/saccho_voice_06_korede_saigo.mp3",
+ sacchoPromote:"assets/audio/saccho_voice_05_madamada.mp3",
+ sacchoChesto:"assets/audio/saccho_voice_01_chesto.mp3",
+ sacchoUryaa:"assets/audio/saccho_voice_02_uryaa.mp3",
  check:"assets/audio/voice_oute.mp3",
  banner:"assets/audio/sfx/taiko_dodon.mp3",
  quake:"assets/audio/sfx/rumble.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
+ desert:"assets/audio/sfx/gravel_run.mp3",
+ reinforce:"assets/audio/sfx/taiko_dodon.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
 };
 function compactSound(kind){
- if(soundOff)return;
- const src=compactAudio[kind];if(!src)return;
- try{const a=new Audio(src);a.volume=["move0","move1","kondo","hijikata","check"].includes(kind)?voiceLevel():fxLevel(.4);a.play().catch(()=>{})}catch(e){}
+ if(kind==="slash")kind=["slash1","slash2","slash3"][Math.floor(Math.random()*3)];
+ const src=compactAudio[kind]||({slash1:"assets/audio/sfx/sword_slash_1.mp3",slash2:"assets/audio/sfx/sword_slash_2.mp3",slash3:"assets/audio/sfx/sword_slash_3.mp3"})[kind];if(!src)return;
+ const isVoice=["move0","move1","kondo","hijikata","check","sacchoCapture","sacchoLoss","saigo","kido","sacchoCheck","sacchoPromote","sacchoChesto","sacchoUryaa"].includes(kind);
+ playStoryClip(src,isVoice?"voice":"fx");
 }
 function hideCompactFx(){
+ stopStoryQuakeBattle();
  compactFxSerial++;
  compactTurnLocked=false;
  $("compactTurnNotice").classList.remove("show");
@@ -108,10 +138,12 @@ function compactCardReveal(){
  const face=$("compactCardFace");face.style.backgroundImage=`url("${compactCardFaces[kind]}")`;face.classList.add("revealed");
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;$("compactCardPrompt").textContent="";
  state.voiceDone=false;
- if(soundOff){state.voiceDone=true;return}
- const audio=new Audio(compactCardVoices[kind]);audio.volume=voiceLevel();let settled=false;
+ sfx("flip");
+ if(!voiceEnabled){state.voiceDone=true;return}
+ let settled=false;
  const done=()=>{if(settled)return;settled=true;if(compactIncident!==state)return;state.voiceDone=true;if(state.closeRequested)compactCardClose()};
- audio.onended=done;audio.onerror=done;audio.play().catch(done);setTimeout(done,7000);
+ // The flip SFX and incident voice have separate channels as in the finished game.
+ playStoryClip(compactCardVoices[kind],"voice",done);setTimeout(done,15000);
 }
 function compactCardClose(){
  const state=compactIncident;if(!state||!state.revealed)return;
@@ -128,7 +160,7 @@ function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
  if(effect.kind==="大地震"){
-  board.classList.add("compact-quake");compactSound("quake");
+  board.classList.add("compact-quake");compactSound("quake");playStoryQuakeBattle();
   setTimeout(()=>{
    if(game!==epoch)return;board.classList.remove("compact-quake");const plan=compactPlanQuake();
    if(plan){g.board=plan.B;g.last=null;compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
@@ -151,12 +183,14 @@ function compactApplyIncident(effect){
   const B=g.clone(g.board);B[y][x]=null;if(!compactSafeBoard(B)){finish();return}
   g.board[y][x]=null;
   if(kind==="援軍"){
+   compactSound("reinforce");
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
+   if(side===0)sfx("capture");else compactSound("sacchoCapture");
    render();animateCompactEscort(side,y,x,p,finish);
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
    render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");setTimeout(finish,1400);
-  }else{render();setTimeout(finish,650)}
+  }else{if(kind==="脱走")compactSound("desert");render();setTimeout(finish,650)}
  };
  if(kind==="脱走"){
   const rect=board.children[y*g.w+x]?.getBoundingClientRect();
@@ -306,6 +340,7 @@ $("storyBoard").addEventListener("pointerout",event=>{
 $("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
+ stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};restoreStoryHover();window.StoryBgm?.stop();
  $("storyDevToggle").textContent=devPreview?"🛠 開発テスト：終了して通常表示へ":"🛠 開発テスト：全章を表示";
@@ -450,7 +485,20 @@ function makeMove(m,prom){
    compactCalligraphy(false);
   }
  }
- if(captured){if(!willKill){sfx("capture");if(compactMode())compactSound("slash")}if(actor===0)collect(captured);banner(1-actor,captured)}else if(compactMode())compactSound(actor===0&&source?.origin===0&&source?.cid===0?"kondo":actor===0&&source?.origin===0&&source?.cid===1?"hijikata":"move"+actor);else sfx("move");
+ if(captured){
+  if(!willKill){
+   if(actor===0)sfx("capture");else compactSound("sacchoCapture");
+   if(compactMode())compactSound("slash");
+  }
+  if(actor===0)collect(captured);banner(1-actor,captured);
+ }else{
+  sfx("move");
+  const gaveCheck=g.check(g.board,1-actor),nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
+  const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
+   :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
+  if(gaveCheck)compactSound("check");
+  else if(nearby&&Math.random()<.45)compactSound(dedicated||(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto"));
+ }
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(compactMode()){
   busy=true;render();const id=epoch;
@@ -511,22 +559,25 @@ function leave(){
  popup("対局を中断しますか？","途中の対局は保存されません。",[["章選択へ",()=>{epoch++;ended=true;busy=false;screenHome()}],["戻る",()=>{}]]);
 }
 $( "storyDevToggle" ).onclick=()=>{devPreview=!devPreview;screenHome()};
-const storySortieVoice=new Audio("assets/audio/voice_iza_shutsujin.mp3");
-storySortieVoice.preload="auto";storySortieVoice.playsInline=true;
 $("dialogueNext").onclick=()=>{
  const sortie=stage>=0&&stage<4&&at===dialog.length-1;
- if(sortie&&!soundOff){
+ if(sortie&&voiceEnabled){
   window.StoryBgm?.duck();
-  try{storySortieVoice.pause();storySortieVoice.currentTime=0;storySortieVoice.volume=voiceLevel();
-   const playing=storySortieVoice.play();if(playing?.catch)playing.catch(()=>{});
-  }catch(e){}
+  playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice");
  }
  at++;line();
 };
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
 $("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では敵軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
-$("audioToggle").onclick=()=>{window.StoryBgm?.unlock();soundOff=!soundOff;window.StoryBgm?.setMuted(soundOff);$("audioToggle").textContent=soundOff?"♪ 音 OFF":"♪ 音 ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
+$("audioToggle").onclick=()=>{window.StoryBgm?.unlock();soundOff=!soundOff;window.StoryBgm?.setMuted(soundOff);$("audioToggle").textContent=soundOff?"♪ BGM OFF":"♪ BGM ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
+$("storyVoiceToggle").onclick=()=>{voiceEnabled=!voiceEnabled;if(!voiceEnabled)stopStoryClip("voice");$("storyVoiceToggle").textContent=voiceEnabled?"声 ON":"声 OFF";$("storyVoiceToggle").setAttribute("aria-pressed",String(voiceEnabled))};
+$("storyFxToggle").onclick=()=>{fxEnabled=!fxEnabled;if(!fxEnabled){stopStoryClip("fx");stopStoryQuakeBattle()}$("storyFxToggle").textContent=fxEnabled?"効果音 ON":"効果音 OFF";$("storyFxToggle").setAttribute("aria-pressed",String(fxEnabled))};
+const voiceSamples=["assets/audio/voice_shinsengumi_move_sorya.mp3","assets/audio/voice_kondo_isami_king_move.mp3","assets/audio/voice_hijikata_toshizo_move.mp3","assets/audio/saccho_voice_01_chesto.mp3","assets/audio/saccho_voice_02_uryaa.mp3","assets/audio/saccho_voice_03_toraeta.mp3"];
+let previewIndex=0;
+$("storyVoicePreview").onclick=()=>{window.StoryBgm?.unlock();if(!voiceEnabled)return;playStoryClip(voiceSamples[previewIndex++%voiceSamples.length],"voice")};
+document.addEventListener("visibilitychange",()=>{if(document.hidden){stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()}});
+window.addEventListener("pagehide",()=>{stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()});
 $("storyVolume").value=String(storyVolume);$("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
 window.StoryBgm?.setVolume(storyVolume);
 $("storyVolume").addEventListener("input",event=>{
