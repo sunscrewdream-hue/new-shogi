@@ -540,7 +540,10 @@ function line(){
  $("dialogueBody").textContent=dialog[at][1];
  $("dialogueCount").textContent=(at+1)+" / "+dialog.length;
  const sortie=at===dialog.length-1&&stage>=0&&stage<4;
- $("dialogueNext").textContent=sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"続ける ›";
+ $("dialogueNext").textContent=sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"〉";
+ $("dialogueNext").setAttribute("aria-label",sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"次のページ");
+ $("dialoguePrev").disabled=at===0;
+ $("dialoguePrev").setAttribute("aria-label","前のページ");
  $("dialogueNext").classList.toggle("story-sortie-button",sortie);
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
@@ -816,6 +819,11 @@ $("dialogueNext").onclick=()=>{
   playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice");
  }
  at++;line();
+};
+$("dialoguePrev").onclick=()=>{
+ if(at<=0)return;
+ sfx("flip");
+ at--;line();
 };
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);

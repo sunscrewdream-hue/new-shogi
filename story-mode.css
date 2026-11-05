@@ -158,7 +158,15 @@
  overflow-y:hidden;
  overscroll-behavior-inline:contain;
  color:#392d22;
+ text-align:center;
 }
+/* Center the narration controls, with accessible page arrows in both directions. */
+#storyDialogue .narration .dialogue-foot{flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+#storyDialogue .dialogue-navigation{display:flex;align-items:center;justify-content:center;gap:18px;width:100%}
+#storyDialogue .dialogue-navigation button:not(.story-sortie-button){min-width:64px;min-height:44px;padding:6px 15px;font-size:23px;line-height:1}
+#storyDialogue .dialogue-navigation #dialoguePrev:disabled{visibility:hidden}
+#storyDialogue .dialogue-foot.story-sortie-foot .dialogue-navigation{gap:12px}
+#storyDialogue .dialogue-foot.story-sortie-foot #dialoguePrev{min-width:64px}
 @media(max-width:420px){
  #storyDialogue .narration{padding:14px 12px}
  #storyDialogue.vertical-narration #dialogueBody{height:clamp(230px,35dvh,310px);font-size:15px;line-height:1.7}
