@@ -996,3 +996,8 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
 .compact-incident-stage .compact-incident-title{width:min(90vw,640px);max-height:60dvh;object-fit:contain}
 html.game-effect-scroll-locked,html.game-effect-scroll-locked body{overscroll-behavior:none}
 body.game-effect-scroll-locked{touch-action:none}
+ 
+/* Mobile-only: enlarge the awakened seal without changing desktop banners. */
+@media(max-width:600px){
+ #storyBattle .person-banner .hitokiri-stamp{left:9%;bottom:-1%;width:86%;height:78%}
+}
