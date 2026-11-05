@@ -551,7 +551,8 @@ const storyRubyReadings=[
  ["下総流山","しもうさながれやま"],["投降","とうこう"],
  ["榎本武揚","えのもとたけあき"],["箱館","はこだて"],
  ["終焉","しゅうえん"],["慶応","けいおう"],["洛中","らくちゅう"],
- ["油小路","あぶらのこうじ"],["鳥羽","とば"],["伏見","ふしみ"]
+ ["油小路","あぶらのこうじ"],["鳥羽","とば"],["伏見","ふしみ"],
+ ["参謀","さんぼう"],["相容れぬ","あいいれぬ"],["傍ら","かたわら"],["抜刀","ばっとう"]
 ];
 const storyRubyPattern=new RegExp(storyRubyReadings.map(p=>p[0]).sort((a,b)=>b.length-a.length).join("|"),"g");
 const storyRubyMap=new Map(storyRubyReadings);
