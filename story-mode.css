@@ -333,3 +333,31 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .scene-kinmon{
  background-image:linear-gradient(#141b24a3,#0c0f17a4),url("assets/story/kinmon-bg-v2.webp"),url("kyoto-autumn.webp");
 }
+
+/* Kinmon 9x9: the playable square retains the completed game's 520px
+   outer maximum and 3px border (514px / 9 = 57.111px per cell at max).
+   Battlefield ruins are purely decorative and never affect grid sizing. */
+#storyBoard[data-stage="1"]{
+ width:min(96vw,520px,100%,max(250px,calc(100dvh - 305px)))!important;
+ border:3px solid #604730!important;
+ background-image:url("assets/story/board-kinmon-ground-v2.webp")!important;
+ background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+ overflow:visible;position:relative;isolation:isolate;
+}
+#storyBoard[data-stage="1"]::before{
+ content:"";position:absolute;pointer-events:none;z-index:0;
+ width:125%;height:125%;left:-12.5%;top:-12.5%;
+ background:url("assets/story/board-kinmon-perimeter-v2.webp") center/100% 100% no-repeat;
+}
+/* Hide all peripheral props under an exactly square, uninterrupted 9x9 floor. */
+#storyBoard[data-stage="1"]::after{
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:url("assets/story/board-kinmon-ground-v2.webp") center/100% 100% no-repeat;
+}
+#storyBoard[data-stage="1"]>.sq{z-index:2}
+@media(min-width:700px) and (min-height:700px){
+ #storyBoard[data-stage="1"]{width:min(96vw,520px,100%)!important}
+}
+@media(max-width:600px){
+ #storyBoard[data-stage="1"]::before{width:110%;height:110%;left:-5%;top:-5%}
+}
