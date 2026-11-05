@@ -1124,6 +1124,7 @@ function storyLoadMatch(){
  hideCompactFx();render();
  window.StoryBgm?.play(data.stage===0||data.stage===2?"battle01":"battle02");
 }
+window.storySaveMatch=storySaveMatch;window.storyLoadMatch=storyLoadMatch;
 function storyDebugReady(){return g&&!ended&&!busy&&!compactTurnLocked&&g.side===0&&!compactIncident&&!pendingWeaponDisplay&&$("storyPopup").classList.contains("hidden")}
 function storyDebugRun(action,changesBoard=false){
  if(!storyDebugReady())return;
