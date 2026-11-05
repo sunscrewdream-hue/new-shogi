@@ -513,6 +513,19 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .scene-kinmon{
  background-image:linear-gradient(#141b24a3,#0c0f17a4),url("assets/story/kinmon-bg-v2.webp"),url("kyoto-autumn.webp");
 }
+/* Kinmon page one: historically varied Choshu troops advancing toward Kyoto. */
+.scene-kinmon.kinmon-first-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/kinmon-scene01-choshu-march-v3.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-kinmon.kinmon-first-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
 
 /* Kinmon 9x9: the playable square retains the completed game's 520px
    outer maximum and 3px border (514px / 9 = 57.111px per cell at max).
