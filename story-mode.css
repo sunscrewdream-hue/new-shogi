@@ -456,6 +456,19 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .scene-ikedaya.ikedaya-first-page .scene-overlay{
  background:linear-gradient(transparent 15%,#1c1a197a 100%);
 }
+/* Yamazaki listening behind the fusuma: only Ikedaya's second story page. */
+.scene-ikedaya.ikedaya-second-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/ikedaya-scene02-yamazaki-listening-v1.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-ikedaya.ikedaya-second-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
 
 /* Ikedaya's tatami-and-corridor artwork is ONLY a background; the existing
    5x6 board dimensions and responsive height budget remain authoritative. */
