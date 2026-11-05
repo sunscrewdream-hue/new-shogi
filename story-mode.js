@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],pendingWeaponKind=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -37,8 +37,10 @@ function sfx(t){
  if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx");return}
  // No legacy synthesized fallback: only approved recorded assets are played.
 }
-// Compact chapters reuse the approved main-game assets and five incident cards.
-function compactMode(){return stage===0||stage===2}
+// Every playable chapter reuses the approved main-game event assets and rules.
+// Historical 5x6-only gating silently disabled cards, capture escorts, turn notices,
+// awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
+function compactMode(){return stage>=0&&stage<D.chapters.length}
 const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
 const compactCardWeights=[["何事もなし",50],["援軍",20],["脱走",15],["粛清",10],["大地震",5]];
 const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
@@ -144,6 +146,9 @@ function compactCardClose(){
 $("compactCardFace").onclick=()=>{if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose()};
 function compactResumeTurn(){
  if(ended)return;busy=false;compactTurnLocked=false;render();const game=epoch;
+ // Chapter-specific artillery comes AFTER the shared incident card sequence,
+ // rather than being silently skipped while the move animation still owns the lock.
+ if(pendingWeaponKind){const kind=pendingWeaponKind;pendingWeaponKind=null;weaponCard(kind);return}
  if(g.side===1)compactTurn(1,()=>{if(game===epoch)setTimeout(()=>{if(game===epoch)computer()},420)});
  else compactTurn(0);
 }
@@ -413,7 +418,7 @@ function battle(i){
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
- epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];
+ epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];pendingWeaponKind=null;
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
@@ -468,9 +473,11 @@ function render(){
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
- storyBannerMessage(ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":""));
+ const countdown=compactMode()&&!ended?(compactIncident?"🎴 事件札を確認中":`🎴 札まで${4-Math.floor((g.ply%8)/2)}手`):"";
+ const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
+ storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
- $("compactCardCountdown").textContent=compactMode()&&!ended?(compactIncident?"🎴 事件札を確認中":`🎴 ${g.side===0?"新選組":"敵軍"}：札まで${4-Math.floor((g.ply%8)/2)}手`):"";
+ $("compactCardCountdown").textContent=countdown;
 }
 function square(y,x){
  if(ended||busy||compactTurnLocked||g.side!==0)return;
@@ -542,7 +549,7 @@ function computer(){
  makeMove(move,prom);enemyTurns++;
  if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
   const kind=weapons.length===0?(Math.random()<.5?"cannon":"rifle"):weapons[0]==="cannon"?"rifle":"cannon";
-  if(!weapons.includes(kind))weaponCard(kind);
+  if(!weapons.includes(kind))pendingWeaponKind=kind;
  }
 }
 function weaponCard(kind){
@@ -555,7 +562,7 @@ async function fire(kind){
  if(!result||id!==epoch)return;
  if(result.hit){storyBannerMessage(person(result.hit).name+" に命中！ 駒が消滅。",0);/* 砲撃による消滅は捕獲ではないためコレクションに加えない */}
  else storyBannerMessage(kind==="cannon"?"砲弾は空きマスへ着弾！":"鉄砲は空振り！",0);
- busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
+ busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);else compactResumeTurn();
 }
 function finish(winner,reason){
  if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;

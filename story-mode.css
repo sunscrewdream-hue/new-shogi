@@ -378,3 +378,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  transition:opacity .2s;pointer-events:none;
 }
 .person-banner.show-character .story-banner-status{opacity:0}
+/* An awakened officer's seal remains visible even while the banner shows turn text. */
+#storyBattle .person-banner.compact-awakened::after{z-index:6}
+/* The card countdown now shares the character banner instead of adding a row above the board. */
+#compactCardCountdown{display:none!important}
