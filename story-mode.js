@@ -285,10 +285,21 @@ function compactApplyIncident(effect){
    try{plan=compactPlanQuake()}catch(error){console.error("地震の移動計画を復旧しました",error);quakeRecovery();return}
    g.last=null;selected=null;
    if(!plan){quakeRecovery();return}
+   // A quake must rearrange pieces, never capture or erase them.
+   const before=g.clone(g.board);
+   const signature=B=>B.flat().filter(Boolean).map(p=>[p.uid??"",p.cid??"",p.t,p.s,p.p??false].join(":")).sort().join("|");
+   const originalSignature=signature(before);
+   if(signature(plan.B)!==originalSignature){console.error("地震計画で駒数が変化したため中止");quakeRecovery();return}
    let index=0;
    const nextShift=()=>{
     if(game!==epoch)return;
     if(index>=plan.shifts.length){
+     // Validate the complete result before showing craters or releasing the turn.
+     if(signature(g.board)!==originalSignature){
+      console.error("地震後の駒消失を検知し盤面を復元");
+      g.board=before;compactQuakeMove=null;compactQuakeLanding=null;
+      quakeRecovery();return;
+     }
      compactQuakeMove=null;compactQuakeLanding=null;
      compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
      // The completed match first shows cracks in vacated squares, then collapses them.
@@ -299,7 +310,7 @@ function compactApplyIncident(effect){
      for(const p of vacated){if(chosen.length>=2)break;
       const candidate={...p,expiresPly:g.ply+3};g.holes.push(candidate);
       const safe=compactSafeBoard(g.board);g.holes.pop();
-      if(safe){chosen.push(candidate);g.holes.push(candidate)}
+      if(safe&&!g.board[p.y][p.x]){chosen.push(candidate);g.holes.push(candidate)}
      }
      // Retain the same safe combination while the visual crack phase plays.
      for(let i=0;i<chosen.length;i++)g.holes.pop();
