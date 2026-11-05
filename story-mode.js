@@ -456,6 +456,12 @@ function compactTurn(side,after,opening=false){
  // The opening battle position is already anchored before the VS sequence.
  compactTurnLocked=true;
  const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
+ // Anchor every turn announcement to the board center, not the viewport center.
+ const boardRect=$("storyBoard").getBoundingClientRect();
+ const viewportHeight=window.visualViewport?.height||window.innerHeight;
+ const viewportTop=window.visualViewport?.offsetTop||0;
+ const boardCenterY=boardRect.top+boardRect.height/2;
+ panel.style.setProperty("--turn-center-offset",Math.round(boardCenterY-(viewportTop+viewportHeight/2))+"px");
  const title=side===0?"新選組の手番！":"敵軍の手番！";
  art.src=side===0?"assets/turn-notice/turn_shinsengumi_illustrated.png":"assets/turn-notice/turn_enemy_illustrated.png";
  art.alt=title;art.style.display="block";fallback.textContent=title;fallback.classList.add("hidden");
