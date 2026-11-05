@@ -592,6 +592,7 @@ function line(){
  $("dialogueScene").classList.toggle("tobafushimi-taiseihokan-pages",stage===3&&at<=1);
  $("dialogueScene").classList.toggle("tobafushimi-satcho-nobori-page",stage===3&&(at===2||at===3));
  $("dialogueScene").classList.toggle("tobafushimi-satcho-advance-pages",stage===3&&(at===4||at===5));
+ $("dialogueScene").classList.toggle("tobafushimi-shinsengumi-ensemble-pages",stage===3&&at>=6&&at<=10);
  // 序章の絵巻はページ単位で切り替える。未制作ページは従来の背景を維持。
  $("dialogueScene").classList.toggle("prologue-first-page",stage===-1&&at===0);
  $("dialogueScene").classList.toggle("prologue-second-page",stage===-1&&at===1);
