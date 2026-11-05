@@ -966,3 +966,25 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
  #storyEndPanel #storyEndActions button{min-width:0;font-size:14px;padding:10px 12px}
 }
 @media(prefers-reduced-motion:reduce){#storyEndPanel #storyEndWinner{animation:none!important;transform:translateX(-50%)}}
+
+/* Desktop-only story typography: match the mobile readability without changing mobile. */
+@media(min-width:701px){
+ #storyDialogue .narration{padding:14px 20px 13px}
+ #storyDialogue.vertical-narration #dialogueBody{
+  height:clamp(230px,30dvh,285px);
+  font-size:21px;
+  font-weight:800;
+  line-height:1.72;
+  letter-spacing:.025em;
+  padding:7px 9px;
+  margin:3px auto 9px;
+ }
+ #storyDialogue.prologue-typeset #dialogueBody{
+  height:clamp(230px,30dvh,285px);
+  font-size:19px;
+  font-weight:800;
+  line-height:1.6;
+  letter-spacing:0;
+ }
+ #storyDialogue .narration .dialogue-foot{gap:7px}
+}
