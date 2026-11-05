@@ -1019,3 +1019,6 @@ body.game-effect-scroll-locked{touch-action:none}
 
 /* Every turn announcement follows the actual board center, including later turns. */
 #compactTurnNotice #compactTurnArt,#compactTurnNotice #compactTurnFallback{translate:0 var(--turn-center-offset,0px)}
+
+/* Prevent horizontal rubber-band movement on mobile title and story pages. */
+html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
