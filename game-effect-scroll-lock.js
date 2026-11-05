@@ -1,36 +1,40 @@
-/* Shared battle presentation scroll lock for the finished match and story chapters. */
+/* Shared game presentation lock: keep viewport and overlays stationary on mobile. */
 (()=>{
  "use strict";
  const selectors=[
-  "#cardOverlay.show","#incidentBanner.show","#endOverlay.show",
+  "#cardOverlay.show","#incidentBanner.show","#turnNotice.show",
   "#compactCardOverlay:not(.hidden)","#compactIncidentStage:not(.hidden)",
-  "#storyEndOverlay:not(.hidden)","#compactIntroClash.show",
-  "#cardOverlay:not(.hidden).show"
+  "#compactTurnNotice.show","#storyEndOverlay:not(.hidden)",
+  "#compactIntroClash.show","#endOverlay.show"
  ];
- let locked=false,scrollY=0;
- const active=()=>selectors.some(selector=>document.querySelector(selector));
+ let locked=false,scrollY=0,previous=null;
+ const active=()=>selectors.some(q=>!!document.querySelector(q));
+ const blockTouch=e=>{if(locked&&e.cancelable)e.preventDefault()};
  const sync=()=>{
-  const shouldLock=active();if(shouldLock===locked)return;
-  if(shouldLock){
+  const next=active();if(next===locked)return;
+  if(next){
    scrollY=window.scrollY||document.documentElement.scrollTop||0;
+   previous={htmlOverflow:document.documentElement.style.overflow,bodyOverflow:document.body.style.overflow,htmlOverscroll:document.documentElement.style.overscrollBehavior,bodyOverscroll:document.body.style.overscrollBehavior};
+   document.documentElement.style.overflow="hidden";
+   document.body.style.overflow="hidden";
+   document.documentElement.style.overscrollBehavior="none";
+   document.body.style.overscrollBehavior="none";
    document.documentElement.classList.add("game-effect-scroll-locked");
    document.body.classList.add("game-effect-scroll-locked");
-   document.body.style.position="fixed";
-   document.body.style.top=-scrollY+"px";
-   document.body.style.left="0";
-   document.body.style.right="0";
-   document.body.style.width="100%";
    locked=true;
   }else{
+   document.documentElement.style.overflow=previous?.htmlOverflow??"";
+   document.body.style.overflow=previous?.bodyOverflow??"";
+   document.documentElement.style.overscrollBehavior=previous?.htmlOverscroll??"";
+   document.body.style.overscrollBehavior=previous?.bodyOverscroll??"";
    document.documentElement.classList.remove("game-effect-scroll-locked");
    document.body.classList.remove("game-effect-scroll-locked");
-   for(const key of ["position","top","left","right","width"])document.body.style[key]="";
    locked=false;window.scrollTo(0,scrollY);
   }
  };
- const observer=new MutationObserver(sync);
  const start=()=>{
-  observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]});
+  new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]});
+  document.addEventListener("touchmove",blockTouch,{passive:false});
   sync();
  };
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
