@@ -33,9 +33,9 @@ function playKabukiVoice(kind){return new Promise(resolve=>{
 })}
 function playCasualtyCry(){return new Promise(resolve=>{
  let done=false;const finish=()=>{if(done)return;done=true;resolve()};
- // Formerly assigned to the weapon-card announcement; this short clip was
- // identified in playtesting as the casualty's 「うわっ！」, not 「撃て！」.
- playStoryClip("assets/story/audio/master_kabuki_rifle_v1.mp3","voice",finish);
+ // User-confirmed correction: the mistakenly named samurai_fire clip
+ // actually contains the casualty's 「うわっ！」, not the order to fire.
+ playStoryClip("assets/story/audio/master_samurai_fire_v1.mp3","voice",finish);
  setTimeout(finish,2400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
@@ -735,7 +735,8 @@ async function fire(kind,ownerSide=1){
  const id=epoch;
  // The spoken order to fire is distinct from the subsequent discharge and impact.
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
-  playStoryClip("assets/story/audio/master_samurai_fire_v1.mp3","voice",done);setTimeout(done,4500)});
+  // Restore the previously mastered original 「撃て！」 clip.
+  playStoryClip("assets/story/audio/master_fire_voice_v2.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
  const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,async(shot,hit)=>{
   if(id!==epoch||shot.y<0)return;

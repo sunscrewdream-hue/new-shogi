@@ -94,7 +94,7 @@ assert.match(weapons, /used\.has/, 'Two cannon shells must strike different squa
 assert.match(weapons, /explosion-v3\.webp/, 'Transparent centered blast asset must be used');
 assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
   'Legacy weapon assets with opaque backgrounds must not be used');
-assert.match(source, /master_samurai_fire_v1\.mp3/, 'The new samurai artillery voice was not connected');
+assert.match(source, /master_samurai_fire_v1\.mp3/, 'The corrected casualty cry is not connected');
 assert.match(source, /master_samurai_gomen_v1\.mp3/, 'Defection must use only the trimmed 「御免！」 recording');
 assert.match(source, /master_samurai_loss_v1\.mp3/, 'The new 「無念だ」 recording was not connected');
 assert.match(source, /"寝返り":"assets\/story\/audio\/master_samurai_defection_v1\.mp3"/,
@@ -130,8 +130,10 @@ assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_enemy_loss_v4.
 assert.ok(fs.existsSync(path.join(root,'assets/story/audio/sfx_blood_splatter_v1.mp3')));
 assert.match(source, /await playKabukiVoice\("awakening"\)/,
  'Awakening must wait until the capture voice is finished');
-assert.match(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",done\)/,
- 'Both weapons must use the confirmed 「撃て！」 clip immediately before fire');
+assert.match(source, /playStoryClip\("assets\/story\/audio\/master_fire_voice_v2\.mp3","voice",done\)/,
+ 'Both weapons must use the restored original 「撃て！」 clip immediately before fire');
+assert.match(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",finish\)/,
+ 'The misnamed 「うわっ！」 clip must only play as a casualty cry');
 assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,
   'Toba-Fushimi must show incident cards every three turns; others retain four');
 assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
