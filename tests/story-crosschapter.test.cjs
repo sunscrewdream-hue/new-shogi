@@ -30,7 +30,25 @@ for (const file of [
   'assets/cards/events/desertion.webp',
   'assets/cards/events/purge.webp',
   'assets/cards/events/earthquake.webp',
+  'assets/story/cards/cannon-v2.webp',
+  'assets/story/cards/rifle-v2.webp',
+  'assets/story/fx/explosion-v2.webp',
+  'assets/story/fx/rifle-impact-v2.webp',
+  'assets/story/audio/master_reinforcement.mp3',
+  'assets/story/audio/master_fire_voice.mp3',
+  'assets/story/audio/master_promotion_voice.mp3',
+  'assets/story/audio/master_loss.mp3',
+  'assets/story/audio/master_cannon.mp3',
+  'assets/story/audio/master_rifle.mp3',
+  'assets/story/audio/master_explosion.mp3',
 ]) assert.ok(fs.existsSync(path.join(root, file)), `Missing game asset: ${file}`);
+const weapons = fs.readFileSync(path.join(root, 'story-weapons.js'), 'utf8');
+assert.match(weapons, /story-projectile/, 'Projectile must not use opaque legacy bitmaps');
+assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
+  'Legacy weapon assets with opaque backgrounds must not be used');
+assert.match(source, /master_fire_voice\.mp3/, 'The artillery order-to-fire voice was not connected');
+assert.match(source, /master_reinforcement\.mp3/, 'Reinforcement did not receive its approved voice');
+assert.match(source, /master_promotion_voice\.mp3/, 'Promotion prompt did not receive its approved voice');
 
 const sandbox = {window: {}};
 vm.createContext(sandbox);

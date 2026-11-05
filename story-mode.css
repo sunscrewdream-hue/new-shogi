@@ -405,3 +405,17 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 #storyBattle .person-banner.compact-awakened::after{z-index:6}
 /* The card countdown now shares the character banner instead of adding a row above the board. */
 #compactCardCountdown{display:none!important}
+
+/* Toba-Fushimi artillery incident cards share the washi proportions of the main deck. */
+.popup.story-weapon-card .popup-panel{width:min(94vw,420px);border:2px solid #b58c58;background:radial-gradient(circle at top,#413629,#14191c 75%)}
+.popup.story-weapon-card .popup-art{width:min(58vw,260px);max-height:55dvh;aspect-ratio:2/3;object-fit:contain;animation:storyWeaponCardEntrance .85s cubic-bezier(.18,.8,.22,1) both}
+.popup.story-weapon-card h2{font-size:clamp(21px,5.5vw,28px)}
+@keyframes storyWeaponCardEntrance{from{opacity:0;transform:translateY(-48px) scale(1.22) rotate(-4deg)}70%{opacity:1;transform:translateY(7px) scale(.97)}to{opacity:1;transform:none}}
+/* Transparent, painted muzzle flash on impact; never draw an opaque rectangular overlay. */
+#storyBoard .shot-overlay,#storyBoard .shot-overlay.cannon{background:transparent!important;animation:storyWeaponImpact 1.45s ease-out both}
+#storyBoard .shot-overlay img{width:260%;height:260%;max-width:none;object-fit:contain;filter:drop-shadow(0 0 9px #ec8c32b5)}
+#storyBoard .shot-overlay.rifle img{width:165%;height:165%}
+@keyframes storyWeaponImpact{0%{opacity:0;transform:scale(.25)}20%{opacity:1;transform:scale(1.18)}65%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.25)}}
+.story-projectile.cannon{border-radius:50%;background:radial-gradient(circle at 28% 26%,#bfc1b7 0,#525453 25%,#1a1d20 60%,#06090b 84%);box-shadow:0 0 0 2px #ffe29f3d,0 0 13px #ec8a36}
+.story-projectile.rifle{border-radius:70% 30% 30% 70%;background:linear-gradient(90deg,#fff8c6,#f8be54 45%,#7a3d20);box-shadow:0 0 12px #ffbc55,0 0 3px #fff}
+@media(prefers-reduced-motion:reduce){.popup.story-weapon-card .popup-art,#storyBoard .shot-overlay{animation:none!important}}

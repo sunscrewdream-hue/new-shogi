@@ -30,10 +30,10 @@ function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(
 function sfx(t){
  if(t==="cannon"||t==="rifle"||t==="blast"){
   window.StoryBgm?.duck();
-  playStoryClip("assets/story/audio/"+t+".mp3");return;
+  playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3");return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/voice_loss_custom.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_loss.mp3"};
  if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx");return}
  // No legacy synthesized fallback: only approved recorded assets are played.
 }
@@ -183,8 +183,11 @@ function compactApplyIncident(effect){
   if(kind==="援軍"){
    compactSound("reinforce");
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
-   if(side===0)sfx("capture");else compactSound("sacchoCapture");
-   render();animateCompactEscort(side,y,x,p,finish);
+   // The escort and the full reinforcement line must both finish before play resumes.
+   let escortDone=false,voiceDone=false;
+   const resume=()=>{if(escortDone&&voiceDone)finish()};
+   playStoryClip("assets/story/audio/master_reinforcement.mp3","voice",()=>{voiceDone=true;resume()});
+   render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
    render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");setTimeout(finish,1400);
@@ -498,7 +501,8 @@ function square(y,x){
    const unit=m.drop?g.hands[0].find(v=>v.t===m.t):g.board[m.y][m.x];
    if(!m.drop&&g.promoted(unit,m.y,m.Y)&&!g.forced(unit,m.Y)){
     const modal=$("storyPopup");modal.classList.toggle("compact-promotion",compactMode());
-    popup("成るか、成らぬか","この駒を成り駒にしますか？",[["成る",()=>{modal.classList.remove("compact-promotion");makeMove(m,true)}],["成らぬ",()=>{modal.classList.remove("compact-promotion");makeMove(m,false)}]]);return;
+    popup("成るか、成らぬか","この駒を成り駒にしますか？",[["成る",()=>{modal.classList.remove("compact-promotion");makeMove(m,true)}],["成らぬ",()=>{modal.classList.remove("compact-promotion");makeMove(m,false)}]]);
+    playStoryClip("assets/story/audio/master_promotion_voice.mp3","voice");return;
    }makeMove(m,false);return;
   }
  }
@@ -523,6 +527,8 @@ function makeMove(m,prom){
    if(actor===0)sfx("capture");else compactSound("sacchoCapture");
    if(compactMode())compactSound("slash");
   }
+  // The fallen Shinsengumi officer responds after the enemy's capture shout.
+  if(actor===1){const game=epoch;setTimeout(()=>{if(game===epoch&&!ended)sfx("loss")},900)}
   if(actor===0)collect(captured);banner(1-actor,captured);
  }else{
   sfx("move");
@@ -565,14 +571,23 @@ function computer(){
 function weaponCard(kind){
  if(ended||busy||weapons.includes(kind)||stage!==3)return;
  weapons.push(kind);busy=true;render();sfx("card");
- popup("敵軍 "+(kind==="cannon"?"大砲":"鉄砲")+"カード",kind==="cannon"?"ランダムな1マスに砲弾が落ちる。外れれば無傷。":"縦の1列へ一直線に発射。敵陣側から最初の駒1枚で止まる。",[["攻撃を確認",()=>fire(kind)]],"assets/story/cards/"+kind+".webp");
+ $("storyPopup").classList.add("story-weapon-card");
+ popup("敵軍 "+(kind==="cannon"?"大砲":"鉄砲")+"カード",kind==="cannon"?"ランダムな1マスに砲弾が落ちる。外れれば無傷。":"縦の1列へ一直線に発射。敵陣側から最初の駒1枚で止まる。",[["攻撃を確認",()=>fire(kind)]],"assets/story/cards/"+kind+"-v2.webp");
 }
 async function fire(kind){
- const id=epoch,result=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx);
+ $("storyPopup").classList.remove("story-weapon-card");
+ const id=epoch;
+ // The spoken order to fire is distinct from the subsequent discharge and impact.
+ await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
+  playStoryClip("assets/story/audio/master_fire_voice.mp3","voice",done);setTimeout(done,4500)});
+ if(id!==epoch||ended)return;
+ const result=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx);
  if(!result||id!==epoch)return;
  if(result.hit){storyBannerMessage(person(result.hit).name+" に命中！ 駒が消滅。",0);/* 砲撃による消滅は捕獲ではないためコレクションに加えない */}
  else storyBannerMessage(kind==="cannon"?"砲弾は空きマスへ着弾！":"鉄砲は空振り！",0);
- busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);else compactResumeTurn();
+ busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
+ else{if(result.hit){if(result.hit.s===0)sfx("loss");else compactSound("sacchoLoss")}
+  await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
 }
 function finish(winner,reason){
  if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
