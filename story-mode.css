@@ -443,6 +443,19 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 
 /* Redrawn Ikedaya hall; previous artwork remains on disk for comparison only. */
 .scene-ikedaya{background-image:linear-gradient(#141b24a3,#0c0f17a4),url("assets/story/ikedaya-bg-v2.webp"),url("kyoto-summer.webp")}
+/* Show the complete approved washi illustration only on Ikedaya page one. */
+.scene-ikedaya.ikedaya-first-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/ikedaya-scene01-hijikata-yamazaki-v3.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-ikedaya.ikedaya-first-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
 
 /* Ikedaya's tatami-and-corridor artwork is ONLY a background; the existing
    5x6 board dimensions and responsive height budget remain authoritative. */
