@@ -1094,6 +1094,36 @@ $("storyFxToggle").onclick=()=>{fxEnabled=!fxEnabled;if(!fxEnabled){stopStoryCli
 const voiceSamples=["assets/audio/voice_shinsengumi_move_sorya.mp3","assets/audio/voice_kondo_isami_king_move.mp3","assets/audio/voice_hijikata_toshizo_move.mp3","assets/audio/saccho_voice_01_chesto.mp3","assets/audio/saccho_voice_02_uryaa.mp3","assets/audio/saccho_voice_03_toraeta.mp3"];
 let previewIndex=0;
 $("storyVoicePreview").onclick=()=>{window.StoryBgm?.unlock();if(!voiceEnabled)return;playStoryClip(voiceSamples[previewIndex++%voiceSamples.length],"voice")};
+
+// Story match snapshots are deliberately separate from 9x9 save data.
+const STORY_MATCH_SAVE="shinsengumi-story-match-save-v1";
+function storySaveMatch(){
+ if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
+ try{
+  const snapshot={version:1,stage,at:Date.now(),engine:{
+   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last
+  },enemyTurns,playerTurns,weapons,debugModified};
+  localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
+  alert("この章の対局を保存しました。");
+ }catch(e){alert("保存できませんでした。ブラウザの保存設定をご確認ください。")}
+}
+function storyLoadMatch(){
+ let data;
+ try{data=JSON.parse(localStorage.getItem(STORY_MATCH_SAVE)||"null")}catch(e){}
+ if(!data||data.version!==1||!Number.isInteger(data.stage)||data.stage<0||data.stage>=D.chapters.length||!data.engine){alert("読み込める対局データがありません。");return}
+ const cfg=D.chapters[data.stage],state=data.engine;
+ if(!Array.isArray(state.board)||state.board.length!==cfg.h||!state.board.every(row=>Array.isArray(row)&&row.length===cfg.w)||!Array.isArray(state.hands)||state.hands.length!==2||![0,1].includes(state.side)){alert("保存データの形式が正しくありません。");return}
+ if(g&&!ended&&!confirm("現在の対局を中断し、保存した対局に戻りますか？"))return;
+ battle(data.stage);
+ g.board=state.board;g.hands=state.hands;g.fallen=Array.isArray(state.fallen)?state.fallen:[[],[]];
+ g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
+ enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
+ weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
+ // Invalidate timers started by the chapter opening before restoring play.
+ epoch++;busy=false;compactTurnLocked=false;selected=null;
+ hideCompactFx();render();
+ window.StoryBgm?.play(data.stage===0||data.stage===2?"battle01":"battle02");
+}
 function storyDebugReady(){return g&&!ended&&!busy&&!compactTurnLocked&&g.side===0&&!compactIncident&&!pendingWeaponDisplay&&$("storyPopup").classList.contains("hidden")}
 function storyDebugRun(action,changesBoard=false){
  if(!storyDebugReady())return;
