@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14242d"><title>幕末物語｜新選組将棋</title><link rel="stylesheet" href="story-mode.css?v=desktop-narration20261106m"></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14242d"><title>幕末物語｜新選組将棋</title><link rel="stylesheet" href="story-mode.css?v=shared-incident20261106n"></head>
 <body>
 <main id="storyApp">
  <div id="compactIntroClash" aria-hidden="true"><picture><source media="(max-aspect-ratio: 3/4)" srcset="assets/visuals/intro_saccho_washi_mobile_v3.webp"><img class="introUpper" src="assets/visuals/intro_saccho_washi_v2.webp" alt=""></picture><picture><source media="(max-aspect-ratio: 3/4)" srcset="assets/visuals/intro_shinsengumi_washi_mobile_v3.webp"><img class="introLower" src="assets/visuals/intro_shinsengumi_washi_v2.webp" alt=""></picture><span id="compactIntroFlash"></span></div>
  <div id="compactActionLayer" aria-hidden="true"></div>
- <div id="compactIncidentStage" class="compact-incident-stage hidden" aria-hidden="true"><img id="compactIncidentBanner" class="compact-incident-title" src="assets/cards/incident-title-outline-v3.webp" alt=""></div>
+ <div id="compactIncidentStage" class="compact-incident-stage hidden" aria-hidden="true"><img id="compactIncidentBanner" class="compact-incident-title" src="assets/cards/incident-title.png" alt=""></div>
  <div id="compactCardOverlay" class="compact-card-overlay hidden" role="dialog" aria-modal="true" aria-label="事件札"><button id="compactCardFace" class="compact-card-face" type="button" aria-label="事件札をめくる"><span id="compactCardHeading">事件札</span><span id="compactCardText" class="compact-card-effect"></span></button><div id="compactCardPrompt">タップしてめくる</div></div>
  <header class="story-header"><a class="back-link" href="card-ai-test.html">‹ 通常対局へ</a><img class="story-header-logo" src="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" alt="新選組将棋" width="2172" height="724" decoding="async"><div class="story-audio-controls"><label for="storyVolume">音量 <input id="storyVolume" type="range" min="0" max="100" value="10" step="1"><output id="storyVolumeValue" for="storyVolume">10</output></label><button id="audioToggle" type="button" aria-pressed="true">♪ BGM ON</button><button id="storyVoiceToggle" type="button" aria-pressed="true">声 ON</button><button id="storyFxToggle" type="button" aria-pressed="true">効果音 ON</button><button id="storyVoicePreview" type="button">声試聴</button></div></header>
  <section id="storyHome" class="view">
@@ -58,4 +58,4 @@
 </main>
 <script src="story-bgm.js?v=storyvolume20261105a" defer></script>
  <script src="story-data.js?v=aburanokoji07text20261105a" defer></script><script src="story-engine.js?v=abandonking20261105a" defer></script><script src="story-weapons.js?v=storyfix20261105y" defer></script><script src="story-mode.js?v=incident-collision20261106l" defer></script>
-</body></html>
+<script defer src="game-effect-scroll-lock.js?v=20261106a"></script></body></html>
