@@ -680,8 +680,13 @@ function render(){
  root.replaceChildren();
  const legal=!inputLocked?g.legal(0):[];
  const defending=!inputLocked&&g.side===0&&g.check(g.board,0);
- const defendingPieces=defending?new Set(legal.filter(m=>!m.drop).map(m=>m.y+":"+m.x)):null;
- const defendingDrops=defending?new Set(legal.filter(m=>m.drop).map(m=>m.t)):null;
+ // Highlight only moves that ACTUALLY defend the king; the special rule also
+ // permits risky moves, but those require an explicit confirmation.
+ const safeDefense=defending?legal.filter(m=>{
+  const B=g.clone(g.board),H=g.handClone(g.hands);g.act(B,H,0,m);return !g.check(B,0);
+ }):[];
+ const defendingPieces=defending?new Set(safeDefense.filter(m=>!m.drop).map(m=>m.y+":"+m.x)):null;
+ const defendingDrops=defending?new Set(safeDefense.filter(m=>m.drop).map(m=>m.t)):null;
  const targets=selected?legal.filter(m=>selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x):[];
  const attackers=compactCheckSources();
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
@@ -731,11 +736,10 @@ function render(){
    const showFallback=()=>{fig.style.display="none";letter.style.display="none";fallback.style.display="grid"};fig.onerror=showFallback;letter.onerror=showFallback;
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
    if(s===0&&defendingDrops?.has(t))b.classList.add("check-defender");
-   if(s===0&&defending&&!defendingDrops.has(t))b.disabled=true;
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{if(b.disabled)return;selected={drop:true,t};render()};hand.append(b)}
  }
  const countdown=compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
- const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 緑の縁の駒で防いでください":"");
+ const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 防ぐか、覚悟して主君を見捨てる":"");
  storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
@@ -750,14 +754,24 @@ function square(y,x){
  if(selected){
   const m=legal.find(m=>m.Y===y&&m.X===x&&(selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x));
   if(m){
-   const unit=m.drop?g.hands[0].find(v=>v.t===m.t):g.board[m.y][m.x];
-   if(!m.drop&&g.promoted(unit,m.y,m.Y)&&!g.forced(unit,m.Y)){
-    const modal=$("storyPopup");modal.classList.toggle("compact-promotion",compactMode());
-    popup("成るか、成らぬか","この駒を成り駒にしますか？",[["成る",()=>{modal.classList.remove("compact-promotion");makeMove(m,true)}],["成らぬ",()=>{modal.classList.remove("compact-promotion");makeMove(m,false)}]]);
-    const options=[...$("popupButtons").querySelectorAll("button")];
-    options.forEach(button=>button.disabled=true);
-    playStoryClip(kabukiVoice.promotion,"voice",()=>{if(!modal.classList.contains("hidden"))options.forEach(button=>button.disabled=false)});return;
-   }makeMove(m,false);return;
+   const proceed=()=>{
+    const unit=m.drop?g.hands[0].find(v=>v.t===m.t):g.board[m.y][m.x];
+    if(!m.drop&&g.promoted(unit,m.y,m.Y)&&!g.forced(unit,m.Y)){
+     const modal=$("storyPopup");modal.classList.toggle("compact-promotion",compactMode());
+     popup("成るか、成らぬか","この駒を成り駒にしますか？",[["成る",()=>{modal.classList.remove("compact-promotion");makeMove(m,true)}],["成らぬ",()=>{modal.classList.remove("compact-promotion");makeMove(m,false)}]]);
+     const options=[...$("popupButtons").querySelectorAll("button")];
+     options.forEach(button=>button.disabled=true);
+     playStoryClip(kabukiVoice.promotion,"voice",()=>{if(!modal.classList.contains("hidden"))options.forEach(button=>button.disabled=false)});return;
+    }makeMove(m,false);
+   };
+   if(g.allowAbandonKing&&g.check(g.board,0)){
+    const B=g.clone(g.board),H=g.handClone(g.hands);g.act(B,H,0,m);
+    if(g.check(B,0)){
+     popup("主君を見捨てるのか！","王手を防がず別の手を指します。次の一手で王を討ち取られ、敗北する危険があります。",[["忠義を尽くす",()=>{}],["覚悟して指す",proceed]]);
+     return;
+    }
+   }
+   proceed();return;
   }
  }
  if(p?.s===1){banner(1,p);return}
@@ -955,7 +969,7 @@ $("dialoguePrev").onclick=()=>{
 $("dialogueHome").onclick=()=>screenHome();
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
-$("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では両軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
+$("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・行き所のない駒打ちは禁止です。\n新選組将棋独自の『主君を見捨てる』ルールでは、王手を防がず別の手を選べます。警告後に覚悟を決め、玉を取られれば『主君討死』で敗北します。\n鳥羽・伏見では両軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
 $("audioToggle").onclick=()=>{window.StoryBgm?.unlock();soundOff=!soundOff;window.StoryBgm?.setMuted(soundOff);$("audioToggle").textContent=soundOff?"♪ BGM OFF":"♪ BGM ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
 $("storyVoiceToggle").onclick=()=>{voiceEnabled=!voiceEnabled;if(!voiceEnabled)stopStoryClip("voice");$("storyVoiceToggle").textContent=voiceEnabled?"声 ON":"声 OFF";$("storyVoiceToggle").setAttribute("aria-pressed",String(voiceEnabled))};
 $("storyFxToggle").onclick=()=>{fxEnabled=!fxEnabled;if(!fxEnabled){stopStoryClip("fx");stopStoryQuakeBattle()}$("storyFxToggle").textContent=fxEnabled?"効果音 ON":"効果音 OFF";$("storyFxToggle").setAttribute("aria-pressed",String(fxEnabled))};

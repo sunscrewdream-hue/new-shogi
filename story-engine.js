@@ -4,7 +4,7 @@ const BACK=["香","桂","銀","金","玉","金","銀","桂","香"];
 const ROSTER={玉:[0],飛:[1],角:[2],金:[3,4],銀:[5,6],桂:[7,8],香:[9,10],歩:[11,12,13,14,15,16,17,18,19]};
 const VALUES={玉:10000,飛:14,角:12,金:9,銀:7,桂:5,香:4,歩:2};
 class StoryEngine{
- constructor(stage){this.stage=stage;this.config=window.StoryData.chapters[stage];this.w=this.config.w;this.h=this.config.h;this.side=0;this.last=null;this.ply=0;this.holes=[];this.hands=[[],[]];this.fallen=[[],[]];this.board=Array.from({length:this.h},()=>Array(this.w).fill(null));this.setup();}
+ constructor(stage){this.stage=stage;this.config=window.StoryData.chapters[stage];this.w=this.config.w;this.h=this.config.h;this.side=0;this.last=null;this.ply=0;this.holes=[];this.hands=[[],[]];this.fallen=[[],[]];this.allowAbandonKing=true;this.board=Array.from({length:this.h},()=>Array(this.w).fill(null));this.setup();}
  isHole(y,x){return this.holes.some(v=>v.y===y&&v.x===x&&this.ply<v.expiresPly)}
  setup(){
   const used=[{},{}],make=(t,s)=>{
@@ -30,13 +30,14 @@ class StoryEngine{
  handClone(H){return H.map(a=>a.map(p=>({...p})))}
  steps(B,y,x,attack=false){
   const p=B[y]?.[x];if(!p)return[];
-  const d=p.s===0?-1:1,out=[],h=B.length,w=B[0].length,isHole=(Y,X)=>this.isHole(Y,X);
+  const d=p.s===0?-1:1,out=[],h=B.length,w=B[0].length,isHole=(Y,X)=>this.isHole(Y,X),abandonKing=this.allowAbandonKing;
   function add(dy,dx,slide=false){
    let Y=y+dy,X=x+dx;
    while(Y>=0&&Y<h&&X>=0&&X<w){
     if(isHole(Y,X))break;
     const q=B[Y][X];if(q&&q.s===p.s)break;
-    if(q&&q.t==="玉"&&!attack)break;
+    // New Shinsengumi Shogi permits a king to be taken directly after it is abandoned.
+    if(q&&q.t==="玉"&&!attack&&!abandonKing)break;
     out.push({y,x,Y,X});
     if(q||!slide)break;Y+=dy;X+=dx;
    }
@@ -73,14 +74,18 @@ class StoryEngine{
  }
  legal(s=this.side,B=this.board,H=this.hands,checkPawnMate=true){
   const result=[],h=B.length,w=B[0].length;
+  // Same as the completed game's "主君を見捨てる" rule: a human who is
+  // already in check may choose a move that leaves the king exposed.
+  // The AI must still defend its king while it can.
+  const abandoning=this.allowAbandonKing&&s===0&&this.check(B,s);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(B[y][x]?.s===s)
-   for(const m of this.steps(B,y,x)){const bb=this.clone(B),hh=this.handClone(H);this.act(bb,hh,s,m);if(!this.check(bb,s))result.push(m)}
+   for(const m of this.steps(B,y,x)){const bb=this.clone(B),hh=this.handClone(H);this.act(bb,hh,s,m);if(abandoning||!this.check(bb,s))result.push(m)}
   for(const t of new Set(H[s].map(p=>p.t)))for(let Y=0;Y<h;Y++)for(let X=0;X<w;X++){
    if(B[Y][X]||this.isHole(Y,X))continue;
    if(["歩","香"].includes(t)&&(s===0?Y===0:Y===h-1)||t==="桂"&&(s===0?Y<=1:Y>=h-2))continue;
    if(t==="歩"&&B.some(row=>row[X]?.s===s&&row[X]?.t==="歩"&&!row[X]?.p))continue;
    const m={drop:true,t,Y,X},bb=this.clone(B),hh=this.handClone(H);this.act(bb,hh,s,m);
-   if(this.check(bb,s))continue;
+   if(!abandoning&&this.check(bb,s))continue;
    if(checkPawnMate&&t==="歩"&&this.check(bb,1-s)&&!this.legal(1-s,bb,hh,false).length)continue;
    result.push(m);
   }
@@ -94,7 +99,7 @@ class StoryEngine{
   this.last={y:m.Y,x:m.X};this.ply++;this.holes=this.holes.filter(v=>this.ply<v.expiresPly);this.side=1-this.side;
   return {unit,captured};
  }
- state(){if(!this.king(0))return{winner:1,why:"王将が失われた"};if(!this.king(1))return{winner:0,why:"敵将が失われた"};
+ state(){if(!this.king(0))return{winner:1,why:"主君討死"};if(!this.king(1))return{winner:0,why:"主君討死"};
   if(this.ply>=400)return{winner:-1,why:"持久戦による引き分け"};
   if(!this.legal().length)return{winner:1-this.side,why:this.check(this.board,this.side)?"詰み":"指す手なし"};return null;
  }
