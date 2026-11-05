@@ -1015,11 +1015,12 @@ function finish(winner,reason){
 
  // Same presentation contract as the finished game's showVictory().
  const overlay=$("storyEndOverlay");
- $("storyEndWinner").src=win?"assets/visuals/victory_kondo.webp":"assets/visuals/victory_saigo.webp";
- $("storyEndLoser").src=win?"assets/visuals/defeat_saigo.webp":"assets/visuals/defeat_kondo.webp";
+ $("storyEndWinner").src=win?"assets/visuals/victory_shinsengumi_scene.webp":"assets/visuals/victory_saccho_scene.webp";
+ $("storyEndPortraitSource").srcset=win?"assets/visuals/victory_shinsengumi_mobile.webp":"assets/visuals/victory_saccho_mobile.webp";
+ $("storyEndLoser").style.display="none";
  $("storyEndWinner").alt=(win?"近藤勇":"西郷隆盛")+"の勝利";
  $("storyEndLoser").alt=(win?"西郷隆盛":"近藤勇")+"の敗北";
- $("storyEndText").textContent=(win?"新選組":"薩長同盟")+"の勝利！";
+ $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
  const choices=[
