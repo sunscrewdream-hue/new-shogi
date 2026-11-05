@@ -453,7 +453,7 @@ function person(p){
  const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/story/mobs/"+m[2]};
 }
 const storyBannerTimers=[null,null];
-function banner(s,p){
+function banner(s,p,hold=false){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
  if(compactMode())$(prefix+"StoryBanner").classList.toggle("compact-awakened",(compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));else $(prefix+"StoryBanner").classList.remove("compact-awakened");
@@ -463,14 +463,14 @@ function banner(s,p){
  const panel=$(prefix+"StoryBanner"),currentEpoch=epoch;
  panel.classList.add("show-character");
  clearTimeout(storyBannerTimers[s]);
- storyBannerTimers[s]=setTimeout(()=>{if(currentEpoch===epoch)panel.classList.remove("show-character")},2300);
+ if(!hold)storyBannerTimers[s]=setTimeout(()=>{if(currentEpoch===epoch)panel.classList.remove("show-character")},2300);
 }
 // As in the completed match, turn/status notices live inside the character banners.
 // Keep one screen-reader announcement; do not insert a third board between the enemy hand and field.
 function storyBannerMessage(message,side=g?.side??0){
  $("storyStatus").textContent=message;
- $("playerBannerStatus").textContent=side===0?message:"";
- $("enemyBannerStatus").textContent=side===1?message:"";
+ $("playerBannerStatus").textContent=side===0?message:"新選組、待機中";
+ $("enemyBannerStatus").textContent=side===1?message:"薩長同盟、布陣中";
 }
 // Main-game parity: pointer hover reveals the character without selecting or moving.
 let storyHoverSide=null,storyHoverBase=[null,null];
@@ -492,12 +492,13 @@ function previewStoryUnit(p){
   const prefix=side?"enemy":"player";
   storyHoverBase[side]={name:$(prefix+"StoryName").textContent,role:$(prefix+"StoryRole").textContent,src:$(prefix+"StoryArt").getAttribute("src")};
  }
- storyHoverSide=side;banner(side,p);
+ storyHoverSide=side;banner(side,p,true);
 }
 function restoreStoryHover(){
  if(storyHoverSide===null)return;
  const side=storyHoverSide,saved=storyHoverBase[side],prefix=side?"enemy":"player";
  storyHoverSide=null;storyHoverBase[side]=null;
+ clearTimeout(storyBannerTimers[side]);$(prefix+"StoryBanner").classList.remove("show-character");
  if(!saved)return;
  $(prefix+"StoryName").textContent=saved.name;$(prefix+"StoryRole").textContent=saved.role;
  const art=$(prefix+"StoryArt");if(saved.src)art.src=saved.src;
@@ -666,7 +667,8 @@ function battle(i){
  board.classList.toggle("small-board",ch.w===5);
  document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
- banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();if(compactMode()){busy=true;render();compactIntro()}
+ for(const side of [0,1]){clearTimeout(storyBannerTimers[side]);$(side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character","compact-awakened")}
+ chooseView("storyBattle");render();if(compactMode()){busy=true;render();compactIntro()}
 }
 function render(){
  restoreStoryHover();
@@ -726,7 +728,7 @@ function render(){
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
- const countdown=compactMode()&&!ended?(compactIncident?"🎴 事件札を確認中":`🎴 札まで${compactCardRemaining()}手`):"";
+ const countdown=compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
  const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
  storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
@@ -843,6 +845,7 @@ function computer(){
  const move=g.ai();busy=false;
  if(!move){finish(0,"敵軍に指す手なし");return}
  const p=move.drop?null:g.board[move.y][move.x],prom=!!p&&g.promoted(p,move.y,move.Y);
+ if(p)banner(1,p);
  makeMove(move,prom);enemyTurns++;
  if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
   const kind=enemyTurns===4?"cannon":"rifle";

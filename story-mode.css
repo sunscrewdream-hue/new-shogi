@@ -516,7 +516,17 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 #storyBoard[data-stage="0"].small-board{
  background-image:url("assets/story/board-ikedaya-tatami-v3.webp"),linear-gradient(#ebca90,#bb8b4b);
  background-size:100% 100%;background-position:center;background-repeat:no-repeat;
+ border:3px solid #4a3020;
+ position:relative;overflow:visible;isolation:isolate;
 }
+/* Ikedaya room architecture frames the original 5x6 tatami board without
+   becoming part of the hit grid or changing the board's responsive dimensions. */
+#storyBoard[data-stage="0"].small-board::before{
+ content:"";position:absolute;z-index:1;pointer-events:none;
+ width:120%;height:120%;left:-10%;top:-10%;
+ background:url("assets/story/board-ikedaya-room-perimeter-v1.webp") center/100% 100% no-repeat;
+}
+#storyBoard[data-stage="0"]>.sq{z-index:2}
 
 /* Invisible 5x6 hit cells: preserve their exact geometry and interaction,
    but draw no artificial shogi-grid lines over Ikedaya's tatami and corridors. */
