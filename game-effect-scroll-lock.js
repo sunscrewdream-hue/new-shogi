@@ -6,7 +6,8 @@
   "#cardOverlay.show","#incidentBanner.show","#turnNotice.show",
   "#compactCardOverlay:not(.hidden)","#compactIncidentStage:not(.hidden)",
   "#compactTurnNotice.show",".compact-game-fx.show",
-  "#storyEndOverlay:not(.hidden)",
+  "#storyPopup:not(.hidden)","#compactAwakenNotice.show",
+  "body.story-quake-active","#storyEndOverlay:not(.hidden)",
   "#compactIntroClash.show","#endOverlay.show"
  ];
  let locked=false,scrollY=0,previous=null;
