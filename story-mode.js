@@ -313,57 +313,36 @@ function compactApplyIncident(effect){
    const signature=B=>B.flat().filter(Boolean).map(p=>[p.uid??"",p.cid??"",p.t,p.s,p.p??false].join(":")).sort().join("|");
    const originalSignature=signature(before);
    if(signature(plan.B)!==originalSignature){console.error("地震計画で駒数が変化したため中止");quakeRecovery();return}
-   let index=0;
-   const nextShift=()=>{
+   // Commit the validated board in one transaction. Never mutate the live board
+   // square-by-square while asynchronous animation timers are running.
+   g.board=g.clone(plan.B);
+   if(signature(g.board)!==originalSignature){
+    g.board=before;quakeRecovery();return;
+   }
+   compactQuakeMove=null;compactQuakeLanding=null;
+   compactIncidentMarks=plan.shifts.flatMap(v=>[v.y+":"+v.x,v.Y+":"+v.X]);
+   render();
+   // Craters only occupy genuinely empty source squares after the move.
+   const vacated=plan.shifts.map(v=>({y:v.y,x:v.x}))
+    .filter(v=>!g.board[v.y][v.x]&&!g.isHole(v.y,v.x));
+   const chosen=[];
+   for(const p of vacated){
+    if(chosen.length>=2)break;
+    const candidate={...p,expiresPly:g.ply+3};
+    g.holes.push(candidate);
+    let safe=false;
+    try{safe=compactSafeBoard(g.board)}catch(error){console.error("地震の穴判定",error)}
+    g.holes.pop();
+    if(safe)chosen.push(candidate);
+   }
+   compactQuakeCracks=chosen;render();
+   setTimeout(()=>{
     if(game!==epoch||quakeFinished)return;
-    if(index>=plan.shifts.length){
-     // Validate the complete result before showing craters or releasing the turn.
-     if(signature(g.board)!==originalSignature){
-      console.error("地震後の駒消失を検知し盤面を復元");
-      g.board=before;compactQuakeMove=null;compactQuakeLanding=null;
-      quakeRecovery();return;
-     }
-     compactQuakeMove=null;compactQuakeLanding=null;
-     compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
-     // The completed match first shows cracks in vacated squares, then collapses them.
-     // Test each proposed crater together with previously selected craters.
-     const vacated=[...new Map(plan.shifts.map(v=>[v.y+":"+v.x,{y:v.y,x:v.x}])).values()]
-      .filter(v=>!g.board[v.y][v.x]&&!g.isHole(v.y,v.x)).sort(()=>Math.random()-.5);
-     const chosen=[];
-     for(const p of vacated){if(chosen.length>=2)break;
-      const candidate={...p,expiresPly:g.ply+3};g.holes.push(candidate);
-      const safe=compactSafeBoard(g.board);g.holes.pop();
-      if(safe&&!g.board[p.y][p.x]){chosen.push(candidate);g.holes.push(candidate)}
-     }
-     // Retain the same safe combination while the visual crack phase plays.
-     for(let i=0;i<chosen.length;i++)g.holes.pop();
-     compactQuakeCracks=chosen;render();
-     setTimeout(()=>{if(game!==epoch)return;
-      compactQuakeCracks=[];g.holes.push(...chosen);render();
-     },650);
-     setTimeout(()=>{if(game!==epoch||quakeFinished)return;
-      compactIncidentMarks=[];quakeRecovery();
-     },1450);
-     return;
-    }
-    const shift=plan.shifts[index++];
-    compactQuakeMove=shift;compactQuakeLanding=null;
-    compactIncidentMarks=[shift.y+":"+shift.x,shift.Y+":"+shift.X];render();
-    setTimeout(()=>{if(game!==epoch)return;
-     if(quakeFinished)return;
-     const p=g.board[shift.y]?.[shift.x];
-     if(p&&!g.board[shift.Y][shift.X]){
-      g.board[shift.Y][shift.X]=p;g.board[shift.y][shift.x]=null;
-     }else{
-      // A stale animation must never leave a board different from the valid plan.
-      g.board=g.clone(plan.B);index=plan.shifts.length;
-     }
-     compactQuakeMove=null;compactQuakeLanding={y:shift.Y,x:shift.X};
-     compactIncidentMarks=[shift.Y+":"+shift.X];render();
-     setTimeout(nextShift,420);
-    },460);
-   };
-   nextShift();
+    compactQuakeCracks=[];
+    for(const hole of chosen)if(!g.board[hole.y][hole.x])g.holes.push(hole);
+    compactIncidentMarks=[];
+    quakeRecovery();
+   },1100);
   },1750);return;
  }
  const {kind,side,owner,y,x}=effect,p=g.board[y]?.[x];
