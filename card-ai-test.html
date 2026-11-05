@@ -1542,4 +1542,4 @@ function cycleKyotoSeason(){setKyotoSeason(currentSeasonIndex+1)}
 setKyotoSeason(currentSeasonIndex);setInterval(()=>{const d=new Date();const month=d.getMonth()+1;const desired=Math.floor(((month-3+12)%12)/3);if(desired!==currentSeasonIndex)setKyotoSeason(desired)},60*60*1000);reset();
 /* Attempt first-page title playback. Browsers that block autoplay offer the replay button. */
 setTimeout(()=>{if(!document.hidden&&!el('titleScreen').classList.contains('hidden'))playTitleIntro()},240);
-</script><link rel="stylesheet" href="story-unlocks.css?v=20261105r"><script src="story-unlocks.js?v=20261105r" defer></script><script src="game-language.js?v=20261105-defection2" defer></script></html>
+</script><link rel="stylesheet" href="story-unlocks.css?v=20261105r"><script src="story-unlocks.js?v=20261105r" defer></script><script src="game-language.js?v=20261105-defection2" defer></script><script defer src="game-effect-scroll-lock.js?v=20261106a"></script></html>
