@@ -679,6 +679,9 @@ function render(){
  root.setAttribute("aria-disabled",String(inputLocked));
  root.replaceChildren();
  const legal=!inputLocked?g.legal(0):[];
+ const defending=!inputLocked&&g.side===0&&g.check(g.board,0);
+ const defendingPieces=defending?new Set(legal.filter(m=>!m.drop).map(m=>m.y+":"+m.x)):null;
+ const defendingDrops=defending?new Set(legal.filter(m=>m.drop).map(m=>m.t)):null;
  const targets=selected?legal.filter(m=>selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x):[];
  const attackers=compactCheckSources();
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
@@ -688,6 +691,7 @@ function render(){
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
   if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add(p&&p.s===1?"capture-hint":"hint");
   if(p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
+  if(defendingPieces?.has(y+":"+x))btn.classList.add("check-defender");
   if(attackers.attackers.has(y+":"+x))btn.classList.add("compact-check-attacker");
   if(attackers.rays.has(y+":"+x))btn.classList.add("compact-check-ray");
   if(compactIncidentMarks.includes(y+":"+x)&&!compactQuakeMove)btn.classList.add("compact-incident-target");
@@ -726,10 +730,12 @@ function render(){
    const fallback=document.createElement("span");fallback.className="story-hand-fallback";fallback.textContent=t;
    const showFallback=()=>{fig.style.display="none";letter.style.display="none";fallback.style.display="grid"};fig.onerror=showFallback;letter.onerror=showFallback;
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
-   if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
+   if(s===0&&defendingDrops?.has(t))b.classList.add("check-defender");
+   if(s===0&&defending&&!defendingDrops.has(t))b.disabled=true;
+   if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{if(b.disabled)return;selected={drop:true,t};render()};hand.append(b)}
  }
  const countdown=compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
- const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
+ const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 緑の縁の駒で防いでください":"");
  storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;

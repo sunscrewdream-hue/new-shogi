@@ -1,6 +1,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
+const vm=require('node:vm');
 const root=path.resolve(__dirname,'..');
 const js=fs.readFileSync(path.join(root,'story-mode.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'story-mode.css'),'utf8');
@@ -16,4 +17,24 @@ assert.match(css,/#storyBoard\[data-stage="0"\]\.small-board::before/,'Ikedaya h
 assert.match(css,/board-ikedaya-room-perimeter-v1\.webp/);
 assert.match(css,/#storyBoard\[data-stage="0"\]>.sq\{z-index:2\}/,'Board cells remain above the decorative perimeter');
 assert.ok(fs.statSync(path.join(root,'assets/story/board-ikedaya-room-perimeter-v1.webp')).size>10000);
+assert.match(css,/width:111%;height:115%;left:-5\.5%;top:-10\.7%/,'5x6 frame aligns with transparent inner aperture');
+assert.match(js,/defendingPieces\?\.has\(y\+":"\+x\)/,'Every legal defensive piece is visibly marked');
+assert.match(js,/defendingDrops\?\.has\(t\)/,'A defensive drop from hand is visibly marked');
+
+const window={};
+vm.runInNewContext(fs.readFileSync(path.join(root,'story-data.js'),'utf8'),{window});
+vm.runInNewContext(fs.readFileSync(path.join(root,'story-engine.js'),'utf8'),{window});
+for(const stage of [0,2]){
+ const g=new window.StoryEngine(stage);
+ g.board=Array.from({length:6},()=>Array(5).fill(null));
+ g.board[5][2]={t:'玉',s:0};g.board[0][0]={t:'玉',s:1};
+ g.board[2][2]={t:'飛',s:1};g.board[4][1]={t:'金',s:0};
+ assert.equal(g.check(g.board,0),true);
+ const defense=g.legal(0);
+ assert.ok(defense.some(m=>m.y===4&&m.x===1&&m.Y===4&&m.X===2),`stage ${stage}: gold can block check`);
+ assert.ok(defense.some(m=>m.y===4&&m.x===1&&m.Y===3&&m.X===2),`stage ${stage}: gold can block nearer attacker`);
+ g.hands[0].push({t:'金',s:0});
+ const drops=g.legal(0);
+ assert.ok(drops.some(m=>m.drop&&m.t==='金'&&m.Y===4&&m.X===2),`stage ${stage}: gold drop can block check`);
+}
 console.log('PASS: official incident title, neutral enemy banner, and noninteractive Ikedaya frame');
