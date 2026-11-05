@@ -694,11 +694,11 @@ function renderStoryNarration(textValue){
 }
 function line(){
  if(at>=dialog.length){const fn=onEnd;onEnd=null;fn();return}
- // 池田屋の第一ページのみ採用済みの山崎・土方の場面画を表示する。
- $("dialogueScene").classList.toggle("ikedaya-first-page",stage===0&&at===0);
- $("dialogueScene").classList.toggle("ikedaya-second-page",stage===0&&at===1);
- $("dialogueScene").classList.toggle("ikedaya-third-page",stage===0&&at===2);
- $("dialogueScene").classList.toggle("ikedaya-fourth-page",stage===0&&at===3);
+ // 池田屋は冒頭の二ページで同じ画を使い、以降の画を一ページずつ送る。
+ $("dialogueScene").classList.toggle("ikedaya-first-page",stage===0&&at<=1);
+ $("dialogueScene").classList.toggle("ikedaya-second-page",stage===0&&at===2);
+ $("dialogueScene").classList.toggle("ikedaya-third-page",stage===0&&at===3);
+ $("dialogueScene").classList.toggle("ikedaya-fourth-page",stage===0&&at===4);
  $("dialogueScene").classList.toggle("kinmon-first-page",stage===1&&at===0);
  $("dialogueScene").classList.toggle("kinmon-second-page",stage===1&&at===1);
  $("dialogueScene").classList.toggle("kinmon-third-page",stage===1&&at===2);
