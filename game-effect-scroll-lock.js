@@ -2,6 +2,7 @@
 (()=>{
  "use strict";
  const selectors=[
+  "body.story-opening-viewport-lock",
   "#cardOverlay.show","#incidentBanner.show","#turnNotice.show",
   "#compactCardOverlay:not(.hidden)","#compactIncidentStage:not(.hidden)",
   "#compactTurnNotice.show",".compact-game-fx.show",
