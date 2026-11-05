@@ -30,7 +30,11 @@
    document.body.style.overscrollBehavior=previous?.bodyOverscroll??"";
    document.documentElement.classList.remove("game-effect-scroll-locked");
    document.body.classList.remove("game-effect-scroll-locked");
-   locked=false;window.scrollTo(0,scrollY);
+   locked=false;
+   // Never jump back to an obsolete story-page scroll offset after battle begins.
+   const battle=document.getElementById("storyBattle");
+   const battleVisible=!!battle&&!battle.classList.contains("hidden");
+   window.scrollTo(0,battleVisible?0:scrollY);
   }
  };
  const start=()=>{
