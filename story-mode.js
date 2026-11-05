@@ -541,7 +541,7 @@ function line(){
  $("dialogueSpeaker").textContent=isNarration?"":dialog[at][0];
  $("dialogueSpeaker").hidden=isNarration;
  $("storyDialogue").classList.toggle("vertical-narration",isNarration);
- $("storyDialogue").classList.toggle("prologue-typeset",stage===-1);
+ $("storyDialogue").classList.toggle("prologue-typeset",isNarration);
  $("dialogueBody").textContent=isNarration?storyKanjiNumerals(dialog[at][1]):dialog[at][1];
  $("dialogueCount").textContent=storyKanjiNumerals(at+1)+"／"+storyKanjiNumerals(dialog.length);
  const sortie=at===dialog.length-1&&stage>=0&&stage<4;

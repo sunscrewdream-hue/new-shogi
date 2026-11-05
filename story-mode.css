@@ -192,7 +192,7 @@
 .scene-overlay{background:linear-gradient(transparent 0%,#060a0c16 47%,#060a0c75 100%)}
 .chapter{background-image:linear-gradient(94deg,#16252fa6,#16252f8c),url("kyoto-autumn.webp")}
 /* The prologue's approved narrow Edo dispatch case is itself the banner. */
-.chapter.prologue-chapter{
+.chapter{
  background-image:linear-gradient(90deg,#e5c38d13,#e5c38d0a),url("assets/story/prologue-travel-document-box.png");
  background-color:#b87c49;
  background-size:cover;
@@ -203,20 +203,24 @@
  border-radius:7px;
  box-shadow:0 5px 13px #0008;
 }
-.chapter.prologue-chapter small,.chapter.prologue-chapter em{color:#39251a;text-shadow:0 1px 1px #f4d4a4a1}
-.chapter.prologue-chapter strong{color:#25160e;text-shadow:0 1px 2px #f4d4a4b8}
-.chapter.prologue-chapter .chapter-board{border-left-color:#40271d45;color:#301e13}
+.chapter small,.chapter em{color:#39251a;text-shadow:0 1px 1px #f4d4a4a1}
+.chapter strong{color:#25160e;text-shadow:0 1px 2px #f4d4a4b8}
+.chapter .chapter-board{border-left-color:#40271d45;color:#301e13}
 /* Readable, bold inscriptions over the wooden dispatch case. */
-.chapter.prologue-chapter{min-height:132px;padding:14px 18px}
-.chapter.prologue-chapter small{font-size:clamp(14px,3.6vw,18px);font-weight:900;letter-spacing:.06em}
-.chapter.prologue-chapter strong{font-size:clamp(29px,7.3vw,43px);font-weight:900;line-height:1.12;letter-spacing:.045em;text-shadow:0 1px 0 #ebc99e,0 0 5px #f4d5a4bd}
-.chapter.prologue-chapter em{font-size:clamp(13px,3.2vw,16px);font-weight:800;margin-top:5px}
-.chapter.prologue-chapter .chapter-board{font-weight:900;font-size:25px}
-.chapter.prologue-chapter .chapter-board span{font-size:13px;font-weight:900}
+.chapter{min-height:132px;padding:14px 18px}
+.chapter small{font-size:clamp(14px,3.6vw,18px);font-weight:900;letter-spacing:.06em}
+.chapter strong{font-size:clamp(29px,7.3vw,43px);font-weight:900;line-height:1.12;letter-spacing:.045em;text-shadow:0 1px 0 #ebc99e,0 0 5px #f4d5a4bd}
+.chapter em{font-size:clamp(13px,3.2vw,16px);font-weight:800;margin-top:5px}
+.chapter .chapter-board{font-weight:900;font-size:25px}
+.chapter .chapter-board span{font-size:13px;font-weight:900}
 /* On the illustrated prologue pages, dark ink reads better than pale lettering. */
 .scene-art.scene-prologue .scene-overlay{background:linear-gradient(transparent 24%,#f1dfbd2b 54%,#ead9bbbc 100%)}
 .scene-art.scene-prologue .scene-overlay span{color:#211a14;font-size:clamp(15px,3.6vw,19px);font-weight:900;text-shadow:0 1px 2px #f5e5c8}
 .scene-art.scene-prologue .scene-overlay h2{color:#1c1713;font-weight:900;font-size:clamp(34px,8.7vw,49px);text-shadow:0 1px 2px #faecd7,0 0 8px #f1dfc5a9}
+/* One visual language for every chapter's introductory picture story. */
+#storyDialogue .scene-art .scene-overlay{background:linear-gradient(transparent 24%,#f1dfbd2b 54%,#ead9bbbc 100%)}
+#storyDialogue .scene-art .scene-overlay span{color:#211a14;font-size:clamp(15px,3.6vw,19px);font-weight:900;text-shadow:0 1px 2px #f5e5c8}
+#storyDialogue .scene-art .scene-overlay h2{color:#1c1713;font-weight:900;font-size:clamp(34px,8.7vw,49px);text-shadow:0 1px 2px #faecd7,0 0 8px #f1dfc5a9}
 #storyBoard .sq{background-color:transparent}
 #storyBattle .person-banner{background-color:#e6d3ad}
 #storyBattle .hand-container{background-image:linear-gradient(#162c3855,#10151a78),url("assets/visuals/edo_jail.png")}
