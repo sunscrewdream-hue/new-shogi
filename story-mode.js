@@ -25,6 +25,11 @@ function playStoryClip(path,channel="fx",onDone=null){
  if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish)}
  a.play().catch(finish);return a;
 }
+const kabukiVoice={promotion:"assets/story/audio/master_kabuki_promotion_v1.mp3",cannon:"assets/story/audio/master_kabuki_cannon_v1.mp3",rifle:"assets/story/audio/master_kabuki_rifle_v1.mp3",awakening:"assets/story/audio/master_kabuki_awakening_v1.mp3",kill:"assets/story/audio/master_kabuki_kill_v1.mp3"};
+function playKabukiVoice(kind){return new Promise(resolve=>{
+ const path=kabukiVoice[kind];if(!path)return resolve();
+ playStoryClip(path,"voice",resolve);
+})}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t,onDone=null){
@@ -158,13 +163,19 @@ $("compactCardFace").onclick=()=>{
  if(pendingWeaponDisplay){
   const item=pendingWeaponDisplay;
   if(!item.revealed){
-   item.revealed=true;$("compactCardFace").style.backgroundImage=`url("assets/story/cards/${item.kind}-v2.webp")`;
+   item.revealed=true;item.voiceDone=false;item.closeRequested=false;$("compactCardFace").style.backgroundImage=`url("assets/story/cards/${item.kind}-v2.webp")`;
    $("compactCardFace").classList.add("revealed");sfx("flip");
    $("compactCardText").textContent=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
-   $("compactCardPrompt").textContent="";return;
+   $("compactCardPrompt").textContent="";
+   playKabukiVoice(item.kind).then(()=>{
+    if(pendingWeaponDisplay!==item)return;
+    item.voiceDone=true;
+    if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
+   });return;
   }
+  if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
  }
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
@@ -545,7 +556,9 @@ function square(y,x){
    if(!m.drop&&g.promoted(unit,m.y,m.Y)&&!g.forced(unit,m.Y)){
     const modal=$("storyPopup");modal.classList.toggle("compact-promotion",compactMode());
     popup("成るか、成らぬか","この駒を成り駒にしますか？",[["成る",()=>{modal.classList.remove("compact-promotion");makeMove(m,true)}],["成らぬ",()=>{modal.classList.remove("compact-promotion");makeMove(m,false)}]]);
-    playStoryClip("assets/story/audio/master_promotion_voice.mp3","voice");return;
+    const options=[...$("popupButtons").querySelectorAll("button")];
+    options.forEach(button=>button.disabled=true);
+    playStoryClip(kabukiVoice.promotion,"voice",()=>{if(!modal.classList.contains("hidden"))options.forEach(button=>button.disabled=false)});return;
    }makeMove(m,false);return;
   }
  }
@@ -558,13 +571,14 @@ function makeMove(m,prom){
  const announce=(kind,player=compactSound)=>{moveVoiceDone=new Promise(resolve=>player(kind,resolve))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const willKill=compactMode()&&!m.drop&&!!g.board[m.Y][m.X]&&before>=3;
+ let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(compactMode())compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=willKill?0:before+1;
   if(willKill){compactCalligraphy(true)}
   else if(compactCaptures[key]===3){
-   compactCalligraphy(false);
+   justAwakened=true;
   }
  }
  if(captured){
@@ -597,8 +611,13 @@ function makeMove(m,prom){
   }
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
-  const afterFx=()=>moveVoiceDone.then(()=>{
+  const afterFx=()=>moveVoiceDone.then(async()=>{
    if(id!==epoch||ended)return;
+   if(justAwakened){
+    compactCalligraphy(false);
+    await playKabukiVoice("awakening");
+    if(id!==epoch||ended)return;
+   }
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
@@ -611,13 +630,16 @@ function makeMove(m,prom){
   });
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
   else if(willKill){
-   // A single deliberate sequence: calligraphy, blade, blood, fallen officer's voice.
-   setTimeout(()=>{if(id===epoch)compactSound("slash")},1050);
-   setTimeout(()=>{if(id===epoch)playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx")},1730);
-   moveVoiceDone=new Promise(resolve=>setTimeout(()=>{if(id!==epoch)return resolve();
-    if(captured.s===0)sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
-   },2350));
-   setTimeout(afterFx,3900);
+   // Calligraphy -> 「斬殺」 voice -> blade -> blood -> victim's 「無念」.
+   // Each speech clip must finish before the next scripted beat starts.
+   (async()=>{
+    await playKabukiVoice("kill");if(id!==epoch||ended)return;
+    compactSound("slash");await later(630);if(id!==epoch||ended)return;
+    playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx");await later(610);if(id!==epoch||ended)return;
+    await new Promise(resolve=>{
+     if(captured.s===0)sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
+    });if(id===epoch&&!ended)afterFx();
+   })();
   }else setTimeout(afterFx,prom?800:850);
   return;
  }

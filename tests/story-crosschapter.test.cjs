@@ -75,7 +75,20 @@ assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifl
   'Legacy weapon assets with opaque backgrounds must not be used');
 assert.match(source, /master_fire_voice_v2\.mp3/, 'The level-matched artillery voice was not connected');
 assert.match(source, /master_reinforcement_v2\.mp3/, 'Reinforcement did not receive its level-matched voice');
-assert.match(source, /master_promotion_voice\.mp3/, 'Promotion prompt did not receive its approved voice');
+for(const cue of ['promotion','cannon','rifle','awakening','kill']){
+ assert.ok(source.includes('master_kabuki_'+cue+'_v1.mp3'),
+  `New Kabuki performance is not wired for ${cue}`);
+ assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_kabuki_'+cue+'_v1.mp3')),
+  `Missing Kabuki voice asset: ${cue}`);
+}
+assert.match(source, /playStoryClip\(kabukiVoice\.promotion,"voice"\)/,
+ 'Promotion prompt did not receive the new Kabuki voice');
+assert.match(source, /await playKabukiVoice\("kill"\)/,
+ 'Kill must wait for the spoken calligraphy before playing blade effects');
+assert.match(source, /await playKabukiVoice\("awakening"\)/,
+ 'Awakening must wait until the capture voice is finished');
+assert.match(source, /playKabukiVoice\(item\.kind\)\.then/,
+ 'Each weapon card must announce its own name before firing');
 assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,
   'Toba-Fushimi must show incident cards every three turns; others retain four');
 assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
