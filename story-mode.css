@@ -127,6 +127,42 @@
 .scene-art.scene-prologue.prologue-fourth-page .scene-overlay{
  background:linear-gradient(transparent 25%,#13171c14 60%,#10151ca6 100%);
 }
+/* Picture-story narration: restrained washi paper and traditional vertical type.
+   Character dialogue remains horizontal for clarity and accessibility. */
+#storyDialogue .narration{
+ background-color:#eadbb8;
+ background-image:
+  radial-gradient(ellipse at 18% 24%,#fff8e29c 0%,transparent 58%),
+  radial-gradient(ellipse at 83% 87%,#a47b4940 0%,transparent 57%),
+  repeating-linear-gradient(89deg,transparent 0 4px,#7b61400b 5px,transparent 7px),
+  repeating-linear-gradient(2deg,transparent 0 7px,#fff9e01a 8px,transparent 10px);
+ border:1px solid #90734b;
+ box-shadow:inset 0 0 0 4px #f9eccc69,inset 0 0 25px #8d603d2e,0 12px 24px #0007;
+}
+#storyDialogue .narrator-label[hidden]{display:none}
+#storyDialogue.vertical-narration #dialogueBody{
+ box-sizing:border-box;
+ writing-mode:vertical-rl;
+ text-orientation:mixed;
+ height:clamp(240px,38dvh,350px);
+ min-height:0;
+ max-width:100%;
+ width:100%;
+ margin:8px 0 18px;
+ padding:12px 8px;
+ font-size:clamp(15px,3.5vw,18px);
+ line-height:1.9;
+ letter-spacing:.055em;
+ white-space:pre-line;
+ overflow-x:auto;
+ overflow-y:hidden;
+ overscroll-behavior-inline:contain;
+ color:#392d22;
+}
+@media(max-width:420px){
+ #storyDialogue .narration{padding:14px 12px}
+ #storyDialogue.vertical-narration #dialogueBody{height:clamp(230px,35dvh,310px);font-size:15px;line-height:1.7}
+}
 .story-hero{
  background-image:linear-gradient(#0f1c251c,#080f1952),url("assets/visuals/intro_shinsengumi.webp");
 }

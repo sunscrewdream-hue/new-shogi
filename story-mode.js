@@ -533,7 +533,11 @@ function line(){
  $("dialogueScene").classList.toggle("prologue-second-page",stage===-1&&at===1);
  $("dialogueScene").classList.toggle("prologue-third-page",stage===-1&&at===2);
  $("dialogueScene").classList.toggle("prologue-fourth-page",stage===-1&&at===3);
- $("dialogueSpeaker").textContent=dialog[at][0];$("dialogueBody").textContent=dialog[at][1];
+ const isNarration=dialog[at][0]==="語り";
+ $("dialogueSpeaker").textContent=isNarration?"":dialog[at][0];
+ $("dialogueSpeaker").hidden=isNarration;
+ $("storyDialogue").classList.toggle("vertical-narration",isNarration);
+ $("dialogueBody").textContent=dialog[at][1];
  $("dialogueCount").textContent=(at+1)+" / "+dialog.length;
  const sortie=at===dialog.length-1&&stage>=0&&stage<4;
  $("dialogueNext").textContent=sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"続ける ›";
