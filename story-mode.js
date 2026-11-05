@@ -1043,9 +1043,29 @@ function finish(winner,reason){
  const overlay=$("storyEndOverlay");
  $("storyEndWinner").src=win?"assets/visuals/victory_shinsengumi_scene.webp":"assets/visuals/victory_saccho_scene.webp";
  $("storyEndPortraitSource").srcset=win?"assets/visuals/victory_shinsengumi_mobile.webp":"assets/visuals/victory_saccho_mobile.webp";
- $("storyEndLoser").style.display="none";
- $("storyEndWinner").alt=(win?"近藤勇":"西郷隆盛")+"の勝利";
- $("storyEndLoser").alt=(win?"西郷隆盛":"近藤勇")+"の敗北";
+ // Independently illustrated, transparent character assets. Existing approved scene
+ // remains the fallback until BOTH chapter-specific portraits are supplied.
+ const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
+ const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
+ const winnerArt="assets/story/victory/"+winnerId+"_winner.webp";
+ const loserArt="assets/story/victory/"+loserId+"_loser.webp";
+ const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
+ const portraitSource=$("storyEndPortraitSource");
+ const artworkToken=String(Date.now());
+ overlay.dataset.artworkToken=artworkToken;
+ overlay.classList.remove("composite-victory");
+ loserEl.style.display="none";
+ winnerEl.alt=(win?"近藤勇":ch.boss)+"の勝利";
+ loserEl.alt=(win?ch.boss:"近藤勇")+"の敗北";
+ // Verify both assets before switching. Never show a half-composed victory.
+ Promise.all([winnerArt,loserArt].map(url=>new Promise((resolve,reject)=>{
+  const img=new Image();img.onload=()=>resolve(url);img.onerror=reject;img.src=url;
+ }))).then(()=>{
+  if(overlay.dataset.artworkToken!==artworkToken||overlay.classList.contains("hidden"))return;
+  portraitSource.removeAttribute("srcset");
+  winnerEl.src=winnerArt;loserEl.src=loserArt;loserEl.style.display="block";
+  overlay.classList.add("composite-victory");
+ }).catch(()=>{/* Existing scene artwork stays visible until both assets are approved. */});
  $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
