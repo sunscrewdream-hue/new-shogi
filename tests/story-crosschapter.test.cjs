@@ -172,6 +172,12 @@ for (const file of ['story-data.js', 'story-engine.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), sandbox, {filename: file});
 }
 assert.equal(sandbox.window.StoryData.chapters.length, 4);
+const prologue=sandbox.window.StoryData.prologue.intro;
+assert.equal(prologue.length,4,'The prologue must be shown in exactly four pages');
+assert.ok(prologue.every(page=>page[0]==='語り'),'The historical prologue must retain a consistent narrator');
+for(const keyword of ['天誅','清河八郎','尊王攘夷','壬生浪士組','松平容保','新選組']){
+ assert.ok(prologue.some(page=>page[1].includes(keyword)),`Missing established prologue fact: ${keyword}`);
+}
 for (let stage = 0; stage < 4; stage++) {
   const game = new sandbox.window.StoryEngine(stage);
   assert.equal(game.board.length, game.h);

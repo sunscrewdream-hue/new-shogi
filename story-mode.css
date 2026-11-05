@@ -215,6 +215,7 @@
  filter:drop-shadow(0 2px 3px #210404);
 }
 /* Match the completed 9x9 game's non-editable UI cursor and text-selection policy. */
+#dialogueBody{white-space:pre-line;font-size:clamp(14px,3.8vw,17px);line-height:1.85;overflow-wrap:anywhere}
 body{user-select:none;-webkit-user-select:none;caret-color:transparent;cursor:default}
 button,a,input[type=range]{cursor:pointer}
 input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto}
