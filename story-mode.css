@@ -338,7 +338,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
    outer maximum and 3px border (514px / 9 = 57.111px per cell at max).
    Battlefield ruins are purely decorative and never affect grid sizing. */
 #storyBoard[data-stage="1"]{
- width:min(96vw,520px,100%,max(250px,calc(100dvh - 305px)))!important;
+ width:min(96vw,520px,100%)!important;
  border:3px solid #604730!important;
  background-image:url("assets/story/board-kinmon-ground-v2.webp")!important;
  background-position:center;background-size:100% 100%;background-repeat:no-repeat;
@@ -361,3 +361,20 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 @media(max-width:600px){
  #storyBoard[data-stage="1"]::before{width:110%;height:110%;left:-5%;top:-5%}
 }
+
+/* Finished-game parity: status messages appear in the officer banner itself.
+   Keep the old live region accessible without reserving a visible row. */
+.story-status-reader{
+ position:absolute!important;width:1px!important;height:1px!important;
+ padding:0!important;margin:-1px!important;overflow:hidden!important;
+ clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;
+}
+.story-banner-status{display:none}
+.story-banner-status:not(:empty){
+ position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+ padding:7px 18px;background:linear-gradient(115deg,#152029ee,#352923df),url("assets/neutral_edo_jail.webp") center/cover;
+ color:#f1d7a4;font:800 clamp(13px,3.5vw,20px) system-ui,"Noto Sans JP",sans-serif;
+ text-align:center;letter-spacing:.04em;text-shadow:0 2px 4px #000c;
+ transition:opacity .2s;pointer-events:none;
+}
+.person-banner.show-character .story-banner-status{opacity:0}

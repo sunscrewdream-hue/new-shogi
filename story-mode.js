@@ -270,7 +270,7 @@ function collect(p){
  if(devPreview||!p||p.cid==null)return;
  const id=(p.origin===0?0:20)+p.cid;
  if(id<0||id>=40)return;
- try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));$("storyStatus").textContent="🎴 人物カード獲得！ "+person(p).name}}catch(e){}
+ try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+person(p).name,0)}}catch(e){}
 }
 function person(p){
  if(!p)return{name:"",role:"",img:""};
@@ -286,6 +286,7 @@ function person(p){
  }
  const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/story/mobs/"+m[2]};
 }
+const storyBannerTimers=[null,null];
 function banner(s,p){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
@@ -293,6 +294,17 @@ function banner(s,p){
  $(prefix+"StoryName").textContent=a.name;
  $(prefix+"StoryRole").textContent=a.role+" ／ "+label(p);
  image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
+ const panel=$(prefix+"StoryBanner"),currentEpoch=epoch;
+ panel.classList.add("show-character");
+ clearTimeout(storyBannerTimers[s]);
+ storyBannerTimers[s]=setTimeout(()=>{if(currentEpoch===epoch)panel.classList.remove("show-character")},2300);
+}
+// As in the completed match, turn/status notices live inside the character banners.
+// Keep one screen-reader announcement; do not insert a third board between the enemy hand and field.
+function storyBannerMessage(message,side=g?.side??0){
+ $("storyStatus").textContent=message;
+ $("playerBannerStatus").textContent=side===0?message:"";
+ $("enemyBannerStatus").textContent=side===1?message:"";
 }
 // Main-game parity: pointer hover reveals the character without selecting or moving.
 let storyHoverSide=null,storyHoverBase=[null,null];
@@ -405,7 +417,7 @@ function battle(i){
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
- document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+(i===0?"-bg-v2.webp":"-bg.webp")+"'),url('kyoto-autumn.webp')";
+ document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+([0,1].includes(i)?"-bg-v2.webp":"-bg.webp")+"'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  banner(0,g.king(0));banner(1,g.king(1));chooseView("storyBattle");render();if(compactMode()){busy=true;render();compactIntro()}
 }
@@ -456,7 +468,7 @@ function render(){
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
- $("storyStatus").textContent=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
+ storyBannerMessage(ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=compactMode()&&!ended?(compactIncident?"🎴 事件札を確認中":`🎴 ${g.side===0?"新選組":"敵軍"}：札まで${4-Math.floor((g.ply%8)/2)}手`):"";
 }
@@ -541,8 +553,8 @@ function weaponCard(kind){
 async function fire(kind){
  const id=epoch,result=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx);
  if(!result||id!==epoch)return;
- if(result.hit){$("storyStatus").textContent=person(result.hit).name+" に命中！ 駒が消滅。";/* 砲撃による消滅は捕獲ではないためコレクションに加えない */}
- else $("storyStatus").textContent=kind==="cannon"?"砲弾は空きマスへ着弾！":"鉄砲は空振り！";
+ if(result.hit){storyBannerMessage(person(result.hit).name+" に命中！ 駒が消滅。",0);/* 砲撃による消滅は捕獲ではないためコレクションに加えない */}
+ else storyBannerMessage(kind==="cannon"?"砲弾は空きマスへ着弾！":"鉄砲は空振り！",0);
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
 }
 function finish(winner,reason){
