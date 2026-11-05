@@ -147,8 +147,9 @@
  height:clamp(240px,38dvh,350px);
  min-height:0;
  max-width:100%;
- width:100%;
- margin:8px 0 18px;
+ /* Shrink to the actual number of vertical columns, then center that group. */
+ width:fit-content;
+ margin:8px auto 18px;
  padding:12px 8px;
  font-size:clamp(15px,3.5vw,18px);
  line-height:1.9;
