@@ -530,6 +530,32 @@ function storyKanjiNumerals(value){
  const digits="〇一二三四五六七八九";
  return String(value).replace(/[0-9０-９]/g,ch=>digits[(ch.charCodeAt(0)-(ch<="9"?48:65296))]);
 }
+/* Ruby only for unfamiliar historical names and terms, preserving the source text. */
+const storyRubyReadings=[
+ ["伊東甲子太郎","いとうかしたろう"],["宮部鼎蔵","みやべていぞう"],
+ ["久坂玄瑞","くさかげんずい"],["山崎烝","やまざきすすむ"],
+ ["芹沢鴨","せりざわかも"],["桂小五郎","かつらこごろう"],
+ ["蛤御門","はまぐりごもん"],["御陵衛士","ごりょうえじ"],
+ ["京都守護職","きょうとしゅごしょく"],["尊王攘夷","そんのうじょうい"],
+ ["尊攘派","そんじょうは"],["元治","げんじ"],
+ ["桑名","くわな"],["会津","あいづ"],["肥後","ひご"],
+ ["砲声","ほうせい"],["精鋭","せいえい"],["間者","かんじゃ"]
+];
+const storyRubyPattern=new RegExp(storyRubyReadings.map(p=>p[0]).sort((a,b)=>b.length-a.length).join("|"),"g");
+const storyRubyMap=new Map(storyRubyReadings);
+function renderStoryNarration(textValue){
+ const target=$("dialogueBody"),text=storyKanjiNumerals(textValue),fragment=document.createDocumentFragment();
+ let start=0,match;
+ storyRubyPattern.lastIndex=0;
+ while((match=storyRubyPattern.exec(text))!==null){
+  if(match.index>start)fragment.append(document.createTextNode(text.slice(start,match.index)));
+  const ruby=document.createElement("ruby"),rt=document.createElement("rt");
+  ruby.append(document.createTextNode(match[0]));rt.textContent=storyRubyMap.get(match[0]);ruby.append(rt);
+  fragment.append(ruby);start=match.index+match[0].length;
+ }
+ if(start<text.length)fragment.append(document.createTextNode(text.slice(start)));
+ target.replaceChildren(fragment);
+}
 function line(){
  if(at>=dialog.length){const fn=onEnd;onEnd=null;fn();return}
  // 序章の絵巻はページ単位で切り替える。未制作ページは従来の背景を維持。
@@ -542,7 +568,8 @@ function line(){
  $("dialogueSpeaker").hidden=isNarration;
  $("storyDialogue").classList.toggle("vertical-narration",isNarration);
  $("storyDialogue").classList.toggle("prologue-typeset",isNarration);
- $("dialogueBody").textContent=isNarration?storyKanjiNumerals(dialog[at][1]):dialog[at][1];
+ if(isNarration)renderStoryNarration(dialog[at][1]);
+ else $("dialogueBody").textContent=dialog[at][1];
  $("dialogueCount").textContent=storyKanjiNumerals(at+1)+"／"+storyKanjiNumerals(dialog.length);
  const sortie=at===dialog.length-1&&stage>=0&&stage<4;
  $("dialogueNext").textContent=sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"〉";

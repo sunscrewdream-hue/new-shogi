@@ -174,6 +174,9 @@
  line-height:1.65;
  letter-spacing:0;
 }
+/* Small furigana sits to the right of the kanji in vertical writing. */
+#storyDialogue #dialogueBody ruby{ruby-position:over;ruby-align:center}
+#storyDialogue #dialogueBody rt{font-size:.52em;font-weight:500;color:#69513d;letter-spacing:0;line-height:1.15}
 /* Center the narration controls, with accessible page arrows in both directions. */
 #storyDialogue .narration .dialogue-foot{flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
 #storyDialogue .dialogue-navigation{display:flex;align-items:center;justify-content:center;gap:18px;width:100%}
