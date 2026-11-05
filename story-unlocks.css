@@ -1,0 +1,13 @@
+/* Victory-gated battlefield selector for the finished regular match. */
+#storyUnlockPicker{width:min(95vw,520px);margin:13px auto 16px;padding:12px 9px;background:#142b32e8;color:#f4ddad;border:1px solid #b99760;border-radius:9px;box-sizing:border-box}
+#storyUnlockPicker h2{margin:0 0 9px;font-size:clamp(17px,4vw,21px);color:#ffe3a9}
+#storyUnlockPicker h2 small{display:inline;font-size:11px;color:#e6cf9e;font-weight:normal}
+#storyUnlockChoices{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:5px}
+#storyUnlockChoices .story-unlock-choice{min-width:0;margin:0;padding:9px 4px;color:#f7e9c5;background:#304a4e;border:1px solid #b79a6e;border-radius:5px;font-size:13px;font-weight:bold;cursor:pointer}
+#storyUnlockChoices .story-unlock-choice.selected{background:#dfbd79;color:#272014;border-color:#ffe4a6;box-shadow:inset 0 0 0 2px #fff1c4}
+#storyUnlockChoices .story-unlock-choice:disabled{background:#192a30;color:#9ba5a4;opacity:.64;cursor:not-allowed}
+#storyUnlockExplanation{font:12px/1.65 system-ui,sans-serif;margin:9px 0 0;color:#e6d0a5}
+body[data-unlocked-field]:not([data-unlocked-field="classic"])::before{background-image:linear-gradient(#1019237a,#101923a3),var(--unlocked-scene,none)!important;background-position:center;background-size:cover}
+/* These two grounds are 9x9 by design; no pseudo-frame can cover the pieces. */
+#board[data-unlocked-field="kinmon"],#board[data-unlocked-field="tobafushimi"]{border:3px solid #69452b;padding:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;overflow:hidden}
+#board[data-unlocked-field="kinmon"] .sq,#board[data-unlocked-field="tobafushimi"] .sq{border:0}
