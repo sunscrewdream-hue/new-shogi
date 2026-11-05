@@ -75,7 +75,9 @@ assert.match(weapons, /used\.has/, 'Two cannon shells must strike different squa
 assert.match(weapons, /explosion-v3\.webp/, 'Transparent centered blast asset must be used');
 assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
   'Legacy weapon assets with opaque backgrounds must not be used');
-assert.match(source, /master_fire_voice_v2\.mp3/, 'The level-matched artillery voice was not connected');
+assert.match(source, /master_samurai_fire_v1\.mp3/, 'The new samurai artillery voice was not connected');
+assert.match(source, /master_samurai_gomen_v1\.mp3/, 'Defection must use only the trimmed 「御免！」 recording');
+assert.match(source, /master_samurai_loss_v1\.mp3/, 'The new 「無念だ」 recording was not connected');
 assert.match(source, /"寝返り":null/, 'Old reinforcement narration must not mislabel a defection');
 assert.match(source, /"寝返り":"assets\/cards\/events\/defection-v2\.webp"/,
   'The defection card must have its updated calligraphy');

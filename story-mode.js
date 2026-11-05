@@ -39,7 +39,7 @@ function sfx(t,onDone=null){
   playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3","fx",onDone);return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_loss_v2.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
  if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx",onDone);return}
  onDone?.();
  // No legacy synthesized fallback: only approved recorded assets are played.
@@ -226,10 +226,11 @@ function compactApplyIncident(effect){
   if(kind==="寝返り"){
    // Keep the gravel footsteps audible; the later drum used to cut them short.
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
-   // The old 「助太刀いたす」 clip describes reinforcements, not a defector.
-   // Keep the approved footsteps and wait for the escort animation instead.
-   let escortDone=false,voiceDone=true;
+   // Use only 「御免！」 cut from the older approved recording;
+   // never play its unrelated 「助太刀致す」 second half.
+   let escortDone=false,voiceDone=false;
    const resume=()=>{if(escortDone&&voiceDone)finish()};
+   playStoryClip("assets/story/audio/master_samurai_gomen_v1.mp3","voice",()=>{voiceDone=true;resume()});
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
@@ -678,7 +679,7 @@ async function fire(kind,ownerSide=1){
  const id=epoch;
  // The spoken order to fire is distinct from the subsequent discharge and impact.
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
-  playStoryClip("assets/story/audio/master_fire_voice_v2.mp3","voice",done);setTimeout(done,4500)});
+  playStoryClip("assets/story/audio/master_samurai_fire_v1.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
  const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,(shot,hit)=>{
   if(id!==epoch||kind!=="cannon"||shot.y<0)return;

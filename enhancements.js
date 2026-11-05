@@ -463,7 +463,11 @@
    }
    incidentTarget=null;incidentRunning=false;busy=false;
    clearCharacterBanner(effect.owner);setCharacterBanner(effect.side,p,'寝返りとして合流！',2000);
-   render();if(!ended)queueTurnNotice(turn);
+   render();if(!ended){
+    // Defection's distinct 「御免！」 is the only retained part of the old voice.
+    const clip=playBattleVoice('gomen',()=>{if(ep===epoch&&!ended)queueTurnNotice(turn)});
+    if(!clip)queueTurnNotice(turn);
+   }
   };
   setTimeout(()=>{if(ep===epoch)previewReinforcementPortrait({y:effect.y,x:effect.x,p},effect.side,proceed)},240);
  };
