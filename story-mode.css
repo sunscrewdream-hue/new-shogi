@@ -673,7 +673,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .scene-tobafushimi.tobafushimi-taiseihokan-pages .scene-overlay{
  background:linear-gradient(transparent 15%,#1c1a197a 100%);
 }
-/* Toba-Fushimi page three: approved imperial, Satsuma and Choshu nobori. */
+/* Toba-Fushimi pages three and four: approved imperial, Satsuma and Choshu nobori. */
 .scene-tobafushimi.tobafushimi-satcho-nobori-page{
  min-height:0;
  aspect-ratio:1672/941;
@@ -684,6 +684,19 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  background-color:#d8c4a8;
 }
 .scene-tobafushimi.tobafushimi-satcho-nobori-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
+/* Toba-Fushimi pages five and six: artillery-led Satsuma-Choshu advance. */
+.scene-tobafushimi.tobafushimi-satcho-advance-pages{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/tobafushimi-scene05-satcho-advance-v1.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-tobafushimi.tobafushimi-satcho-advance-pages .scene-overlay{
  background:linear-gradient(transparent 15%,#1c1a197a 100%);
 }
 
