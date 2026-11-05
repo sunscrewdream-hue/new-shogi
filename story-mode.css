@@ -942,3 +942,27 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
 @keyframes storyLoseRise{from{opacity:0;transform:translateY(100dvh) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes storyVictoryInk{from{transform:scale(1.4);opacity:0;filter:blur(6px)}65%{transform:scale(.97);opacity:1;filter:blur(0)}to{transform:scale(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){#storyEndWinner,#storyEndLoser,#storyEndText{animation:none!important}}
+
+/* Finished version's actual result presentation lives in enhancements.css/js.
+   Mirror the final override, not the obsolete card-ai-test inline fallback. */
+#storyEndOverlay{background:radial-gradient(ellipse at 50% 50%,#241d21,#090b13 76%)!important;padding:0!important;overflow:hidden}
+#storyEndPanel{width:100vw!important;max-width:none!important;max-height:100dvh!important;height:100dvh!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;position:relative;padding:0!important;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;isolation:isolate}
+#storyEndResponsiveScene{display:contents}
+#storyEndPanel .story-end-illustration#storyEndWinner{position:absolute!important;top:0!important;left:50%!important;right:auto!important;width:100vw!important;max-width:1500px!important;height:92dvh!important;max-height:none!important;object-fit:contain!important;object-position:center bottom!important;margin:0!important;z-index:0!important;filter:drop-shadow(0 5px 12px #0009)!important;animation:storyVictorySceneIn .8s cubic-bezier(.18,.86,.2,1.04) both!important}
+#storyEndLoser{display:none!important}
+#storyEndPanel #storyEndText{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;padding:0!important;margin:-1px!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;opacity:0!important}
+#storyEndPanel .story-end-calligraphy{position:absolute;z-index:3;width:auto;height:auto;object-fit:contain;pointer-events:none;filter:drop-shadow(0 4px 7px #050507aa)}
+#storyEndVerdictGraphic{bottom:96px;left:50%;width:min(46vw,560px)!important;max-height:16dvh;transform:translateX(-50%)}
+#storyEndVictoryGraphic{left:2%;top:23%;width:min(29vw,350px)!important;max-height:34dvh}
+#storyEndDefeatGraphic{right:5%;top:62%;width:min(23vw,270px)!important;max-height:25dvh}
+#storyEndPanel #storyEndActions{z-index:4!important;position:relative;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;background:linear-gradient(transparent,#070b13e8)!important;padding:0 12px 18px}
+@keyframes storyVictorySceneIn{from{opacity:0;transform:translateX(-50%) translateY(10%) scale(.84)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@media(orientation:portrait){
+ #storyEndPanel .story-end-illustration#storyEndWinner{top:1%!important;left:50%!important;width:min(96vw,48dvh)!important;max-width:96vw!important;height:calc(100dvh - 112px)!important;object-fit:contain!important;object-position:center center!important}
+ #storyEndVictoryGraphic{left:0;top:23%;width:42vw!important;max-height:30dvh}
+ #storyEndDefeatGraphic{right:0;top:63%;width:38vw!important;max-height:24dvh}
+ #storyEndVerdictGraphic{bottom:94px;width:min(75vw,360px)!important;max-height:15dvh}
+ #storyEndPanel #storyEndActions{padding-bottom:max(18px,env(safe-area-inset-bottom));gap:8px}
+ #storyEndPanel #storyEndActions button{min-width:0;font-size:14px;padding:10px 12px}
+}
+@media(prefers-reduced-motion:reduce){#storyEndPanel #storyEndWinner{animation:none!important;transform:translateX(-50%)}}
