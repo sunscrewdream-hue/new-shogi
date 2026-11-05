@@ -45,6 +45,7 @@ for (const file of [
   'assets/cards/events/calm.webp',
   'assets/cards/events/reinforcement.webp',
   'assets/cards/events/defection-v1.webp',
+  'assets/cards/events/defection-v2.webp',
   'assets/cards/events/desertion.webp',
   'assets/cards/events/purge.webp',
   'assets/cards/events/earthquake.webp',
@@ -76,7 +77,7 @@ assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifl
   'Legacy weapon assets with opaque backgrounds must not be used');
 assert.match(source, /master_fire_voice_v2\.mp3/, 'The level-matched artillery voice was not connected');
 assert.match(source, /"寝返り":null/, 'Old reinforcement narration must not mislabel a defection');
-assert.match(source, /"寝返り":"assets\/cards\/events\/defection-v1\.webp"/,
+assert.match(source, /"寝返り":"assets\/cards\/events\/defection-v2\.webp"/,
   'The defection card must have its updated calligraphy');
 for(const cue of ['promotion','cannon','rifle','awakening','kill']){
  assert.ok(source.includes('master_kabuki_'+cue+'_v1.mp3'),
