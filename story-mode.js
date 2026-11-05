@@ -580,6 +580,10 @@ function line(){
  $("dialogueScene").classList.toggle("ikedaya-third-page",stage===0&&at===2);
  $("dialogueScene").classList.toggle("ikedaya-fourth-page",stage===0&&at===3);
  $("dialogueScene").classList.toggle("kinmon-first-page",stage===1&&at===0);
+ $("dialogueScene").classList.toggle("kinmon-second-page",stage===1&&at===1);
+ $("dialogueScene").classList.toggle("kinmon-third-page",stage===1&&at===2);
+ $("dialogueScene").classList.toggle("kinmon-fourth-page",stage===1&&at===3);
+ $("dialogueScene").classList.toggle("aburanokoji-first-page",stage===2&&at===0);
  // 序章の絵巻はページ単位で切り替える。未制作ページは従来の背景を維持。
  $("dialogueScene").classList.toggle("prologue-first-page",stage===-1&&at===0);
  $("dialogueScene").classList.toggle("prologue-second-page",stage===-1&&at===1);
@@ -879,6 +883,7 @@ $("dialoguePrev").onclick=()=>{
  sfx("flip");
  at--;line();
 };
+$("dialogueHome").onclick=()=>screenHome();
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
 $("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では両軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);

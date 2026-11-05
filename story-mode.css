@@ -184,14 +184,29 @@
 #storyDialogue .dialogue-navigation #dialoguePrev:disabled{visibility:hidden}
 #storyDialogue .dialogue-foot.story-sortie-foot .dialogue-navigation{gap:12px}
 #storyDialogue .dialogue-foot.story-sortie-foot #dialoguePrev{min-width:64px}
+/* On the final page the back arrow must not occupy half the navigation row. */
+#storyDialogue .dialogue-foot.story-sortie-foot .dialogue-navigation{position:relative;justify-content:center}
+#storyDialogue .dialogue-foot.story-sortie-foot #dialoguePrev{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+#storyDialogue .dialogue-foot.story-sortie-foot #dialogueNext{flex:none;margin:8px auto 4px}
+.story-dialogue-toolbar{display:flex;justify-content:flex-start;margin:12px 0 -7px}
+#dialogueHome{padding:7px 13px;font-size:13px;color:#f1dfbc;background:#28383d;border-color:#9f8159}
 @media(max-width:420px){
  #storyDialogue .narration{padding:14px 12px}
  #storyDialogue.vertical-narration #dialogueBody{height:clamp(230px,35dvh,310px);font-size:15px;line-height:1.7}
  #storyDialogue.prologue-typeset #dialogueBody{height:310px;font-size:clamp(12px,3.1vw,15px);line-height:1.55}
 }
 .story-hero{
- background-image:linear-gradient(#0f1c251c,#080f1952),url("assets/visuals/intro_shinsengumi.webp");
+ background-image:url("assets/story/title-washi-gold-v2.webp");
+ background-size:cover;
+ background-position:center;
+ color:#35251b;
+ border:1px solid #cfc9b8;
+ border-bottom:2px solid #bcb39c;
+ box-shadow:inset 0 0 24px #8f846b12;
 }
+.story-hero .story-tag{color:#684622;text-shadow:0 1px 1px #fff2d2}
+.story-hero h1{color:#2b211b;text-shadow:0 1px 1px #fff0cb99;letter-spacing:.14em}
+.story-hero p{color:#48311e;text-shadow:0 1px 1px #fff1d3ad;font-weight:600}
 .scene-overlay{background:linear-gradient(transparent 0%,#060a0c16 47%,#060a0c75 100%)}
 .chapter{background-image:linear-gradient(94deg,#16252fa6,#16252f8c),url("kyoto-autumn.webp")}
 /* The prologue's approved narrow Edo dispatch case is itself the banner. */
@@ -524,6 +539,58 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  background-color:#d8c4a8;
 }
 .scene-kinmon.kinmon-first-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
+/* Kinmon page two: wide aerial reconstruction of the defending imperial grounds. */
+.scene-kinmon.kinmon-second-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/kinmon-scene02-gosho-defense-v1.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-kinmon.kinmon-second-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
+/* Kinmon page three: armored Shinsengumi with the corrected Makoto flag. */
+.scene-kinmon.kinmon-third-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/kinmon-scene03-shinsengumi-advance-v1.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-kinmon.kinmon-third-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
+/* Kinmon finale: the full company answers Kondo's rally at the imperial gate. */
+.scene-kinmon.kinmon-fourth-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/kinmon-scene04-kondo-rally-v2.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-kinmon.kinmon-fourth-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
+/* Aburanokoji page one: Ito's quiet departure from the Nishi Honganji headquarters. */
+.scene-aburanokoji.aburanokoji-first-page{
+ min-height:0;
+ aspect-ratio:1672/941;
+ background-image:url("assets/story/aburanokoji-scene01-ito-departure-v1.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-aburanokoji.aburanokoji-first-page .scene-overlay{
  background:linear-gradient(transparent 15%,#1c1a197a 100%);
 }
 
