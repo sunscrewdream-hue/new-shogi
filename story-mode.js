@@ -75,6 +75,7 @@ function compactSound(kind){
 }
 function hideCompactFx(){
  stopStoryQuakeBattle();
+ document.body.classList.remove("story-quake-active");
  compactFxSerial++;
  compactTurnLocked=false;
  $("compactTurnNotice").classList.remove("show");
@@ -84,6 +85,9 @@ function hideCompactFx(){
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
 function compactPickCard(){let roll=Math.random()*100;for(const [name,weight] of compactCardWeights){roll-=weight;if(roll<0)return name}return "何事もなし"}
+function compactCardInterval(){return stage===3?3:4}
+function compactCardDue(actor){const cycle=compactCardInterval()*2;return g.ply%cycle===(actor===0?cycle-1:0)}
+function compactCardRemaining(){const cycle=compactCardInterval()*2;return compactCardInterval()-Math.floor((g.ply%cycle)/2)}
 function compactSafeBoard(B){return !g.check(B,0)&&!g.check(B,1)&&g.legal(0,B,g.hands).length>0&&g.legal(1,B,g.hands).length>0}
 function compactEligible(owner,types=null){const out=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
  const p=g.board[y][x];if(!p||p.s!==owner||p.t==="玉"||(types&&!types.includes(p.t)))continue;
@@ -156,9 +160,9 @@ function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
  if(effect.kind==="大地震"){
-  board.classList.add("compact-quake");compactSound("quake");playStoryQuakeBattle();
+  board.classList.add("compact-quake");document.body.classList.add("story-quake-active");compactSound("quake");playStoryQuakeBattle();
   setTimeout(()=>{
-   if(game!==epoch)return;board.classList.remove("compact-quake");const plan=compactPlanQuake();
+   if(game!==epoch)return;board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");const plan=compactPlanQuake();
    if(plan){g.board=plan.B;g.last=null;compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
     // Craters follow the main game's vacated-square rule, but only if both sides retain legal moves.
     const vacated=plan.shifts.map(v=>({y:v.y,x:v.x})).filter(v=>!g.board[v.y][v.x]).sort(()=>Math.random()-.5);
@@ -277,6 +281,7 @@ function compactCheckSources(){
 }
 function popup(title,text,options,img){
  const modal=$("storyPopup");$("popupTitle").textContent=title;$("popupText").textContent=text;
+ modal.querySelectorAll(".story-verdict-art,.story-final-loser").forEach(node=>node.remove());
  const image=$("popupArt");image.classList.toggle("hidden",!img);
  if(img){image.onerror=()=>image.classList.add("hidden");image.src=img}
  const buttons=$("popupButtons");buttons.replaceChildren();
@@ -486,7 +491,7 @@ function render(){
    const count=document.createElement("span");count.className="story-hand-count";count.textContent="×"+groups[t];count.setAttribute("aria-hidden","true");b.append(fig,letter,fallback,count);
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{selected={drop:true,t};render()};hand.append(b)}
  }
- const countdown=compactMode()&&!ended?(compactIncident?"🎴 事件札を確認中":`🎴 札まで${4-Math.floor((g.ply%8)/2)}手`):"";
+ const countdown=compactMode()&&!ended?(compactIncident?"🎴 事件札を確認中":`🎴 札まで${compactCardRemaining()}手`):"";
  const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 王を守ってください":"");
  storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
@@ -517,7 +522,7 @@ function makeMove(m,prom){
  if(compactMode())compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=willKill?0:before+1;
-  if(willKill){compactSound("kill");compactCalligraphy(true)}
+  if(willKill){compactCalligraphy(true)}
   else if(compactCaptures[key]===3){
    compactCalligraphy(false);
   }
@@ -528,7 +533,7 @@ function makeMove(m,prom){
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
-  if(actor===1){const game=epoch;setTimeout(()=>{if(game===epoch&&!ended)sfx("loss")},900)}
+  if(actor===1&&!willKill){const game=epoch;setTimeout(()=>{if(game===epoch&&!ended)sfx("loss")},900)}
   if(actor===0)collect(captured);banner(1-actor,captured);
  }else{
   sfx("move");
@@ -547,11 +552,17 @@ function makeMove(m,prom){
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
-   if(g.ply%8===(actor===0?7:0))compactCardStart(actor);
+   if(compactCardDue(actor))compactCardStart(actor);
    else compactResumeTurn();
   };
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
-  else setTimeout(afterFx,captured?1700:prom?600:320);
+  else if(willKill){
+   // A single deliberate sequence: calligraphy, blade, blood, fallen officer's voice.
+   setTimeout(()=>{if(id===epoch)compactSound("slash")},1050);
+   setTimeout(()=>{if(id===epoch)playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx")},1730);
+   setTimeout(()=>{if(id===epoch)(captured.s===0?sfx("loss"):compactSound("sacchoLoss"))},2350);
+   setTimeout(afterFx,3900);
+  }else setTimeout(afterFx,prom?600:320);
   return;
  }
  if(result){finish(result.winner,result.why);return}
@@ -583,6 +594,14 @@ async function fire(kind){
  if(id!==epoch||ended)return;
  const result=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx);
  if(!result||id!==epoch)return;
+ if(kind==="cannon"&&result.y>=0){
+  // The crater remains impassable for three subsequent half-moves, as with earthquakes.
+  const crater={y:result.y,x:result.x,expiresPly:g.ply+3};
+  if(!g.isHole(crater.y,crater.x)&&!g.board[crater.y][crater.x]){
+   g.holes.push(crater);
+   if(g.king(0)&&g.king(1)&&!compactSafeBoard(g.board))g.holes.pop();
+  }
+ }
  if(result.hit){storyBannerMessage(person(result.hit).name+" に命中！ 駒が消滅。",0);/* 砲撃による消滅は捕獲ではないためコレクションに加えない */}
  else storyBannerMessage(kind==="cannon"?"砲弾は空きマスへ着弾！":"鉄砲は空振り！",0);
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
@@ -596,11 +615,16 @@ function finish(winner,reason){
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
  }
  sfx(win?"win":"loss");
- const image=(king==="saigo")?"assets/visuals/"+(win?"victory_kondo.webp":"defeat_kondo.webp"):"assets/story/kings/"+king+"_"+(win?"loss":"win")+".webp";
+ const image=win?"assets/visuals/victory_kondo.webp":"assets/visuals/victory_saigo.webp";
  popup(win?"勝負あった！":"無念…",(win?"勝利！ ":"敗北。")+reason+"\n"+(win?ch.outro:"何度でも再挑戦できます。"),[
   [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage)],
   ["章選択",screenHome]
  ],image);
+ const panel=$("storyPopup").querySelector(".popup-panel");
+ const verdict=document.createElement("img");verdict.className="story-verdict-art";verdict.alt=win?"勝負あった！":"敗北";verdict.src=win?"assets/visuals/verdict_shobu_attah.webp":"assets/visuals/verdict_defeat.webp";
+ panel.insertBefore(verdict,$("popupArt"));
+ const fallen=document.createElement("img");fallen.className="story-final-loser";fallen.alt=win?"敗れた西郷隆盛":"敗れた近藤勇";fallen.src=win?"assets/visuals/defeat_saigo.webp":"assets/visuals/defeat_kondo_clean.webp";
+ $("popupArt").after(fallen);
 }
 function leave(){
  if(ended){screenHome();return}

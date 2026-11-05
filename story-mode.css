@@ -419,3 +419,20 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .story-projectile.cannon{border-radius:50%;background:radial-gradient(circle at 28% 26%,#bfc1b7 0,#525453 25%,#1a1d20 60%,#06090b 84%);box-shadow:0 0 0 2px #ffe29f3d,0 0 13px #ec8a36}
 .story-projectile.rifle{border-radius:70% 30% 30% 70%;background:linear-gradient(90deg,#fff8c6,#f8be54 45%,#7a3d20);box-shadow:0 0 12px #ffbc55,0 0 3px #fff}
 @media(prefers-reduced-motion:reduce){.popup.story-weapon-card .popup-art,#storyBoard .shot-overlay{animation:none!important}}
+
+/* Shared story events: shake the battle backdrop as well as the board, without
+   shifting controls or touch targets. */
+body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite alternate}
+@keyframes storyQuakeBackdrop{from{background-position:calc(50% - 9px) -7px}to{background-position:calc(50% + 9px) 7px}}
+/* The original crater art already has alpha; the old opaque square around it
+   gave the false impression that the texture itself was unmasked. */
+#storyBoard .sq.compact-hole{background:transparent!important;box-shadow:none!important}
+#storyBoard .sq.compact-hole::after{inset:-8%;background-image:url("assets/visuals/quake_hole.webp");background-size:contain;z-index:5;opacity:.96}
+#storyBoard .sq.compact-hole .story-token{visibility:hidden}
+.popup.compact-finale .popup-panel{border:0;border-radius:0;background:transparent;box-shadow:none;max-height:96dvh;padding:4px 10px}
+.popup.compact-finale .popup-art{max-height:23dvh;animation:storyFinalPortrait .95s ease-out both}
+.popup.compact-finale .story-final-loser{max-width:90%;max-height:20dvh;object-fit:contain;display:block;margin:-5px auto 0;animation:storyFinalPortrait 1.2s .3s ease-out both}
+.popup.compact-finale .story-verdict-art{max-width:min(80vw,400px);max-height:11dvh;object-fit:contain;display:block;margin:0 auto;filter:drop-shadow(0 3px 12px #000)}
+.popup.compact-finale .popup-buttons{background:#14191de8;padding:9px 5px;border-radius:8px}
+@keyframes storyFinalPortrait{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){body.story-quake-active,.popup.compact-finale .popup-art,.popup.compact-finale .story-final-loser{animation:none!important}}

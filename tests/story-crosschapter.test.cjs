@@ -49,6 +49,14 @@ assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifl
 assert.match(source, /master_fire_voice\.mp3/, 'The artillery order-to-fire voice was not connected');
 assert.match(source, /master_reinforcement\.mp3/, 'Reinforcement did not receive its approved voice');
 assert.match(source, /master_promotion_voice\.mp3/, 'Promotion prompt did not receive its approved voice');
+assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,
+  'Toba-Fushimi must show incident cards every three turns; others retain four');
+assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
+  'Earthquake must shake the battlefield backdrop in every chapter');
+assert.match(source, /if\(kind==="cannon"&&result\.y>=0\)/,
+  'Cannon impacts must leave temporary craters');
+assert.match(source, /expiresPly:g\.ply\+3/, 'Craters must expire after three moves');
+assert.match(source, /assets\/visuals\/defeat_kondo_clean\.webp/, 'Clean defeat artwork must be used');
 
 const sandbox = {window: {}};
 vm.createContext(sandbox);
@@ -85,4 +93,15 @@ for (let stage = 0; stage < 4; stage++) {
   assert.equal(result.captured.t, '歩');
   assert.equal(game.hands[0].length, 0, `Kill added a captive in chapter ${stage + 1}`);
 }
+// A checked king may be saved by another piece. Do not incorrectly lock every
+// non-king square: an interposition is a legal move in the finished game.
+const checked = new sandbox.window.StoryEngine(1);
+checked.board = Array.from({length:9},()=>Array(9).fill(null));
+checked.board[8][4]={t:'玉',s:0};
+checked.board[0][0]={t:'玉',s:1};
+checked.board[0][4]={t:'飛',s:1};
+checked.board[7][3]={t:'金',s:0};
+assert.ok(checked.check(checked.board,0), 'Fixture must start in check');
+assert.ok(checked.legal(0).some(m=>m.y===7&&m.x===3&&m.Y===7&&m.X===4),
+  'A non-king piece must be able to interpose against a rook check');
 console.log('PASS: four story chapters, board dimensions, legal opening moves, capture-kill, and shared assets');
