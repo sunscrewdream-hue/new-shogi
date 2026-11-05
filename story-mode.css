@@ -1022,3 +1022,47 @@ body.game-effect-scroll-locked{touch-action:none}
 
 /* Prevent horizontal rubber-band movement on mobile title and story pages. */
 html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
+
+
+/* Independent chapter-specific character victory art; legacy scene remains fallback. */
+#storyEndOverlay.composite-victory #storyEndResponsiveScene{display:contents}
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+ position:absolute!important;top:auto!important;bottom:12%!important;
+ height:75dvh!important;max-height:75dvh!important;width:55vw!important;
+ max-width:650px!important;object-fit:contain!important;
+ object-position:center bottom!important;display:block!important;
+ z-index:1!important;margin:0!important;
+ filter:drop-shadow(0 6px 10px #0008)!important;
+}
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{
+ left:1%!important;right:auto!important;
+ animation:storyCompositeWinner .85s cubic-bezier(.18,.85,.25,1) both!important;
+}
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+ right:1%!important;left:auto!important;
+ animation:storyCompositeLoser 1s cubic-bezier(.18,.85,.25,1) both!important;
+}
+@keyframes storyCompositeWinner{
+ from{opacity:0;transform:translateY(-80dvh)}
+ to{opacity:1;transform:translateY(0)}
+}
+@keyframes storyCompositeLoser{
+ from{opacity:0;transform:translateY(75dvh)}
+ to{opacity:1;transform:translateY(0)}
+}
+@media(orientation:portrait){
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+  bottom:16%!important;width:76vw!important;height:65dvh!important;
+  max-height:65dvh!important;
+ }
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{left:-15%!important}
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{right:-15%!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+  animation:none!important;transform:none!important;
+ }
+}
