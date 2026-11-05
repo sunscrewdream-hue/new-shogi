@@ -39,7 +39,8 @@ function playCasualtyCry(){return new Promise(resolve=>{
  setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
-function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
+function hideStoryEndOverlay(){const node=$("storyEndOverlay");if(node)node.classList.add("hidden")}
+function chooseView(active){hideStoryEndOverlay();["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t,onDone=null){
  if(t==="cannon"||t==="rifle"||t==="blast"){
   window.StoryBgm?.duck();
@@ -1011,17 +1012,29 @@ function finish(winner,reason){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
  }
- sfx(win?"win":"loss");
- const image=win?"assets/visuals/victory_kondo.webp":"assets/visuals/victory_saigo.webp";
- popup(win?"勝負あった！":"無念…",(win?"勝利！ ":"敗北。")+reason+"\n"+(win?ch.outro:"何度でも再挑戦できます。"),[
+
+ // Same presentation contract as the finished game's showVictory().
+ const overlay=$("storyEndOverlay");
+ $("storyEndWinner").src=win?"assets/visuals/victory_kondo.webp":"assets/visuals/victory_saigo.webp";
+ $("storyEndLoser").src=win?"assets/visuals/defeat_saigo.webp":"assets/visuals/defeat_kondo.webp";
+ $("storyEndWinner").alt=(win?"近藤勇":"西郷隆盛")+"の勝利";
+ $("storyEndLoser").alt=(win?"西郷隆盛":"近藤勇")+"の敗北";
+ $("storyEndText").textContent=(win?"新選組":"薩長同盟")+"の勝利！";
+ overlay.classList.toggle("enemy-win",!win);
+ const actions=$("storyEndActions");actions.replaceChildren();
+ const choices=[
   [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage)],
   ["章選択",screenHome]
- ],image);
- const panel=$("storyPopup").querySelector(".popup-panel");
- const verdict=document.createElement("img");verdict.className="story-verdict-art";verdict.alt=win?"勝負あった！":"敗北";verdict.src=win?"assets/visuals/verdict_shobu_attah.webp":"assets/visuals/verdict_defeat.webp";
- panel.insertBefore(verdict,$("popupArt"));
- const fallen=document.createElement("img");fallen.className="story-final-loser";fallen.alt=win?"敗れた西郷隆盛":"敗れた近藤勇";fallen.src=win?"assets/visuals/defeat_saigo.webp":"assets/visuals/defeat_kondo_clean.webp";
- $("popupArt").after(fallen);
+ ];
+ for(const [label,action] of choices){
+  const button=document.createElement("button");button.type="button";button.textContent=label;
+  button.onclick=()=>{overlay.classList.add("hidden");action()};
+  actions.append(button);
+ }
+ overlay.classList.remove("hidden");
+ // Finished game: taiko 'finish' impact followed by shobuAtta voice.
+ playStoryClip("assets/audio/sfx/taiko_dodon.mp3","fx");
+ sfx("win");
 }
 function leave(){
  if(ended){screenHome();return}
