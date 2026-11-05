@@ -528,6 +528,11 @@ function talk(i){
 }
 function line(){
  if(at>=dialog.length){const fn=onEnd;onEnd=null;fn();return}
+ // 序章の絵巻はページ単位で切り替える。未制作ページは従来の背景を維持。
+ $("dialogueScene").classList.toggle("prologue-first-page",stage===-1&&at===0);
+ $("dialogueScene").classList.toggle("prologue-second-page",stage===-1&&at===1);
+ $("dialogueScene").classList.toggle("prologue-third-page",stage===-1&&at===2);
+ $("dialogueScene").classList.toggle("prologue-fourth-page",stage===-1&&at===3);
  $("dialogueSpeaker").textContent=dialog[at][0];$("dialogueBody").textContent=dialog[at][1];
  $("dialogueCount").textContent=(at+1)+" / "+dialog.length;
  const sortie=at===dialog.length-1&&stage>=0&&stage<4;
