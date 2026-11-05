@@ -29,7 +29,7 @@ for(let stage=0;stage<4;stage++){
   const result=vm.runInNewContext(planSource,{g:game,Math});
   if(!result)continue;
   const replay=game.clone(game.board);
-  assert.ok(result.shifts.length>=3&&result.shifts.length<=6);
+   assert.ok(result.shifts.length>=(game.w===5?1:3)&&result.shifts.length<=6);
   for(const move of result.shifts){
    assert.ok(move.y>=0&&move.y<game.h&&move.Y>=0&&move.Y<game.h);
    assert.ok(move.x>=0&&move.x<game.w&&move.X>=0&&move.X<game.w);
@@ -42,6 +42,21 @@ for(let stage=0;stage<4;stage++){
   assert.ok(!game.check(result.B,0)&&!game.check(result.B,1));
   assert.ok(game.legal(0,result.B).length&&game.legal(1,result.B).length);
  }
+}
+
+// Mid-game Ikedaya may have too few survivors for the 9x9 three-piece
+// minimum. Its earthquake must still move a surviving piece safely.
+{
+ const game=new browser.StoryEngine(0);
+ let kept=0;
+ for(let y=0;y<game.h;y++)for(let x=0;x<game.w;x++){
+  const p=game.board[y][x];
+  if(!p||p.t==='玉')continue;
+  if(kept++>=2)game.board[y][x]=null;
+ }
+ const result=vm.runInNewContext(planSource,{g:game,Math});
+ assert.ok(result&&result.shifts.length>=1,'Ikedaya earthquake animates even with two remaining non-king pieces');
+ assert.ok(!game.check(result.B,0)&&!game.check(result.B,1));
 }
 
 assert.match(complete,/function quakeEffect\(/);

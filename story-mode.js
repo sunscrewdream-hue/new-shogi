@@ -135,8 +135,11 @@ function compactEligible(owner,types=null){const out=[];for(let y=0;y<g.h;y++)fo
  }return out}
 function compactPlanQuake(){
  const all=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]&&g.board[y][x].t!=="玉")all.push({y,x});
- // Bound searches on crowded or near-finished 5x6 boards; no card may freeze input.
- for(let count=Math.min(6,all.length);count>=3;count--)for(let attempt=0;attempt<45;attempt++){
+ // The completed 9x9 game moves 3-6 pieces. On a sparse 5x6 story board
+ // that many safe moves may not exist; retain the same effect with 1-2
+ // pieces as a fallback rather than silently losing the earthquake card.
+ const minimum=g.w===5?1:3;
+ for(let count=Math.min(6,all.length);count>=minimum;count--)for(let attempt=0;attempt<45;attempt++){
   const B=g.clone(g.board),candidates=[...all].sort(()=>Math.random()-.5),shifts=[];
   for(const v of candidates){if(shifts.length>=count)break;if(!B[v.y][v.x])continue;
    const positions=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
