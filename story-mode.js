@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[];
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -58,7 +58,7 @@ const compactAudio={
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  sacchoCapture:"assets/audio/saccho_voice_03_toraeta.mp3",
- sacchoLoss:"assets/story/audio/master_saccho_loss_v3.mp3",
+ sacchoLoss:"assets/story/audio/master_samurai_loss_v1.mp3",
  saigo:"assets/audio/voice_saigo_takamori.mp3",
  kido:"assets/audio/voice_kido_takayoshi.mp3",
  sacchoCheck:"assets/audio/saccho_voice_06_korede_saigo.mp3",
@@ -80,6 +80,20 @@ function compactSound(kind,onDone=null){
  const isVoice=["move0","move1","kondo","hijikata","check","sacchoCapture","sacchoLoss","saigo","kido","sacchoCheck","sacchoPromote","sacchoChesto","sacchoUryaa"].includes(kind);
  playStoryClip(src,isVoice?"voice":"fx",onDone);
 }
+async function compactFadeExpiredHoles(game){
+ if(!compactClosingHoles.length)return;
+ compactHoleFading=true;
+ const root=$("storyBoard");
+ for(const pos of compactClosingHoles)root.children[pos.y*g.w+pos.x]?.classList.add("compact-hole-fading");
+ // Play the treated first second of the cliff collapse while the hole fades.
+ // The turn/card queue may only resume once BOTH the sound and fade have ended.
+ await Promise.all([
+  new Promise(resolve=>playStoryClip("assets/story/audio/master_cliffcollapse_1s_v1.mp3","fx",resolve)),
+  later(1350)
+ ]);
+ if(game!==epoch)return;
+ compactClosingHoles=[];compactHoleFading=false;render();
+}
 function hideCompactFx(){
  stopStoryQuakeBattle();
  document.body.classList.remove("story-quake-active");
@@ -88,7 +102,7 @@ function hideCompactFx(){
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;
- compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
+ compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
 function compactPickCard(){let roll=Math.random()*100;for(const [name,weight] of compactCardWeights){roll-=weight;if(roll<0)return name}return "何事もなし"}
@@ -513,6 +527,8 @@ function render(){
   if(attackers.rays.has(y+":"+x))btn.classList.add("compact-check-ray");
   if(compactIncidentMarks.includes(y+":"+x))btn.classList.add("compact-incident-target");
   if(compactMode()&&g.isHole(y,x))btn.classList.add("compact-hole");
+  if(compactClosingHoles.some(hole=>hole.y===y&&hole.x===x))btn.classList.add("compact-hole-closing",...(compactHoleFading?["compact-hole-fading"]:[]));
+  if(compactBloodMarks.includes(y+":"+x))btn.classList.add("compact-blood");
   if(compactArrival?.y===y&&compactArrival.x===x)btn.classList.add("compact-arrival");
   if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token)}
   btn.onclick=()=>square(y,x);root.append(btn);
@@ -544,7 +560,7 @@ function render(){
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
- for(const id of ["debugCard","debugQuake","debugReinforce","debugDesert","debugPurge","debugCannon","debugRifle","debugTurn","debugFx","debugVoice0","debugVoice1"]){
+ for(const id of ["debugCard","debugQuake","debugReinforce","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugFx","debugVoice0","debugVoice1"]){
   $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3);
  }
 }
@@ -569,12 +585,14 @@ function square(y,x){
 }
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
+ const holesBefore=compactMode()?[...g.holes]:[];
  let moveVoiceDone=Promise.resolve();
  const announce=(kind,player=compactSound)=>{moveVoiceDone=new Promise(resolve=>player(kind,resolve))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const willKill=compactMode()&&!m.drop&&!!g.board[m.Y][m.X]&&before>=3;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
+ if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
  if(compactMode())compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=willKill?0:before+1;
@@ -620,6 +638,8 @@ function makeMove(m,prom){
     await playKabukiVoice("awakening");
     if(id!==epoch||ended)return;
    }
+   await compactFadeExpiredHoles(id);
+   if(id!==epoch||ended)return;
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
@@ -681,15 +701,32 @@ async function fire(kind,ownerSide=1){
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
   playStoryClip("assets/story/audio/master_samurai_fire_v1.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
- const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,(shot,hit)=>{
-  if(id!==epoch||kind!=="cannon"||shot.y<0)return;
-  // Each of the two blasts changes one square and opens its own three-move hole.
-  const crater={y:shot.y,x:shot.x,expiresPly:g.ply+3};
-  if(!g.board[crater.y][crater.x]&&!g.isHole(crater.y,crater.x)){
-   g.holes.push(crater);
-   if(g.king(0)&&g.king(1)&&!compactSafeBoard(g.board))g.holes.pop();
+ const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,async(shot,hit)=>{
+  if(id!==epoch||shot.y<0)return;
+  if(kind==="cannon"){
+   // Each of the two blasts changes one square and opens its own three-move hole.
+   const crater={y:shot.y,x:shot.x,expiresPly:g.ply+3};
+   if(!g.board[crater.y][crater.x]&&!g.isHole(crater.y,crater.x)){
+    g.holes.push(crater);
+    if(g.king(0)&&g.king(1)&&!compactSafeBoard(g.board))g.holes.pop();
+   }
+   storyBannerMessage(`大砲 ${shot.index}/2：${shot.y+1}段${shot.x+1}列に着弾！`,0);render();
   }
-  storyBannerMessage(`大砲 ${shot.index}/2：${shot.y+1}段${shot.x+1}列に着弾！`,0);render();
+  if(!hit)return;
+  if(kind==="cannon"){
+   // The new 「無念だ」 belongs to EACH individual casualty, not the end of the volley.
+   await new Promise(resolve=>sfx("loss",resolve));
+  }else{
+   // The requested 「うわっ！」 recording was missing from the supplied video.
+   // Do not substitute 「無念」 or play a mismatched voice; preserve a quiet beat
+   // for it before the visible blood and the same blade cue used by purging.
+   await later(450);if(id!==epoch)return;
+   const square=shot.y+":"+shot.x;
+   compactBloodMarks.push(square);render();compactSound("slash");
+   await later(1600);
+   compactBloodMarks=compactBloodMarks.filter(v=>v!==square);
+   if(id===epoch)render();
+  }
  },ownerSide);
  const result=results?.[results.length-1];
  if(!result||id!==epoch)return;
@@ -697,10 +734,7 @@ async function fire(kind,ownerSide=1){
  if(hits.length)storyBannerMessage(hits.map(r=>person(r.hit).name).join("・")+" に命中！ 駒が消滅。",0);
  else storyBannerMessage(kind==="cannon"?"砲弾２発は空きマスへ着弾！":"鉄砲は空振り！",0);
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
- else{if(hits.length){await new Promise(resolve=>{
-   if(hits.some(r=>r.hit.s===0))sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
-  })}
-  await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
+ else{await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
 }
 function finish(winner,reason){
  if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
@@ -735,7 +769,7 @@ $("dialogueNext").onclick=()=>{
 };
 $("battleQuit").onclick=leave;
 $("storyResign").onclick=()=>popup("降参しますか？","まだこの章は突破していません。",[["降参する",()=>finish(1,"降参")],["続ける",()=>{}]]);
-$("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では敵軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
+$("storyRules").onclick=()=>popup("操作・ルール","駒をタップし、緑色の移動先をタップします。\n持ち駒は下欄から選択。二歩・王手放置・行き所のない駒打ちは禁止です。\n鳥羽・伏見では両軍が大砲と鉄砲を各1回使用します。", [["閉じる",()=>{}]]);
 $("audioToggle").onclick=()=>{window.StoryBgm?.unlock();soundOff=!soundOff;window.StoryBgm?.setMuted(soundOff);$("audioToggle").textContent=soundOff?"♪ BGM OFF":"♪ BGM ON";$("audioToggle").setAttribute("aria-pressed",String(!soundOff))};
 $("storyVoiceToggle").onclick=()=>{voiceEnabled=!voiceEnabled;if(!voiceEnabled)stopStoryClip("voice");$("storyVoiceToggle").textContent=voiceEnabled?"声 ON":"声 OFF";$("storyVoiceToggle").setAttribute("aria-pressed",String(voiceEnabled))};
 $("storyFxToggle").onclick=()=>{fxEnabled=!fxEnabled;if(!fxEnabled){stopStoryClip("fx");stopStoryQuakeBattle()}$("storyFxToggle").textContent=fxEnabled?"効果音 ON":"効果音 OFF";$("storyFxToggle").setAttribute("aria-pressed",String(fxEnabled))};
@@ -761,6 +795,21 @@ $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
 $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
+async function storyDebugHitokiri(kill){
+ const id=epoch;busy=true;compactTurnLocked=true;selected=null;render();
+ compactCalligraphy(kill);
+ await playKabukiVoice(kill?"kill":"awakening");if(id!==epoch||ended)return;
+ if(kill){
+  compactSound("slash");await later(650);if(id!==epoch||ended)return;
+  const victim=g.board.flatMap((row,y)=>row.map((p,x)=>p&&p.s===1?y+":"+x:null)).find(Boolean);
+  if(victim){compactBloodMarks.push(victim);render()}
+  playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx");await later(1550);
+  compactBloodMarks=[];
+ }
+ if(id!==epoch||ended)return;busy=false;compactTurnLocked=false;render();
+}
+$("debugKill").onclick=()=>storyDebugRun(()=>storyDebugHitokiri(true));
+$("debugAwaken").onclick=()=>storyDebugRun(()=>storyDebugHitokiri(false));
 $("debugCannon").onclick=()=>storyDebugRun(()=>weaponCard("cannon",1,true),true);
 $("debugRifle").onclick=()=>storyDebugRun(()=>weaponCard("rifle",1,true),true);
 $("debugTurn").onclick=()=>storyDebugRun(()=>compactTurn(0));

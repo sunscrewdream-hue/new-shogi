@@ -57,7 +57,8 @@ async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1){
   clear();if(!visible(isActive))return null;
   const hit=shot.y>=0?g.destroy(shot.y,shot.x):null;
   const outcome={hit,x:shot.x,y:shot.y,kind,index};shots.push(outcome);
-  onImpact?.(outcome,hit);
+  // Await the casualty's voice and blood/slash vignette before the next shell.
+  await onImpact?.(outcome,hit);
   await wait(kind==="cannon"?1100:800);
  }
  return shots;

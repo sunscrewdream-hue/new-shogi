@@ -8,7 +8,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'story-mode.js'), 'utf8');
 const storyHtml=fs.readFileSync(path.join(root,'story-mode.html'),'utf8');
-for(const id of ['debugCard','debugQuake','debugReinforce','debugDesert','debugPurge','debugCannon','debugRifle','debugTurn','debugFx','debugVoice0','debugVoice1']){
+for(const id of ['debugCard','debugQuake','debugReinforce','debugDesert','debugPurge','debugKill','debugAwaken','debugCannon','debugRifle','debugTurn','debugFx','debugVoice0','debugVoice1']){
  assert.match(storyHtml,new RegExp(`id="${id}"`),`Missing story debug button: ${id}`);
  assert.ok(source.includes(`$("${id}").onclick`),`Debug button has no handler: ${id}`);
 }
@@ -36,6 +36,12 @@ assert.match(source, /if\(stage===3&&actor===0\)/,
   'The player must receive artillery cards in Toba-Fushimi');
 assert.match(source, /pendingWeaponKind=\{kind,side:1\}/,
   'The enemy must retain its artillery cards');
+assert.match(source,/await onImpact|await new Promise\(resolve=>sfx\("loss",resolve\)\)/,
+  'Cannon casualty must be voiced before the next shot');
+assert.match(source,/compactFadeExpiredHoles\(id\)/,
+  'Expired shell or quake holes must fade before proceeding');
+assert.match(source,/master_cliffcollapse_1s_v1\.mp3/,
+  'Closing holes must use the treated cliff-fall audio');
 assert.match(source, /setTimeout\(depart,120\)/, 'Desertion disappearance must begin during exit motion');
 for (const file of [
   'assets/turn-notice/turn_shinsengumi_illustrated.png',
@@ -58,17 +64,18 @@ for (const file of [
   'assets/story/audio/master_reinforcement.mp3',
   'assets/story/audio/master_fire_voice.mp3',
   'assets/story/audio/master_promotion_voice.mp3',
-  'assets/story/audio/master_loss.mp3',
   'assets/story/audio/master_cannon.mp3',
   'assets/story/audio/master_rifle.mp3',
   'assets/story/audio/master_explosion.mp3',
   'assets/cards/incident-title-outline-v3.webp',
   'assets/story/audio/master_reinforcement_v2.mp3',
-  'assets/story/audio/master_loss_v2.mp3',
   'assets/story/audio/master_fire_voice_v2.mp3',
-  'assets/story/audio/master_saccho_loss_v3.mp3',
+  'assets/story/audio/master_samurai_loss_v1.mp3',
+  'assets/story/audio/master_cliffcollapse_1s_v1.mp3',
 ]) assert.ok(fs.existsSync(path.join(root, file)), `Missing game asset: ${file}`);
 const weapons = fs.readFileSync(path.join(root, 'story-weapons.js'), 'utf8');
+assert.match(weapons,/await onImpact\?\.\(outcome,hit\)/,
+ 'The cannon casualty voice and rifle blood must finish before the next shot');
 assert.match(weapons, /story-projectile/, 'Projectile must not use opaque legacy bitmaps');
 assert.match(weapons, /kind==="cannon"\?2:1/, 'Cannon must fire exactly twice');
 assert.match(weapons, /used\.has/, 'Two cannon shells must strike different squares');

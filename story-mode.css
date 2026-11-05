@@ -429,6 +429,13 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
 #storyBoard .sq.compact-hole{background:transparent!important;box-shadow:none!important}
 #storyBoard .sq.compact-hole::after{inset:-8%;background-image:url("assets/visuals/quake_hole.webp");background-size:contain;z-index:5;opacity:.96}
 #storyBoard .sq.compact-hole .story-token{visibility:hidden}
+/* An expired crater remains visible until the treated collapse cue and fade finish. */
+#storyBoard .sq.compact-hole-closing::after{
+ content:"";position:absolute;inset:-8%;z-index:5;pointer-events:none;
+ background:url("assets/visuals/quake_hole.webp") center/contain no-repeat;opacity:.96;
+}
+#storyBoard .sq.compact-hole-fading::after{animation:storyHoleFade 1.3s ease-in-out forwards}
+@keyframes storyHoleFade{0%,12%{opacity:.96;transform:scale(1)}100%{opacity:0;transform:scale(.86)}}
 .popup.compact-finale .popup-panel{border:0;border-radius:0;background:transparent;box-shadow:none;max-height:96dvh;padding:4px 10px}
 .popup.compact-finale .popup-art{max-height:23dvh;animation:storyFinalPortrait .95s ease-out both}
 .popup.compact-finale .story-final-loser{max-width:90%;max-height:20dvh;object-fit:contain;display:block;margin:-5px auto 0;animation:storyFinalPortrait 1.2s .3s ease-out both}
