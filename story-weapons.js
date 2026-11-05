@@ -26,27 +26,39 @@ async function impact(g,y,x,kind,isActive){
  const c=cell(g,y,x);if(!c)return;
  c.classList.remove("warn");
  const overlay=document.createElement("div");overlay.className="shot-overlay "+kind;
- const art=document.createElement("img");art.alt="";art.src="assets/story/fx/"+(kind==="cannon"?"explosion-v2.webp":"rifle-impact-v2.webp");
+ const art=document.createElement("img");art.alt="";art.src="assets/story/fx/"+(kind==="cannon"?"explosion-v3.webp":"rifle-impact-v3.webp");
  art.onerror=()=>{art.style.display="none";overlay.textContent="✴"};
  overlay.append(art);c.append(overlay);
  const previousZ=c.style.zIndex;c.style.zIndex="26";
- await wait(kind==="cannon"?1650:1300);overlay.remove();c.style.zIndex=previousZ;
+ await wait(kind==="cannon"?2250:1750);overlay.remove();c.style.zIndex=previousZ;
 }
-async function fire(g,kind,isActive,onSound){
- const shot=g.fire(kind),root=board();if(!root)return null;
- const warnings=[];
- if(kind==="cannon"){const c=cell(g,shot.y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
- else{for(let y=0;y<g.h;y++){const c=cell(g,y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}}
- const clear=()=>warnings.forEach(c=>c.classList.remove("warn"));
- await wait(1350);if(!visible(isActive)){clear();return null}
- if(kind==="cannon"){onSound?.("cannon");await projectile(g,kind,shot.x,shot.y,isActive)}
- else{onSound?.("rifle");await projectile(g,kind,shot.x,shot.y,isActive)}
- if(!visible(isActive)){clear();return null}
- if(shot.y>=0){if(kind==="cannon")onSound?.("blast");await impact(g,shot.y,shot.x,kind,isActive);}
- clear();if(!visible(isActive))return null;
- const hit=shot.y>=0?g.destroy(shot.y,shot.x):null;
- await wait(800);
- return {hit,x:shot.x,y:shot.y,kind};
+async function fire(g,kind,isActive,onSound,onImpact){
+ const root=board();if(!root)return null;
+ const shots=[],used=new Set(),count=kind==="cannon"?2:1;
+ for(let index=1;index<=count;index++){
+  if(!visible(isActive))return null;
+  let shot=g.fire(kind),attempts=0;
+  while(kind==="cannon"&&used.has(shot.y+":"+shot.x)&&attempts++<100)shot=g.fire(kind);
+  if(kind==="cannon"&&used.has(shot.y+":"+shot.x)){
+   const free=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(!used.has(y+":"+x))free.push({y,x});
+   shot={...shot,...free[Math.floor(Math.random()*free.length)]};
+  }
+  used.add(shot.y+":"+shot.x);
+  const warnings=[];
+  if(kind==="cannon"){const c=cell(g,shot.y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
+  else for(let y=0;y<g.h;y++){const c=cell(g,y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
+  const clear=()=>warnings.forEach(c=>c.classList.remove("warn"));
+  await wait(1250);if(!visible(isActive)){clear();return null}
+  onSound?.(kind);await projectile(g,kind,shot.x,shot.y,isActive);
+  if(!visible(isActive)){clear();return null}
+  if(shot.y>=0){if(kind==="cannon")onSound?.("blast");await impact(g,shot.y,shot.x,kind,isActive)}
+  clear();if(!visible(isActive))return null;
+  const hit=shot.y>=0?g.destroy(shot.y,shot.x):null;
+  const outcome={hit,x:shot.x,y:shot.y,kind,index};shots.push(outcome);
+  onImpact?.(outcome,hit);
+  await wait(kind==="cannon"?1100:800);
+ }
+ return shots;
 }
 window.StoryWeapons={fire};
 })();

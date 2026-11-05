@@ -436,3 +436,11 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
 .popup.compact-finale .popup-buttons{background:#14191de8;padding:9px 5px;border-radius:8px}
 @keyframes storyFinalPortrait{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){body.story-quake-active,.popup.compact-finale .popup-art,.popup.compact-finale .story-final-loser{animation:none!important}}
+
+/* Center each impact on its exact square. Animation scales the art itself,
+   never the square-sized locator or its touch/board coordinates. */
+#storyBoard .shot-overlay,#storyBoard .shot-overlay.cannon{inset:0;display:grid;place-items:center;overflow:visible;background:none!important;animation:none!important}
+#storyBoard .shot-overlay img,#storyBoard .shot-overlay.rifle img{display:block;width:112%;height:112%;max-width:none;object-fit:contain;object-position:center center;transform-origin:50% 50%;animation:storyCenteredImpact 2.2s ease-out both}
+#storyBoard .shot-overlay.rifle img{width:102%;height:102%;animation-duration:1.7s}
+@keyframes storyCenteredImpact{0%{opacity:0;transform:scale(.15)}18%{opacity:1;transform:scale(1.12)}42%{opacity:1;transform:scale(.8)}62%{opacity:.96;transform:scale(1.04)}83%{opacity:.72;transform:scale(.74)}100%{opacity:0;transform:scale(.57)}}
+@media(prefers-reduced-motion:reduce){#storyBoard .shot-overlay img,#storyBoard .shot-overlay.rifle img{animation:none!important}}

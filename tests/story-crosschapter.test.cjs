@@ -34,6 +34,8 @@ for (const file of [
   'assets/story/cards/rifle-v2.webp',
   'assets/story/fx/explosion-v2.webp',
   'assets/story/fx/rifle-impact-v2.webp',
+  'assets/story/fx/explosion-v3.webp',
+  'assets/story/fx/rifle-impact-v3.webp',
   'assets/story/audio/master_reinforcement.mp3',
   'assets/story/audio/master_fire_voice.mp3',
   'assets/story/audio/master_promotion_voice.mp3',
@@ -44,6 +46,9 @@ for (const file of [
 ]) assert.ok(fs.existsSync(path.join(root, file)), `Missing game asset: ${file}`);
 const weapons = fs.readFileSync(path.join(root, 'story-weapons.js'), 'utf8');
 assert.match(weapons, /story-projectile/, 'Projectile must not use opaque legacy bitmaps');
+assert.match(weapons, /kind==="cannon"\?2:1/, 'Cannon must fire exactly twice');
+assert.match(weapons, /used\.has/, 'Two cannon shells must strike different squares');
+assert.match(weapons, /explosion-v3\.webp/, 'Transparent centered blast asset must be used');
 assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
   'Legacy weapon assets with opaque backgrounds must not be used');
 assert.match(source, /master_fire_voice\.mp3/, 'The artillery order-to-fire voice was not connected');
@@ -53,10 +58,16 @@ assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/
   'Toba-Fushimi must show incident cards every three turns; others retain four');
 assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
   'Earthquake must shake the battlefield backdrop in every chapter');
-assert.match(source, /if\(kind==="cannon"&&result\.y>=0\)/,
-  'Cannon impacts must leave temporary craters');
+assert.match(source, /const crater=\{y:shot\.y,x:shot\.x,expiresPly:g\.ply\+3\}/,
+  'Each cannon impact must leave its own temporary crater');
 assert.match(source, /expiresPly:g\.ply\+3/, 'Craters must expire after three moves');
 assert.match(source, /assets\/visuals\/defeat_kondo_clean\.webp/, 'Clean defeat artwork must be used');
+assert.match(source, /if\(stage===3\)return g\.ply>=5&&\(g\.ply-5\)%3===0/,
+  'Toba-Fushimi incidents must be staggered three half-moves apart');
+assert.doesNotMatch(source, /if\(actor===1&&!willKill\)/,
+  'Ordinary captures must never trigger an additional loss voice');
+assert.match(source, /pendingWeaponDisplay=\{kind,revealed:false\}/,
+  'Weapon cards must reuse the normal two-step back-and-reveal UI');
 
 const sandbox = {window: {}};
 vm.createContext(sandbox);
