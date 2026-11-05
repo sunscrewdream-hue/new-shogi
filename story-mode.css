@@ -1004,3 +1004,6 @@ body.game-effect-scroll-locked{touch-action:none}
 
 /* Keep the enlarged mobile seal left of the portrait; overlap with name is intentional. */
 @media(max-width:600px){#storyBattle .person-banner .hitokiri-stamp{left:-17%;}}
+
+/* Mobile seal fine alignment: stop just before the portrait. */
+@media(max-width:600px){#storyBattle .person-banner .hitokiri-stamp{left:-7%;}}
