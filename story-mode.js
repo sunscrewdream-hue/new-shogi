@@ -758,7 +758,7 @@ function battle(i){
   // The story page header and chapter heading make document scrollY=0 unreliable.
   const boardRect=$("storyBoard").getBoundingClientRect();
   const boardCenter=window.scrollY+boardRect.top+boardRect.height/2;
-  const desiredY=Math.max(0,Math.round(boardCenter-window.innerHeight/2));
+  const desiredY=Math.max(0,Math.round(boardCenter-window.innerHeight/2-36));
   window.scrollTo(0,desiredY);
   document.body.classList.add("story-opening-viewport-lock");
   compactIntro();
