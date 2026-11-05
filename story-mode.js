@@ -234,7 +234,7 @@ function compactResumeTurn(){
  if(ended)return;busy=false;compactTurnLocked=true;render();const game=epoch;
  // Chapter-specific artillery comes AFTER the shared incident card sequence,
  // rather than being silently skipped while the move animation still owns the lock.
- if(pendingWeaponKind){const {kind,side}=pendingWeaponKind;pendingWeaponKind=null;
+ if(pendingWeaponKind&&g.ply>=(pendingWeaponKind.afterPly??0)){const {kind,side}=pendingWeaponKind;pendingWeaponKind=null;
   setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind,side)},700);return}
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
@@ -899,7 +899,7 @@ function makeMove(m,prom){
   if(stage===3&&actor===0){playerTurns++;
    if(playerTurns===4||playerTurns===8){
     const kind=playerTurns===4?"cannon":"rifle";
-    if(!weapons.includes("0:"+kind))pendingWeaponKind={kind,side:0};
+    if(!weapons.includes("0:"+kind))pendingWeaponKind={kind,side:0,afterPly:compactCardDue(actor)?g.ply+2:g.ply};
    }
   }
   busy=true;render();const id=epoch;
@@ -948,7 +948,7 @@ function computer(){
  makeMove(move,prom);enemyTurns++;
  if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
   const kind=enemyTurns===4?"cannon":"rifle";
-  if(!weapons.includes("1:"+kind))pendingWeaponKind={kind,side:1};
+  if(!weapons.includes("1:"+kind))pendingWeaponKind={kind,side:1,afterPly:compactCardDue(1)?g.ply+2:g.ply};
  }
 }
 function weaponCard(kind,ownerSide=1,debug=false){
