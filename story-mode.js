@@ -577,6 +577,7 @@ function line(){
  // 池田屋の第一ページのみ採用済みの山崎・土方の場面画を表示する。
  $("dialogueScene").classList.toggle("ikedaya-first-page",stage===0&&at===0);
  $("dialogueScene").classList.toggle("ikedaya-second-page",stage===0&&at===1);
+ $("dialogueScene").classList.toggle("ikedaya-third-page",stage===0&&at===2);
  // 序章の絵巻はページ単位で切り替える。未制作ページは従来の背景を維持。
  $("dialogueScene").classList.toggle("prologue-first-page",stage===-1&&at===0);
  $("dialogueScene").classList.toggle("prologue-second-page",stage===-1&&at===1);
