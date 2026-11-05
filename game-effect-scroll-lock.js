@@ -3,7 +3,7 @@
  "use strict";
  const selectors=[
   "body.story-opening-viewport-lock",
-  "#cardOverlay.show","#incidentBanner.show","#turnNotice.show",
+  "#cardOverlay.show","#incidentBanner.show","#turnNotice.show","#turnNotice.on",
   "#promotionOverlay.show","#hitokiriNotice.show",
   "#compactCardOverlay:not(.hidden)","#compactIncidentStage:not(.hidden)",
   "#compactTurnNotice.show",".compact-game-fx.show",
