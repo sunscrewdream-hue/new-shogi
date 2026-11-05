@@ -161,6 +161,17 @@
  color:#392d22;
  text-align:center;
 }
+/* Prologue lines are editorially composed columns; never let a viewport reflow them. */
+#storyDialogue.prologue-typeset #dialogueBody{
+ white-space:pre;
+ overflow-wrap:normal;
+ word-break:normal;
+ text-align:start;
+ height:340px;
+ font-size:clamp(12px,3.1vw,17px);
+ line-height:1.65;
+ letter-spacing:0;
+}
 /* Center the narration controls, with accessible page arrows in both directions. */
 #storyDialogue .narration .dialogue-foot{flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
 #storyDialogue .dialogue-navigation{display:flex;align-items:center;justify-content:center;gap:18px;width:100%}
@@ -171,6 +182,7 @@
 @media(max-width:420px){
  #storyDialogue .narration{padding:14px 12px}
  #storyDialogue.vertical-narration #dialogueBody{height:clamp(230px,35dvh,310px);font-size:15px;line-height:1.7}
+ #storyDialogue.prologue-typeset #dialogueBody{height:310px;font-size:clamp(12px,3.1vw,15px);line-height:1.55}
 }
 .story-hero{
  background-image:linear-gradient(#0f1c251c,#080f1952),url("assets/visuals/intro_shinsengumi.webp");
