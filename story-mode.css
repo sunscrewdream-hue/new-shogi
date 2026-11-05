@@ -54,6 +54,8 @@
 #storyBoard .sq.king-in-check{background:#d63d4280;box-shadow:inset 0 0 0 3px #e2372e,0 0 12px #ff4040}
 #storyStatus.check-status{color:#ffe2ab;border-color:#ff6e68;background:#632b2dbb}
 .story-header .story-header-logo{display:block;width:clamp(112px,30vw,195px);height:auto;max-height:57px;object-fit:contain;filter:drop-shadow(0 2px 4px #0008)}
+/* The sumi-ink title stays readable over a restrained washi-colored backing. */
+.story-header .story-header-logo{padding:3px 6px;background:#e9d9b8;border:1px solid #bc9e6d;border-radius:3px;filter:none}
 .hand-container{max-width:520px;margin:3px auto;padding:5px 8px;border:1px solid #806b4c8a;border-radius:6px;background:linear-gradient(#162c3885,#10151aa8),url("assets/visuals/edo_jail.png") center/cover;color:#f4e5c4;text-shadow:0 1px 2px #000}
 .story-hand{min-height:33px;align-items:center}
 #storyBoard .story-token,.story-hand-piece .story-token{text-shadow:0 1px 2px #061924}

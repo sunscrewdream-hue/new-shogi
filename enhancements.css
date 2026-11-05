@@ -132,3 +132,6 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #storyModeStart:focus-visible{outline:3px solid #95d9dc;outline-offset:4px}
 #titleModeActions .modeInfo{display:block;margin-top:7px;color:#c8d3cd;font:12px system-ui;line-height:1.4}
 @media(max-height:700px){#titleModeActions{gap:6px}#titleModeActions .titleModeChoice{padding:5px 9px 7px}#titleModeActions .modeInfo{margin-top:3px;font-size:11px}}
+/* Present the approved dark ink calligraphy on softly illuminated washi. */
+#titleMain{padding:clamp(8px,2vw,16px);border:1px solid #d0b48966;border-radius:5px;background:radial-gradient(ellipse at 50% 40%,#f3e7cbf5,#d1bd99e8);box-shadow:0 8px 24px #07141a55}
+#titleLogo{filter:drop-shadow(0 2px 1px #63472c35)}
