@@ -818,6 +818,8 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .person-banner.show-character .story-banner-status{opacity:0}
 /* An awakened officer's seal remains visible even while the banner shows turn text. */
 #storyBattle .person-banner.compact-awakened::after{z-index:6}
+/* Keep the seal attached to the portrait; never stamp the message board. */
+#storyBattle .person-banner.compact-awakened:not(.show-character)::after{display:none}
 /* The card countdown now shares the character banner instead of adding a row above the board. */
 #compactCardCountdown{display:none!important}
 

@@ -58,7 +58,11 @@ function compactMode(){return stage>=0&&stage<D.chapters.length}
 const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
 const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]];
 const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
-function compactFighterKey(p){return p?.uid??(String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown'))}
+// Awakening counts belong to a person, even after capture and redeployment.
+function compactFighterKey(p){
+ if(!p)return null;
+ return p.cid!=null?String(p.origin??p.s)+':'+String(p.cid):p.uid??String(p.origin??p.s)+':'+String(p.t??'unknown');
+}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
  kondo:"assets/audio/voice_kondo_isami_king_move.mp3",
@@ -131,7 +135,8 @@ function compactEligible(owner,types=null){const out=[];for(let y=0;y<g.h;y++)fo
  }return out}
 function compactPlanQuake(){
  const all=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]&&g.board[y][x].t!=="玉")all.push({y,x});
- for(let count=Math.min(6,all.length);count>=3;count--)for(let attempt=0;attempt<90;attempt++){
+ // Bound searches on crowded or near-finished 5x6 boards; no card may freeze input.
+ for(let count=Math.min(6,all.length);count>=3;count--)for(let attempt=0;attempt<45;attempt++){
   const B=g.clone(g.board),candidates=[...all].sort(()=>Math.random()-.5),shifts=[];
   for(const v of candidates){if(shifts.length>=count)break;if(!B[v.y][v.x])continue;
    const positions=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
@@ -256,11 +261,19 @@ function compactApplyIncident(effect){
  if(effect.kind==="大地震"){
   compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactIncidentMarks=[];
   board.classList.add("compact-quake");document.body.classList.add("story-quake-active");compactSound("quake");playStoryQuakeBattle();
+  const quakeRecovery=()=>{
+   if(game!==epoch)return;
+   board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");
+   compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactIncidentMarks=[];
+   stopStoryQuakeBattle();render();compactResumeTurn();
+  };
   setTimeout(()=>{
    if(game!==epoch)return;
    board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");
-   const plan=compactPlanQuake();g.last=null;selected=null;
-   if(!plan){render();compactResumeTurn();return}
+   let plan;
+   try{plan=compactPlanQuake()}catch(error){console.error("地震の移動計画を復旧しました",error);quakeRecovery();return}
+   g.last=null;selected=null;
+   if(!plan){quakeRecovery();return}
    let index=0;
    const nextShift=()=>{
     if(game!==epoch)return;
@@ -456,14 +469,16 @@ const storyBannerTimers=[null,null];
 function banner(s,p,hold=false){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
- if(compactMode())$(prefix+"StoryBanner").classList.toggle("compact-awakened",(compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));else $(prefix+"StoryBanner").classList.remove("compact-awakened");
+ const awakened=compactMode()&&((compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));
+ $(prefix+"StoryBanner").classList.toggle("compact-awakened",awakened);
  $(prefix+"StoryName").textContent=a.name;
  $(prefix+"StoryRole").textContent=a.role+" ／ "+label(p);
  image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
  const panel=$(prefix+"StoryBanner"),currentEpoch=epoch;
  panel.classList.add("show-character");
  clearTimeout(storyBannerTimers[s]);
- if(!hold)storyBannerTimers[s]=setTimeout(()=>{if(currentEpoch===epoch)panel.classList.remove("show-character")},2300);
+ // The stamp belongs to this officer's visible portrait, not the message board.
+ if(!hold&&!awakened)storyBannerTimers[s]=setTimeout(()=>{if(currentEpoch===epoch)panel.classList.remove("show-character")},2300);
 }
 // As in the completed match, turn/status notices live inside the character banners.
 // Keep one screen-reader announcement; do not insert a third board between the enemy hand and field.
