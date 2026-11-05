@@ -347,11 +347,23 @@
 #storyBoard .sq.compact-hole:after{content:"";position:absolute;inset:10%;background:url("assets/visuals/quake_hole.webp") center/contain no-repeat;pointer-events:none}
 #storyBoard .sq.compact-blood:after{content:"";position:absolute;inset:-12%;background:url("assets/visuals/blood_splatter.webp") center/contain no-repeat;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.compact-card-face.revealed,#storyBoard .sq.compact-incident-target,#storyBoard.compact-quake,#storyBoard .compact-check-lines line{animation:none!important}}
-#storyBattle .person-banner.compact-awakened::after{
- content:"";position:absolute;z-index:3;pointer-events:none;
- width:29%;height:85%;left:34%;bottom:2%;
- background:url("assets/visuals/hitokiri_red_calligraphy.webp") center/contain no-repeat;
- filter:drop-shadow(0 2px 3px #210404);
+/* Main-game approved stamp geometry (enhancements.css): lower left-center, away
+   from the officer's face and the final character of 近藤勇. */
+#storyBattle .person-banner .hitokiri-stamp{
+ position:absolute;z-index:9;left:18%;bottom:2%;top:auto;right:auto;
+ width:48%;height:43%;object-fit:contain;object-position:center;
+ pointer-events:none;opacity:0;transform-origin:center;
+ transform:rotate(-7deg) scale(1);
+ filter:drop-shadow(0 2px 2px #290000b0) drop-shadow(0 0 5px #a40000a0);
+}
+#storyBattle .person-banner.show-character.compact-awakened .hitokiri-stamp{
+ opacity:1;animation:storyHitokiriSealImpact .48s cubic-bezier(.14,1.18,.26,1) both;
+}
+@keyframes storyHitokiriSealImpact{
+ 0%{opacity:0;transform:rotate(-7deg) scale(3.1)}
+ 48%{opacity:1;transform:rotate(-7deg) scale(.86)}
+ 76%{opacity:1;transform:rotate(-7deg) scale(1.1)}
+ 100%{opacity:1;transform:rotate(-7deg) scale(1)}
 }
 /* Match the completed 9x9 game's non-editable UI cursor and text-selection policy. */
 #dialogueBody{white-space:pre-line;font-size:clamp(14px,3.8vw,17px);line-height:1.85;overflow-wrap:anywhere}
@@ -816,10 +828,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  transition:opacity .2s;pointer-events:none;
 }
 .person-banner.show-character .story-banner-status{opacity:0}
-/* An awakened officer's seal remains visible even while the banner shows turn text. */
-#storyBattle .person-banner.compact-awakened::after{z-index:6}
-/* Keep the seal attached to the portrait; never stamp the message board. */
-#storyBattle .person-banner.compact-awakened:not(.show-character)::after{display:none}
+/* A person-specific seal is invisible on the neutral status/message board. */
 /* The card countdown now shares the character banner instead of adding a row above the board. */
 #compactCardCountdown{display:none!important}
 

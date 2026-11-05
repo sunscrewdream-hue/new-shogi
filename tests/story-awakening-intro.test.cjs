@@ -17,7 +17,15 @@ assert.notEqual(key({uid:'0:歩:0'}),key({uid:'0:歩:1'}));
 assert.match(completed,/syncHitokiriSeal\(side\)/);
 assert.match(js,/compactCaptures\[key\]===3/);
 assert.match(js,/if\(!hold&&!awakened\)/);
-assert.match(css,/\.person-banner\.compact-awakened:not\(\.show-character\)::after\{display:none\}/);
+const seal=fs.readFileSync(path.join(root,'enhancements.css'),'utf8');
+for(const dimension of ['left:18%','bottom:2%','width:48%','height:43%']){
+ assert.ok(seal.includes(dimension),`Main game's approved ${dimension}`);
+ assert.ok(css.includes(dimension),`Story chapters use the exact ${dimension}`);
+}
+assert.match(css,/\.person-banner\.show-character\.compact-awakened \.hitokiri-stamp/);
+assert.match(css,/@keyframes storyHitokiriSealImpact/);
+assert.equal((html.match(/class="hitokiri-stamp"/g)||[]).length,2);
+assert.doesNotMatch(css,/compact-awakened::after/);
 assert.match(html,/intro_shinsengumi_washi_v2\.png/);
 assert.match(html,/intro_saccho_washi_v2\.png/);
 for(const name of ['intro_shinsengumi_washi_v2.png','intro_saccho_washi_v2.png'])assert.ok(fs.statSync(path.join(root,'assets/visuals',name)).size>100000);
