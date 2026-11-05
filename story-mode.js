@@ -159,7 +159,9 @@ $("compactCardFace").onclick=()=>{
   if(!item.revealed){
    item.revealed=true;$("compactCardFace").style.backgroundImage=`url("assets/story/cards/${item.kind}-v2.webp")`;
    $("compactCardFace").classList.add("revealed");sfx("flip");
-   $("compactCardText").textContent=item.kind==="cannon"?"敵陣側の盤面に２発の砲弾が順番に落下。着弾点に３手の穴を残す。":"発射側の４段目から敵陣に向けて発砲。最初に命中した１枚が倒れる。";
+   $("compactCardText").textContent=item.kind==="cannon"
+    ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
+    :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
    $("compactCardPrompt").textContent="";return;
   }
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
@@ -167,12 +169,18 @@ $("compactCardFace").onclick=()=>{
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
 };
 function compactResumeTurn(){
- if(ended)return;busy=false;compactTurnLocked=false;render();const game=epoch;
+ if(ended)return;busy=false;compactTurnLocked=true;render();const game=epoch;
  // Chapter-specific artillery comes AFTER the shared incident card sequence,
  // rather than being silently skipped while the move animation still owns the lock.
- if(pendingWeaponKind){const kind=pendingWeaponKind;pendingWeaponKind=null;weaponCard(kind);return}
- if(g.side===1)compactTurn(1,()=>{if(game===epoch)setTimeout(()=>{if(game===epoch)computer()},420)});
- else compactTurn(0);
+ if(pendingWeaponKind){const kind=pendingWeaponKind;pendingWeaponKind=null;
+  setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind)},700);return}
+ // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
+ // (player) after the preceding action, then shows the artwork for 1.8s.
+ const side=g.side;
+ setTimeout(()=>{if(game!==epoch||ended||g.side!==side)return;
+  if(side===1)compactTurn(1,()=>{if(game===epoch)setTimeout(()=>{if(game===epoch)computer()},1050)});
+  else compactTurn(0);
+ },side===1?1400:1800);
 }
 function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
@@ -238,7 +246,9 @@ function compactIntro(){
  if(!compactMode())return;
  const game=epoch,root=$("compactIntroClash");root.classList.remove("show");void root.offsetWidth;root.classList.add("show");
  setTimeout(()=>{if(game===epoch&&root.classList.contains("show"))compactSound("slash")},1010);
- setTimeout(()=>{if(game!==epoch||ended)return;root.classList.remove("show");busy=false;compactTurn(0,null,true)},2600);
+ setTimeout(()=>{if(game!==epoch||ended)return;root.classList.remove("show");compactTurnLocked=true;render();
+  setTimeout(()=>{if(game===epoch&&!ended){busy=false;compactTurn(0,null,true)}},450);
+ },2600);
 }
 function animateCompactEscort(side,y,x,captive,done){
  // Adapted from the finished 9x9 game's animateCaptureEscort; board coordinates use g.w.
@@ -573,7 +583,11 @@ function makeMove(m,prom){
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
-   if(compactCardDue(actor))compactCardStart(actor);
+   if(compactCardDue(actor)){
+    busy=true;compactTurnLocked=true;render();
+    // Same 250ms beat between the completed game's move and incident title.
+    setTimeout(()=>{if(id===epoch&&!ended)compactCardStart(actor)},250);
+   }
    else compactResumeTurn();
   };
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
@@ -583,7 +597,7 @@ function makeMove(m,prom){
    setTimeout(()=>{if(id===epoch)playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx")},1730);
    setTimeout(()=>{if(id===epoch)(captured.s===0?sfx("loss"):compactSound("sacchoLoss"))},2350);
    setTimeout(afterFx,3900);
-  }else setTimeout(afterFx,prom?600:320);
+  }else setTimeout(afterFx,prom?800:850);
   return;
  }
  if(result){finish(result.winner,result.why);return}

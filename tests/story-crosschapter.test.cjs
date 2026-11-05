@@ -78,6 +78,11 @@ assert.match(source, /if\(kind==="脱走"\|\|kind==="援軍"\)compactSound\("des
   'Reinforcements and deserters must share footsteps');
 assert.match(source, /\$\("compactCardText"\)\.textContent=item\.kind==="cannon"/,
   'Weapon cards must show their explanations in the ordinary card footer');
+assert.match(source, /side===1\?1400:1800/, 'Turn notice needs the completed match queue delay');
+assert.match(source, /setTimeout\(\(\)=>\{if\(id===epoch&&!ended\)compactCardStart\(actor\)\},250\)/,
+  'Incident notices need the completed match post-move beat');
+assert.match(source, /相手の陣地のランダムな２か所/, 'Cannon card must explain the two random enemy targets');
+assert.match(source, /発射側の４段目のランダムな列/, 'Rifle card must explain the firing origin');
 
 const sandbox = {window: {}};
 vm.createContext(sandbox);
