@@ -26,13 +26,18 @@ async function projectile(g,kind,shot,isActive){
 }
 async function impact(g,y,x,kind,isActive){
  const c=cell(g,y,x);if(!c)return;
+ const shake=kind==="cannon";
+ if(shake){board()?.classList.add("compact-quake");document.body.classList.add("story-quake-active")}
  c.classList.remove("warn");
  const overlay=document.createElement("div");overlay.className="shot-overlay "+kind;
  const art=document.createElement("img");art.alt="";art.src="assets/story/fx/"+(kind==="cannon"?"explosion-v3.webp":"rifle-impact-v3.webp");
  art.onerror=()=>{art.style.display="none";overlay.textContent="✴"};
  overlay.append(art);c.append(overlay);
  const previousZ=c.style.zIndex;c.style.zIndex="26";
- await wait(kind==="cannon"?2250:1750);overlay.remove();c.style.zIndex=previousZ;
+ try{await wait(kind==="cannon"?2250:1750)}finally{
+  overlay.remove();c.style.zIndex=previousZ;
+  if(shake){board()?.classList.remove("compact-quake");document.body.classList.remove("story-quake-active")}
+ }
 }
 async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1){
  const root=board();if(!root)return null;

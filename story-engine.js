@@ -123,7 +123,8 @@ class StoryEngine{
   // The musket launches from the 4th rank ON THE CARD OWNER'S SIDE.
   // Only pieces further toward the enemy can be struck, never the firing side's back ranks.
   const fromY=side===1?3:this.h-4,d=side===1?1:-1;
-  for(let y=fromY+d;y>=0&&y<this.h;y+=d)if(this.board[y][x])return{kind,x,y,fromY,side,hit:this.board[y][x]};
+  // Friendly soldiers must never be selected as casualties of their own musket.
+  for(let y=fromY+d;y>=0&&y<this.h;y+=d)if(this.board[y][x]?.s===1-side)return{kind,x,y,fromY,side,hit:this.board[y][x]};
   return{kind,x,y:-1,fromY,side,hit:null};
  }
  destroy(y,x){const p=this.board[y]?.[x];if(p){this.board[y][x]=null;if(p.t!=="玉")this.fallen[p.s].push({...p,p:false})}return p}

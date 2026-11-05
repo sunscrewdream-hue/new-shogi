@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[];
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null;
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -30,6 +30,13 @@ const kabukiVoice={promotion:"assets/story/audio/master_kabuki_promotion_v1.mp3"
 function playKabukiVoice(kind){return new Promise(resolve=>{
  const path=kabukiVoice[kind];if(!path)return resolve();
  playStoryClip(path,"voice",resolve);
+})}
+function playCasualtyCry(){return new Promise(resolve=>{
+ let done=false;const finish=()=>{if(done)return;done=true;resolve()};
+ // Formerly assigned to the weapon-card announcement; this short clip was
+ // identified in playtesting as the casualty's 「うわっ！」, not 「撃て！」.
+ playStoryClip("assets/story/audio/master_kabuki_rifle_v1.mp3","voice",finish);
+ setTimeout(finish,2400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
@@ -58,7 +65,7 @@ const compactAudio={
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  sacchoCapture:"assets/audio/saccho_voice_03_toraeta.mp3",
- sacchoLoss:"assets/story/audio/master_samurai_loss_v1.mp3",
+ sacchoLoss:"assets/story/audio/master_enemy_loss_v4.mp3",
  saigo:"assets/audio/voice_saigo_takamori.mp3",
  kido:"assets/audio/voice_kido_takayoshi.mp3",
  sacchoCheck:"assets/audio/saccho_voice_06_korede_saigo.mp3",
@@ -72,6 +79,7 @@ const compactAudio={
  desert:"assets/story/audio/master_gravel_run_v2.mp3",
  reinforce:"assets/audio/sfx/taiko_dodon.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
+ blood:"assets/story/audio/sfx_blood_splatter_v1.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
 };
 function compactSound(kind,onDone=null){
@@ -102,7 +110,7 @@ function hideCompactFx(){
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;
- compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
+ compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
 function compactPickCard(){let roll=Math.random()*100;for(const [name,weight] of compactCardWeights){roll-=weight;if(roll<0)return name}return "何事もなし"}
@@ -223,11 +231,22 @@ function compactApplyIncident(effect){
   const hand=$("storyHand"+effect.side);
   for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
   storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒へ復活！",effect.side);
-  // Keep controls locked through the full shine and 「いざ出陣！」 voice.
-  let voiceDone=false,glowDone=false;
-  const finish=()=>{if(!voiceDone||!glowDone||game!==epoch)return;compactResumeTurn()};
-  playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",()=>{voiceDone=true;finish()});
-  setTimeout(()=>{if(game!==epoch)return;glowDone=true;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));finish()},2100);
+  // A returning officer runs in from outside the screen and lands in the hand.
+  // Reuse the desertion footsteps; the sortie voice starts after the run.
+  const goal=hand.closest(".hand-container")?.getBoundingClientRect(),layer=$("compactActionLayer");
+  const figure=document.createElement("img");figure.src="assets/sprites/figures/"+(effect.side===0?"shinsengumi_back":"saccho_front")+".webp";figure.alt="";
+  const width=66,startX=effect.side===0?-width-30:innerWidth+30,startY=goal?goal.top+goal.height/2-55:innerHeight/2;
+  Object.assign(figure.style,{left:startX+"px",top:startY+"px",width:width+"px",height:"92px"});layer.replaceChildren(figure);
+  const run=figure.animate&&goal&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+   ?figure.animate([{opacity:0,transform:"translateX(0) scale(.85)"},{opacity:1,offset:.18,transform:"translateX("+((goal.left+goal.width/2-startX)*.18)+"px)"},{opacity:1,offset:.88,transform:"translateX("+(goal.left+goal.width/2-startX)+"px)"},{opacity:0,transform:"translateX("+(goal.left+goal.width/2-startX)+"px) scale(.6)"}],{duration:1700,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{})
+   :later(1700);
+  const footsteps=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,3000)});
+  Promise.all([run,footsteps]).then(()=>{figure.remove();if(game!==epoch)return;
+   playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",()=>{
+    if(game!==epoch)return;
+    setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));compactResumeTurn()},450)
+   });
+  });
   return;
  }
  if(effect.kind==="大地震"){
@@ -393,7 +412,7 @@ const storyBannerTimers=[null,null];
 function banner(s,p){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
- if(compactMode())$(prefix+"StoryBanner").classList.toggle("compact-awakened",(compactCaptures[compactFighterKey(p)]||0)>=3);else $(prefix+"StoryBanner").classList.remove("compact-awakened");
+ if(compactMode())$(prefix+"StoryBanner").classList.toggle("compact-awakened",(compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));else $(prefix+"StoryBanner").classList.remove("compact-awakened");
  $(prefix+"StoryName").textContent=a.name;
  $(prefix+"StoryRole").textContent=a.role+" ／ "+label(p);
  image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
@@ -615,8 +634,8 @@ function makeMove(m,prom){
  if(compactMode())compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=willKill?0:before+1;
-  if(willKill){compactCalligraphy(true)}
-  else if(compactCaptures[key]===3){
+  // Fatal capture no longer displays or speaks 「斬殺」.
+  if(!willKill&&compactCaptures[key]===3){
    justAwakened=true;
   }
  }
@@ -671,15 +690,13 @@ function makeMove(m,prom){
   });
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
   else if(willKill){
-   // Calligraphy -> 「斬殺」 voice -> blade -> blood -> victim's 「無念」.
-   // Each speech clip must finish before the next scripted beat starts.
+   // Lethal capture: no 斬殺 title/voice. Show 「うわっ！」 then blood splash.
    (async()=>{
-    await playKabukiVoice("kill");if(id!==epoch||ended)return;
-    compactSound("slash");await later(630);if(id!==epoch||ended)return;
-    playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx");await later(610);if(id!==epoch||ended)return;
-    await new Promise(resolve=>{
-     if(captured.s===0)sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
-    });if(id===epoch&&!ended)afterFx();
+    await playCasualtyCry();if(id!==epoch||ended)return;
+    const square=m.Y+":"+m.X;compactBloodMarks.push(square);render();
+    await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch||ended)return;
+    await later(850);compactBloodMarks=compactBloodMarks.filter(v=>v!==square);render();
+    if(id===epoch&&!ended)afterFx();
    })();
   }else setTimeout(afterFx,prom?800:850);
   return;
@@ -734,14 +751,11 @@ async function fire(kind,ownerSide=1){
   if(!hit)return;
   if(kind==="cannon"){
    // The new 「無念だ」 belongs to EACH individual casualty, not the end of the volley.
-   await new Promise(resolve=>sfx("loss",resolve));
+   await new Promise(resolve=>hit.s===0?sfx("loss",resolve):compactSound("sacchoLoss",resolve));
   }else{
-   // The requested 「うわっ！」 recording was missing from the supplied video.
-   // Do not substitute 「無念」 or play a mismatched voice; preserve a quiet beat
-   // for it before the visible blood and the same blade cue used by purging.
-   await later(450);if(id!==epoch)return;
+   await playCasualtyCry();if(id!==epoch)return;
    const square=shot.y+":"+shot.x;
-   compactBloodMarks.push(square);render();compactSound("slash");
+   compactBloodMarks.push(square);render();compactSound("blood");
    await later(1600);
    compactBloodMarks=compactBloodMarks.filter(v=>v!==square);
    if(id===epoch)render();
@@ -821,16 +835,25 @@ $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
 async function storyDebugHitokiri(kill){
  const id=epoch;busy=true;compactTurnLocked=true;selected=null;render();
- compactCalligraphy(kill);
- await playKabukiVoice(kill?"kill":"awakening");if(id!==epoch||ended)return;
- if(kill){
-  compactSound("slash");await later(650);if(id!==epoch||ended)return;
-  const victim=g.board.flatMap((row,y)=>row.map((p,x)=>p&&p.s===1?y+":"+x:null)).find(Boolean);
-  if(victim){compactBloodMarks.push(victim);render()}
-  playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx");await later(1550);
-  compactBloodMarks=[];
+ try{
+  if(!kill){
+   const officer=g.board.flat().find(p=>p?.s===0&&p.t==="玉");
+   debugAwakenKey=compactFighterKey(officer);banner(0,officer);
+   compactCalligraphy(false);
+   await Promise.race([playKabukiVoice("awakening"),later(3500)]);
+   if(id!==epoch||ended)return;
+   // Let the tester see the persistent stamp on the officer banner.
+   await later(1200);
+  }else{
+   await playCasualtyCry();if(id!==epoch||ended)return;
+   const victim=g.board.flatMap((row,y)=>row.map((p,x)=>p&&p.s===1?y+":"+x:null)).find(Boolean);
+   if(victim){compactBloodMarks.push(victim);render()}
+   await new Promise(resolve=>compactSound("blood",resolve));
+   await later(800);compactBloodMarks=[];
+  }
+ }finally{
+  if(id===epoch&&!ended){busy=false;compactTurnLocked=false;render()}
  }
- if(id!==epoch||ended)return;busy=false;compactTurnLocked=false;render();
 }
 $("debugKill").onclick=()=>storyDebugRun(()=>storyDebugHitokiri(true));
 $("debugAwaken").onclick=()=>storyDebugRun(()=>storyDebugHitokiri(false));

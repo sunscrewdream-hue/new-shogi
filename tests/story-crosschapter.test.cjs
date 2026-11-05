@@ -36,7 +36,7 @@ assert.match(source, /if\(stage===3&&actor===0\)/,
   'The player must receive artillery cards in Toba-Fushimi');
 assert.match(source, /pendingWeaponKind=\{kind,side:1\}/,
   'The enemy must retain its artillery cards');
-assert.match(source,/await onImpact|await new Promise\(resolve=>sfx\("loss",resolve\)\)/,
+assert.match(source,/hit\.s===0\?sfx\("loss",resolve\):compactSound\("sacchoLoss",resolve\)/,
   'Cannon casualty must be voiced before the next shot');
 assert.match(source,/compactFadeExpiredHoles\(id\)/,
   'Expired shell or quake holes must fade before proceeding');
@@ -84,6 +84,8 @@ for (const file of [
   'assets/story/audio/master_cliffcollapse_1s_v1.mp3',
 ]) assert.ok(fs.existsSync(path.join(root, file)), `Missing game asset: ${file}`);
 const weapons = fs.readFileSync(path.join(root, 'story-weapons.js'), 'utf8');
+assert.match(weapons,/document\.body\.classList\.add\("story-quake-active"\)/,
+ 'Each cannon explosion must shake the whole battlefield');
 assert.match(weapons,/await onImpact\?\.\(outcome,hit\)/,
  'The cannon casualty voice and rifle blood must finish before the next shot');
 assert.match(weapons, /story-projectile/, 'Projectile must not use opaque legacy bitmaps');
@@ -112,8 +114,20 @@ for(const cue of ['promotion','cannon','rifle','awakening','kill']){
 }
 assert.match(source, /playStoryClip\(kabukiVoice\.promotion,"voice",\(\)=>/,
  'Promotion prompt did not receive the new Kabuki voice');
-assert.match(source, /await playKabukiVoice\("kill"\)/,
- 'Kill must wait for the spoken calligraphy before playing blade effects');
+assert.doesNotMatch(source, /await playKabukiVoice\("kill"\)/,
+ 'Fatal capture must not speak 斬殺');
+assert.match(source, /await playCasualtyCry\(\)/,
+ 'Fatal capture and rifle hits must play the casualty cry');
+assert.match(source, /compactSound\("blood"/,
+ 'Fatal capture and rifle hit must use a blood splash, not a sword sound');
+assert.match(source,/debugAwakenKey=compactFighterKey\(officer\)/,
+ 'Awakening debug must show a persistent stamp on the officer banner');
+assert.match(source,/\}finally\{\s*if\(id===epoch&&!ended\)\{busy=false;compactTurnLocked=false;render\(\)\}/,
+ 'Debug action must always restore gameplay and mouse hover');
+assert.match(source,/master_enemy_loss_v4\.mp3/,
+ 'The enemy must use their distinct 「無念」 recording');
+assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_enemy_loss_v4.mp3')));
+assert.ok(fs.existsSync(path.join(root,'assets/story/audio/sfx_blood_splatter_v1.mp3')));
 assert.match(source, /await playKabukiVoice\("awakening"\)/,
  'Awakening must wait until the capture voice is finished');
 assert.match(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",done\)/,
@@ -206,5 +220,17 @@ for(let i=0;i<100;i++){
  assert.equal(allyRifle.fromY,5,'Player rifle must launch from fourth rank');
  assert.ok(enemyRifle.y<0||enemyRifle.y>=4,'Enemy rifle must not hit behind its muzzle');
  assert.ok(allyRifle.y<0||allyRifle.y<=4,'Player rifle must not hit behind its muzzle');
+ if(enemyRifle.hit)assert.equal(enemyRifle.hit.s,0,'Enemy musket killed its own soldier');
+ if(allyRifle.hit)assert.equal(allyRifle.hit.s,1,'Shinsengumi musket killed an ally');
+}
+// Only hostile pieces may be casualties; a friendly piece farther down the lane is ignored.
+const rifleGame=new sandbox.window.StoryEngine(3);
+rifleGame.board=Array.from({length:9},()=>Array(9).fill(null));
+for(let x=0;x<9;x++){
+ rifleGame.board[4][x]={t:'歩',s:0};rifleGame.board[2][x]={t:'銀',s:1};
+}
+for(let i=0;i<100;i++){const shot=rifleGame.fire('rifle',0);
+ assert.equal(shot.y,2,'Shinsengumi rifle must target the hostile soldier');
+ assert.equal(shot.hit.s,1,'Friendly fire is forbidden');
 }
 console.log('PASS: four story chapters, board dimensions, legal opening moves, capture-kill, and shared assets');
