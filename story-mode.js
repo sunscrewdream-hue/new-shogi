@@ -138,7 +138,7 @@ function compactPlanQuake(){
  // one piece through multiple squares or replacing any other piece.
  const all=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)
   if(g.board[y][x]&&g.board[y][x].t!=="玉")all.push({y,x});
- const maxMoves=g.w===5?2:6,minMoves=g.w===5?1:3;
+ const maxMoves=g.w===5?3:6,minMoves=g.w===5?1:3;
  for(let count=Math.min(maxMoves,all.length);count>=minMoves;count--)
   for(let attempt=0;attempt<80;attempt++){
    const B=g.clone(g.board),candidates=[...all].sort(()=>Math.random()-.5),shifts=[];
