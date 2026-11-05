@@ -46,7 +46,7 @@ function sfx(t,onDone=null){
   playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3","fx",onDone);return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/story/audio/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
  if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx",onDone);return}
  onDone?.();
  // No legacy synthesized fallback: only approved recorded assets are played.
@@ -855,9 +855,9 @@ function leave(){
 $( "storyDevToggle" ).onclick=()=>{devPreview=!devPreview;screenHome()};
 $("dialogueNext").onclick=()=>{
  const sortie=stage>=0&&stage<4&&at===dialog.length-1;
- // 本編の事件札と同じ紙をめくる録音を、物語のページ切り替えにも使用。
+ // 物語のページ切り替えは木箱の蓋のスライド音。事件札のめくり音は変更しない。
  // 最終ページの出陣ボイスには重ねない。
- if(at<dialog.length-1)sfx("flip");
+ if(at<dialog.length-1)sfx("woodSlide");
  if(sortie&&voiceEnabled){
   window.StoryBgm?.duck();
   playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice");
@@ -866,7 +866,7 @@ $("dialogueNext").onclick=()=>{
 };
 $("dialoguePrev").onclick=()=>{
  if(at<=0)return;
- sfx("flip");
+ sfx("woodSlide");
  at--;line();
 };
 $("battleQuit").onclick=leave;
