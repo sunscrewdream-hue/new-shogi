@@ -988,3 +988,11 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
  }
  #storyDialogue .narration .dialogue-foot{gap:7px}
 }
+
+/* Shared finished-game incident presentation: preserve board position during modal effects. */
+.compact-card-overlay{background:#000b!important;gap:18px!important;padding:20px!important}
+.compact-card-face{width:min(70vw,280px)!important;height:min(105vw,410px)!important;aspect-ratio:auto!important;border:0!important;border-radius:14px!important;box-sizing:border-box!important;background-size:100% 100%!important;background-position:center!important;background-repeat:no-repeat!important;box-shadow:0 12px 35px #000a,0 0 30px #d8b36c55!important;padding:24px 18px!important}
+.compact-incident-stage{background:transparent!important}
+.compact-incident-stage .compact-incident-title{width:min(90vw,640px);max-height:60dvh;object-fit:contain}
+html.game-effect-scroll-locked,html.game-effect-scroll-locked body{overscroll-behavior:none}
+body.game-effect-scroll-locked{touch-action:none}
