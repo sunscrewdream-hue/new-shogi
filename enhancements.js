@@ -295,7 +295,7 @@
   const loaded=await loadPortrait(figureSrc);
   if(!loaded){
    reinforcementPreviewRunning=false;reinforcementTest.disabled=false;
-   showToast('援軍の隊士画像を読み込めませんでした');
+   showToast('寝返りの隊士画像を読み込めませんでした');
    onArrive?.();return;
   }
   if(typeof portrait.decode==='function')try{await portrait.decode()}catch{}
@@ -308,7 +308,7 @@
   const size=Math.min(72,Math.max(42,from.width*1.15));
   const startX=from.left+from.width/2-size/2,startY=from.top+from.height/2-size*.7;
   const endX=to.left+to.width/2-size/2,endY=to.top+to.height/2-size*.7;
-  portrait.alt='援軍となる隊士';
+  portrait.alt='寝返りとなる隊士';
   Object.assign(portrait.style,{position:'fixed',display:'block',visibility:'visible',opacity:'1',left:startX+'px',top:startY+'px',width:size+'px',height:size*1.4+'px',objectFit:'contain',zIndex:'9999',pointerEvents:'none',filter:'drop-shadow(0 7px 10px #000c)'});
   document.body.append(portrait);
   cell.classList.add('sprite-departing');
@@ -323,7 +323,7 @@
    Object.assign(landing.style,{position:'fixed',left:(to.left+to.width/2-35)+'px',top:(to.top+to.height/2-43)+'px',width:'70px',height:'86px',zIndex:'9999',pointerEvents:'none',display:'grid',placeItems:'center'});
    landing.append(createToken(person.t,receivingSide,false));
    document.body.append(landing);
-   if(!onArrive)setCharacterBanner(receivingSide,person,'援軍として合流！',1100);
+   if(!onArrive)setCharacterBanner(receivingSide,person,'寝返りとして合流！',1100);
    let ended=false;
    const end=()=>{if(ended)return;ended=true;landing.remove();reinforcementPreviewRunning=false;reinforcementTest.disabled=false;onArrive?.()};
    if(typeof landing.animate==='function'&&!reducedGameMotion()){
@@ -349,7 +349,7 @@
    setTimeout(cleanup,duration+150);
   },350);
  }
- const reinforcementTest=document.createElement('button');reinforcementTest.type='button';reinforcementTest.textContent='🏃 援軍アニメテスト';
+ const reinforcementTest=document.createElement('button');reinforcementTest.type='button';reinforcementTest.textContent='🏃 寝返りアニメテスト';
  reinforcementTest.onclick=()=>{
   if(titleIsVisible()||incidentRunning||reinforcementPreviewRunning)return;
   const targets=[];for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(b[y][x]?.s===1&&b[y][x].t!=='玉')targets.push({y,x,p:b[y][x]});
@@ -420,7 +420,7 @@
   const flight=document.createElement('div');flight.className='defection-flight';
   flight.style.left=from.left+'px';flight.style.top=from.top+'px';flight.style.width=from.width+'px';flight.style.height=from.height+'px';
   const ghost=createToken(person.t,person.s,person.p);
-  const badge=document.createElement('span');badge.className='defection-flight-badge';badge.textContent='援軍！';
+  const badge=document.createElement('span');badge.className='defection-flight-badge';badge.textContent='寝返り！';
   flight.append(ghost,badge);document.body.append(flight);cell.classList.add('sprite-departing');
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   const destX=clamp(to.left+to.width/2,from.width/2+16,window.innerWidth-from.width/2-16);
@@ -449,7 +449,7 @@
  }
  const baseIncidentEffect=runIncidentEffect;
  runIncidentEffect=function(){
-  if(incidentEffect?.kind!=='援軍')return baseIncidentEffect();
+  if(incidentEffect?.kind!=='寝返り')return baseIncidentEffect();
   const effect=incidentEffect;incidentEffect=null;
   const p=b[effect.y]?.[effect.x];if(!p||p.s!==effect.owner||p.t==='玉'){queueTurnNotice(turn);return}
   incidentRunning=true;busy=true;playerTurnReady=false;incidentTarget={y:effect.y,x:effect.x};
@@ -462,7 +462,7 @@
     (handIdentities[effect.side][p.t]??=[]).push({cid:p.cid,originSide:p.originSide??p.s});
    }
    incidentTarget=null;incidentRunning=false;busy=false;
-   clearCharacterBanner(effect.owner);setCharacterBanner(effect.side,p,'援軍として合流！',2000);
+   clearCharacterBanner(effect.owner);setCharacterBanner(effect.side,p,'寝返りとして合流！',2000);
    render();if(!ended)queueTurnNotice(turn);
   };
   setTimeout(()=>{if(ep===epoch)previewReinforcementPortrait({y:effect.y,x:effect.x,p},effect.side,proceed)},240);
@@ -471,7 +471,7 @@
  const calmWind=new Audio('assets/audio/sfx/wind_calm_short.mp3');calmWind.preload='auto';calmWind.playsInline=true;
  resolveCard=function(s){
   baseResolveCard(s);
-  if(incidentEffect?.kind==='援軍')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する');
+  if(incidentEffect?.kind==='寝返り')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する');
   if(lastIncidentKind==='何事もなし'&&sampleSfxEnabled&&!document.hidden){
    calmWind.pause();calmWind.currentTime=0;
    calmWind.volume=Math.min(.32,Math.max(0,Number($('volume').value)/100*1.1));

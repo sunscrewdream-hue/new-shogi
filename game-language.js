@@ -11,7 +11,7 @@
   '対局ルール':'Game Rules','新選組将棋（全要素ON・推奨）':'Shinsengumi Shogi (All Events — Recommended)',
   'カスタム対局':'Custom Rules','通常将棋':'Standard Shogi',
   '特殊ルール設定':'Special Rules','事件札':'Event Cards','地震と穴':'Earthquakes & Holes',
-  '脱走':'Desertion','粛清':'Purge','援軍':'Reinforcements','人斬り':'Hitokiri',
+  '脱走':'Desertion','粛清':'Purge','寝返り':'Defection','人斬り':'Hitokiri',
   '王を見捨てる（特殊ルール）':'Abandon the King (special rule)',
   'いざ、出陣':'Begin Battle','🔊 タイトルコールを聴く':'🔊 Play Title Call',
   '▶ 続きから':'▶ Continue','📂 保存した対局':'📂 Load Saved Match','⛶ 全画面':'⛶ Fullscreen',
@@ -26,7 +26,7 @@
   '新選組の声':'Shinsengumi Voices','薩長の声':'Satcho Voices',
   '♪ BGM：ON':'♪ Music: ON','♪ BGM：OFF':'♪ Music: OFF',
   '音量':'Volume','💾 対局を保存':'💾 Save Game','⚔ 人斬り覚醒テスト':'⚔ Test Hitokiri Awakening',
-  '🩸 斬殺演出テスト':'🩸 Test Hitokiri Strike','🏃 援軍アニメテスト':'🏃 Test Reinforcement Animation','もう一局！':'Play Again!',
+  '🩸 斬殺演出テスト':'🩸 Test Hitokiri Strike','🏃 寝返りアニメテスト':'🏃 Test Defection Animation','もう一局！':'Play Again!',
   '勝負あった！':'Victory Decided!','成るか、成らぬか':'Promote This Piece?',
   '駒を成り駒に変化させますか？':'Would you like to promote your piece?',
   '成る！':'Promote','成らぬ':'Do Not Promote',
@@ -77,7 +77,7 @@
   [/敵軍/g,'Enemy'],[/王手/g,'Check'],[/の勝利！/g,' wins!'],
   [/対局を保存しました/g,'Match saved'],[/保存した対局を再開しました/g,'Match resumed'],
   [/を獲得/g,' unlocked'],[/人物カード獲得：/g,'Character Card: '],
-  [/事件札/g,'Event Card'],[/脱走/g,'Desertion'],[/粛清/g,'Purge'],[/援軍/g,'Reinforcements'],
+  [/事件札/g,'Event Card'],[/脱走/g,'Desertion'],[/粛清/g,'Purge'],[/寝返り/g,'Defection'],
   [/大地震/g,'Earthquake'],[/何事もなし/g,'No Incident'],[/：/g,': ']
  ];
  const known=new WeakMap();

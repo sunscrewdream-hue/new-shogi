@@ -16,6 +16,7 @@ storyQuakeBattle.addEventListener("ended",()=>{if(quakeBattleRuns!==1||!fxEnable
 function playStoryQuakeBattle(){if(!fxEnabled||document.hidden)return;stopStoryQuakeBattle();quakeBattleRuns=1;storyQuakeBattle.volume=Math.min(.5,storyVolume/100*2.4);storyQuakeBattle.play().catch(()=>{})}
 function stopStoryClip(channel){const a=channel==="voice"?activeStoryVoice:activeStoryFx;if(a){a.pause();a.currentTime=0}if(channel==="voice")activeStoryVoice=null;else activeStoryFx=null}
 function playStoryClip(path,channel="fx",onDone=null){
+ if(!path){onDone?.();return null}
  if(channel==="voice"?!voiceEnabled:!fxEnabled){onDone?.();return null}
  if(document.hidden){onDone?.();return null}
  let a=storyClipCache.get(path);if(!a){a=new Audio(path);a.preload=channel==="voice"?"auto":"none";a.playsInline=true;storyClipCache.set(path,a)}
@@ -47,9 +48,9 @@ function sfx(t,onDone=null){
 // Historical 5x6-only gating silently disabled cards, capture escorts, turn notices,
 // awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
 function compactMode(){return stage>=0&&stage<D.chapters.length}
-const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
-const compactCardWeights=[["何事もなし",50],["援軍",20],["脱走",15],["粛清",10],["大地震",5]];
-const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
+const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v1.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
+const compactCardWeights=[["何事もなし",50],["寝返り",20],["脱走",15],["粛清",10],["大地震",5]];
+const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":null,"脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
 function compactFighterKey(p){return p?.uid??(String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown'))}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
@@ -138,10 +139,10 @@ function compactCardReveal(){
  if(kind==="何事もなし")detail="何事もなし。盤面に変化なし";
  else if(kind==="大地震"){compactIncidentEffect={kind};detail="大地震！ 駒が揺れ動き、地面が崩れる"}
  else{
-  const owner=kind==="援軍"?1-side:side,options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
+  const owner=kind==="寝返り"?1-side:side,options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
   if(!options.length)detail=kind+"：安全な対象がないため効果なし";
   else{const v=options[Math.floor(Math.random()*options.length)];compactIncidentEffect={kind,side,owner,y:v.y,x:v.x};
-   detail=kind==="援軍"?"敵の"+v.p.t+"を捕らえ、持ち駒に加える":kind==="脱走"?"味方の"+v.p.t+"が脱走する":"味方の"+v.p.t+"を粛清する";
+   detail=kind==="寝返り"?"敵の"+v.p.t+"が寝返り、味方の持ち駒に加わる":kind==="脱走"?"味方の"+v.p.t+"が脱走する":"味方の"+v.p.t+"を粛清する";
   }
  }
  const face=$("compactCardFace");face.style.backgroundImage=`url("${compactCardFaces[kind]}")`;face.classList.add("revealed");
@@ -215,20 +216,20 @@ function compactApplyIncident(effect){
  if(!p||p.s!==owner||p.t==="玉"){compactResumeTurn();return}
  compactIncidentMarks=[y+":"+x];banner(owner,p);render();
  // Finished match plays the gravel-run cue as the desertion starts, not after it ends.
- if(kind==="脱走"||kind==="援軍")compactSound("desert");
+ if(kind==="脱走"||kind==="寝返り")compactSound("desert");
  const finish=()=>{if(game!==epoch)return;compactIncidentMarks=[];compactResumeTurn()};
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
   // A second safety check protects against any stale target or changed board.
   const B=g.clone(g.board);B[y][x]=null;if(!compactSafeBoard(B)){finish();return}
   g.board[y][x]=null;
-  if(kind==="援軍"){
+  if(kind==="寝返り"){
    // Keep the gravel footsteps audible; the later drum used to cut them short.
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
-   // The escort and the full reinforcement line must both finish before play resumes.
-   let escortDone=false,voiceDone=false;
+   // The old 「助太刀いたす」 clip describes reinforcements, not a defector.
+   // Keep the approved footsteps and wait for the escort animation instead.
+   let escortDone=false,voiceDone=true;
    const resume=()=>{if(escortDone&&voiceDone)finish()};
-   playStoryClip("assets/story/audio/master_reinforcement_v2.mp3","voice",()=>{voiceDone=true;resume()});
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
@@ -748,7 +749,7 @@ function storyDebugRun(action,changesBoard=false){
  action();render();
 }
 function storyDebugIncident(kind){
- const side=g.side,owner=kind==="援軍"?1-side:side;
+ const side=g.side,owner=kind==="寝返り"?1-side:side;
  const options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
  if(!options.length){popup("テストできる駒がありません",kind+"の合法な対象が現在の盤面にありません。",[["閉じる",()=>{}]]);return}
  const v=options[Math.floor(Math.random()*options.length)];
@@ -756,7 +757,7 @@ function storyDebugIncident(kind){
 }
 $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
 $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
-$("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("援軍"),true);
+$("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
 $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
 $("debugCannon").onclick=()=>storyDebugRun(()=>weaponCard("cannon",1,true),true);

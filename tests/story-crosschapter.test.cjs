@@ -44,6 +44,7 @@ for (const file of [
   'assets/visuals/hitokiri_kill_calligraphy.webp',
   'assets/cards/events/calm.webp',
   'assets/cards/events/reinforcement.webp',
+  'assets/cards/events/defection-v1.webp',
   'assets/cards/events/desertion.webp',
   'assets/cards/events/purge.webp',
   'assets/cards/events/earthquake.webp',
@@ -74,14 +75,16 @@ assert.match(weapons, /explosion-v3\.webp/, 'Transparent centered blast asset mu
 assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
   'Legacy weapon assets with opaque backgrounds must not be used');
 assert.match(source, /master_fire_voice_v2\.mp3/, 'The level-matched artillery voice was not connected');
-assert.match(source, /master_reinforcement_v2\.mp3/, 'Reinforcement did not receive its level-matched voice');
+assert.match(source, /"寝返り":null/, 'Old reinforcement narration must not mislabel a defection');
+assert.match(source, /"寝返り":"assets\/cards\/events\/defection-v1\.webp"/,
+  'The defection card must have its updated calligraphy');
 for(const cue of ['promotion','cannon','rifle','awakening','kill']){
  assert.ok(source.includes('master_kabuki_'+cue+'_v1.mp3'),
   `New Kabuki performance is not wired for ${cue}`);
  assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_kabuki_'+cue+'_v1.mp3')),
   `Missing Kabuki voice asset: ${cue}`);
 }
-assert.match(source, /playStoryClip\(kabukiVoice\.promotion,"voice"\)/,
+assert.match(source, /playStoryClip\(kabukiVoice\.promotion,"voice",\(\)=>/,
  'Promotion prompt did not receive the new Kabuki voice');
 assert.match(source, /await playKabukiVoice\("kill"\)/,
  'Kill must wait for the spoken calligraphy before playing blade effects');
@@ -104,8 +107,8 @@ assert.doesNotMatch(source, /if\(actor===1&&!willKill\)/,
 assert.match(source, /pendingWeaponDisplay=\{kind,ownerSide,revealed:false\}/,
   'Weapon cards must reuse the normal two-step back-and-reveal UI');
 assert.match(source, /compactSound\("slash"\)\},1010\)/, 'Opening clash must have a sword sound');
-assert.match(source, /if\(kind==="脱走"\|\|kind==="援軍"\)compactSound\("desert"\)/,
-  'Reinforcements and deserters must share footsteps');
+assert.match(source, /if\(kind==="脱走"\|\|kind==="寝返り"\)compactSound\("desert"\)/,
+  'Defectors and deserters must share footsteps');
 assert.match(source, /\$\("compactCardText"\)\.textContent=item\.kind==="cannon"/,
   'Weapon cards must show their explanations in the ordinary card footer');
 assert.match(source, /side===1\?1400:1800/, 'Turn notice needs the completed match queue delay');
