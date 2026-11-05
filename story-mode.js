@@ -514,7 +514,7 @@ function screenHome(){
  }
  collection.append(cards);
  function addButton(step,title,size,enabled,done,callback){
-  const b=document.createElement("button");b.className="chapter"+(enabled?"":" locked")+(done?" completed":"");b.type="button";b.disabled=!enabled;
+  const b=document.createElement("button");b.className="chapter"+(step==="序章"?" prologue-chapter":"")+(enabled?"":" locked")+(done?" completed":"");b.type="button";b.disabled=!enabled;
   const info=document.createElement("div"),mini=document.createElement("small"),heading=document.createElement("strong"),note=document.createElement("em"),board=document.createElement("div"),fig=document.createElement("span");
   mini.textContent=step+(done?"　✓ 突破":"");heading.textContent=title;note.textContent=devPreview?"開発用プレビュー（記録しません）":enabled?(done?"再挑戦可能":"出陣可能"):"前の章を突破すると開放";
   board.className="chapter-board";board.textContent=enabled?"⚔":"🔒";fig.textContent=size;board.append(fig);info.append(mini,heading,note);b.append(info,board);b.onclick=callback;el.append(b);

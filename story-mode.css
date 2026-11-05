@@ -176,6 +176,21 @@
 }
 .scene-overlay{background:linear-gradient(transparent 0%,#060a0c16 47%,#060a0c75 100%)}
 .chapter{background-image:linear-gradient(94deg,#16252fa6,#16252f8c),url("kyoto-autumn.webp")}
+/* The prologue's approved narrow Edo dispatch case is itself the banner. */
+.chapter.prologue-chapter{
+ background-image:linear-gradient(90deg,#e5c38d13,#e5c38d0a),url("assets/story/prologue-travel-document-box.png");
+ background-color:#b87c49;
+ background-size:cover;
+ background-position:center;
+ color:#27170c;
+ border:0;
+ border-left:0;
+ border-radius:7px;
+ box-shadow:0 5px 13px #0008;
+}
+.chapter.prologue-chapter small,.chapter.prologue-chapter em{color:#39251a;text-shadow:0 1px 1px #f4d4a4a1}
+.chapter.prologue-chapter strong{color:#25160e;text-shadow:0 1px 2px #f4d4a4b8}
+.chapter.prologue-chapter .chapter-board{border-left-color:#40271d45;color:#301e13}
 #storyBoard .sq{background-color:transparent}
 #storyBattle .person-banner{background-color:#e6d3ad}
 #storyBattle .hand-container{background-image:linear-gradient(#162c3855,#10151a78),url("assets/visuals/edo_jail.png")}
