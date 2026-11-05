@@ -78,7 +78,13 @@ assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifl
 assert.match(source, /master_samurai_fire_v1\.mp3/, 'The new samurai artillery voice was not connected');
 assert.match(source, /master_samurai_gomen_v1\.mp3/, 'Defection must use only the trimmed 「御免！」 recording');
 assert.match(source, /master_samurai_loss_v1\.mp3/, 'The new 「無念だ」 recording was not connected');
-assert.match(source, /"寝返り":null/, 'Old reinforcement narration must not mislabel a defection');
+assert.match(source, /"寝返り":"assets\/story\/audio\/master_samurai_defection_v1\.mp3"/,
+  'The confirmed 「寝返り」 recording must play when the story card is revealed');
+assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_samurai_defection_v1.mp3')),
+  'The confirmed defection audio must be included in the repository');
+const mainGame = fs.readFileSync(path.join(root,'card-ai-test.html'),'utf8');
+assert.match(mainGame, /'寝返り':'defection'/,
+  'The finished match must also announce the new defection card');
 assert.match(source, /"寝返り":"assets\/cards\/events\/defection-v2\.webp"/,
   'The defection card must have its updated calligraphy');
 for(const cue of ['promotion','cannon','rifle','awakening','kill']){

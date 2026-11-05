@@ -50,7 +50,7 @@ function sfx(t,onDone=null){
 function compactMode(){return stage>=0&&stage<D.chapters.length}
 const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
 const compactCardWeights=[["何事もなし",50],["寝返り",20],["脱走",15],["粛清",10],["大地震",5]];
-const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":null,"脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
+const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
 function compactFighterKey(p){return p?.uid??(String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown'))}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
