@@ -457,9 +457,14 @@ function compactTurn(side,after,opening=false){
  compactTurnLocked=true;
  const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
  // Anchor every turn announcement to the board center, not the viewport center.
- const boardRect=$("storyBoard").getBoundingClientRect();
+ // Always snap the battle board back into place before announcing a turn.
+ const initialBoardRect=$("storyBoard").getBoundingClientRect();
  const viewportHeight=window.visualViewport?.height||window.innerHeight;
  const viewportTop=window.visualViewport?.offsetTop||0;
+ const boardDocumentCenter=window.scrollY+initialBoardRect.top+initialBoardRect.height/2;
+ const targetScroll=Math.max(0,Math.round(boardDocumentCenter-viewportHeight/2));
+ window.scrollTo(0,targetScroll);
+ const boardRect=$("storyBoard").getBoundingClientRect();
  const boardCenterY=boardRect.top+boardRect.height/2;
  panel.style.setProperty("--turn-center-offset",Math.round(boardCenterY-(viewportTop+viewportHeight/2))+"px");
  const title=side===0?"新選組の手番！":"敵軍の手番！";
