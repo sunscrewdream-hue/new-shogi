@@ -1073,7 +1073,19 @@ function storyDebugRun(action,changesBoard=false){
  if(!storyDebugReady())return;
  window.StoryBgm?.unlock();
  if(changesBoard){debugModified=true;selected=null}
- action();render();
+ // Development controls sit below the board. Return to the battle viewport
+ // BEFORE showing a fixed-position effect, so tests mirror normal gameplay.
+ const battle=document.getElementById("storyBattle");
+ const board=document.getElementById("storyBoard");
+ const target=board||battle;
+ if(target){
+  const top=window.scrollY+target.getBoundingClientRect().top;
+  const viewport=window.innerHeight;
+  const height=target.getBoundingClientRect().height;
+  const y=Math.max(0,Math.round(top-Math.max(0,(viewport-height)/2)));
+  window.scrollTo({top:y,behavior:"instant"});
+ }
+ requestAnimationFrame(()=>{action();render()});
 }
 function storyDebugIncident(kind){
  const side=g.side,owner=kind==="寝返り"?1-side:side;
