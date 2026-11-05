@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0;
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -169,7 +169,7 @@ function compactCardReveal(){
  else if(kind==="援軍"){
   const fallen=g.fallen[side];
   if(fallen.length){const revived=fallen[Math.floor(Math.random()*fallen.length)];compactIncidentEffect={kind,side,uid:revived.uid};detail="援軍！ 戦死した"+revived.t+"が持ち駒に復活する"}
-  else detail="援軍：復活できる戦死者がいないため効果なし";
+  else{compactIncidentEffect={kind,side,reserve:true};detail="援軍到着！ 新たな銀将が持ち駒に加わる"}
  }
  else{
   const owner=kind==="寝返り"?1-side:side,options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
@@ -229,21 +229,29 @@ function compactResumeTurn(){
   else compactTurn(0);
  },side===1?1400:1800);
 }
+function compactGrantReinforcement(effect){
+ const fallen=g.fallen[effect.side],i=effect.reserve?-1:fallen.findIndex(p=>p.uid===effect.uid);
+ if(i<0&&!effect.reserve)return null;
+ const revived=effect.reserve
+  ?{t:"銀",s:effect.side,origin:effect.side,uid:`reinforcement:${effect.side}:${++reinforcementSerial}`,cid:null,mob:reinforcementSerial%8,p:false}
+  :fallen.splice(i,1)[0];
+ g.hands[effect.side].push({...revived,s:effect.side,p:false});
+ return revived;
+}
 function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
  if(effect.kind==="援軍"){
-  const fallen=g.fallen[effect.side],i=fallen.findIndex(p=>p.uid===effect.uid);
-  if(i<0){compactResumeTurn();return}
-  const revived=fallen.splice(i,1)[0];g.hands[effect.side].push({...revived,s:effect.side,p:false});
-  banner(effect.side,revived);render();
+  const revived=compactGrantReinforcement(effect);
+  if(!revived){compactResumeTurn();return}
+  banner(effect.side,revived,true);render();
   const hand=$("storyHand"+effect.side);
   for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
-  storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒へ復活！",effect.side);
+  storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒に加わった！",effect.side);
   // A returning officer runs in from outside the screen and lands in the hand.
   // Reuse the desertion footsteps; the sortie voice starts after the run.
   const goal=hand.closest(".hand-container")?.getBoundingClientRect(),layer=$("compactActionLayer");
-  const figure=document.createElement("img");figure.src="assets/sprites/figures/"+(effect.side===0?"shinsengumi_back":"saccho_front")+".webp";figure.alt="";
+  const figure=document.createElement("img");figure.src="assets/sprites/figures/"+(effect.side===0?"shinsengumi_back":"saccho_front")+".webp";figure.alt="";figure.className="story-reinforcement-runner";
   const width=66,startX=effect.side===0?-width-30:innerWidth+30,startY=goal?goal.top+goal.height/2-55:innerHeight/2;
   Object.assign(figure.style,{left:startX+"px",top:startY+"px",width:width+"px",height:"92px"});layer.replaceChildren(figure);
   const run=figure.animate&&goal&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
@@ -253,7 +261,7 @@ function compactApplyIncident(effect){
   Promise.all([run,footsteps]).then(()=>{figure.remove();if(game!==epoch)return;
    playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",()=>{
     if(game!==epoch)return;
-    setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));compactResumeTurn()},450)
+    setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));if(!(compactCaptures[compactFighterKey(revived)]>=3))$(effect.side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character");compactResumeTurn()},450)
    });
   });
   return;
@@ -478,7 +486,16 @@ function banner(s,p,hold=false){
  panel.classList.add("show-character");
  clearTimeout(storyBannerTimers[s]);
  // The stamp belongs to this officer's visible portrait, not the message board.
- if(!hold&&!awakened)storyBannerTimers[s]=setTimeout(()=>{if(currentEpoch===epoch)panel.classList.remove("show-character")},2300);
+ if(!hold&&!awakened){
+  const start=Date.now();
+  const closeAfterVoice=()=>{
+   if(currentEpoch!==epoch)return;
+   const voice=activeStoryVoice;
+   if(voice&&!voice.paused&&!voice.ended&&Date.now()-start<15000){storyBannerTimers[s]=setTimeout(closeAfterVoice,160);return}
+   panel.classList.remove("show-character");
+  };
+  storyBannerTimers[s]=setTimeout(closeAfterVoice,2300);
+ }
 }
 // As in the completed match, turn/status notices live inside the character banners.
 // Keep one screen-reader announcement; do not insert a third board between the enemy hand and field.
@@ -674,7 +691,7 @@ function line(){
 }
 function battle(i){
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
- hideCompactFx();compactCaptures={};
+ hideCompactFx();compactCaptures={};reinforcementSerial=0;
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;playerTurns=0;weapons=[];pendingWeaponKind=null;debugModified=false;
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
@@ -1010,8 +1027,7 @@ $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
 $("debugRevival").onclick=()=>storyDebugRun(()=>{
  const fallen=g.fallen[g.side];
- if(!fallen.length){popup("援軍の確認","まだ戦死者がいません。斬殺・粛清または砲撃などで駒が失われた後にお試しください。",[["閉じる",()=>{}]]);return}
- compactApplyIncident({kind:"援軍",side:g.side,uid:fallen[fallen.length-1].uid});
+ compactApplyIncident(fallen.length?{kind:"援軍",side:g.side,uid:fallen[fallen.length-1].uid}:{kind:"援軍",side:g.side,reserve:true});
 },true);
 $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
