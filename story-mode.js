@@ -524,7 +524,11 @@ function talk(i){
  window.StoryBgm?.play(i===4?"ending":"prologue");
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
  dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>battle(i);
- $("dialogueScene").className="scene-art scene-"+ch.scene;$("dialogueDate").textContent=ch.era;$("dialogueTitle").textContent=ch.title;chooseView("storyDialogue");line();
+ $("dialogueScene").className="scene-art scene-"+ch.scene;$("dialogueDate").textContent=storyKanjiNumerals(ch.era);$("dialogueTitle").textContent=ch.title;chooseView("storyDialogue");line();
+}
+function storyKanjiNumerals(value){
+ const digits="〇一二三四五六七八九";
+ return String(value).replace(/[0-9０-９]/g,ch=>digits[(ch.charCodeAt(0)-(ch<="9"?48:65296))]);
 }
 function line(){
  if(at>=dialog.length){const fn=onEnd;onEnd=null;fn();return}
@@ -537,8 +541,8 @@ function line(){
  $("dialogueSpeaker").textContent=isNarration?"":dialog[at][0];
  $("dialogueSpeaker").hidden=isNarration;
  $("storyDialogue").classList.toggle("vertical-narration",isNarration);
- $("dialogueBody").textContent=dialog[at][1];
- $("dialogueCount").textContent=(at+1)+" / "+dialog.length;
+ $("dialogueBody").textContent=isNarration?storyKanjiNumerals(dialog[at][1]):dialog[at][1];
+ $("dialogueCount").textContent=storyKanjiNumerals(at+1)+"／"+storyKanjiNumerals(dialog.length);
  const sortie=at===dialog.length-1&&stage>=0&&stage<4;
  $("dialogueNext").textContent=sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"〉";
  $("dialogueNext").setAttribute("aria-label",sortie?"いざ、出陣":at===dialog.length-1?"物語を閉じる":"次のページ");
