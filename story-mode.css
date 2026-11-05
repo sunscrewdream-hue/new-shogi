@@ -482,6 +482,19 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .scene-ikedaya.ikedaya-third-page .scene-overlay{
  background:linear-gradient(transparent 15%,#1c1a197a 100%);
 }
+/* Ikedaya fourth page: Kondo and the first raiding party below the staircase. */
+.scene-ikedaya.ikedaya-fourth-page{
+ min-height:0;
+ aspect-ratio:1671/941;
+ background-image:url("assets/story/ikedaya-scene04-kondo-entry-v2.webp");
+ background-size:100% 100%;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-color:#d8c4a8;
+}
+.scene-ikedaya.ikedaya-fourth-page .scene-overlay{
+ background:linear-gradient(transparent 15%,#1c1a197a 100%);
+}
 
 /* Ikedaya's tatami-and-corridor artwork is ONLY a background; the existing
    5x6 board dimensions and responsive height budget remain authoritative. */
