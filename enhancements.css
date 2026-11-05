@@ -143,3 +143,6 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 
 /* Keep the enlarged mobile seal left of the portrait; overlap with name is intentional. */
 @media(max-width:600px){.dialogue-panel .hitokiri-stamp{left:-17%;}}
+
+/* Mobile seal fine alignment: stop just before the portrait. */
+@media(max-width:600px){.dialogue-panel .hitokiri-stamp{left:-7%;}}
