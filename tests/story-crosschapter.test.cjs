@@ -7,6 +7,13 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'story-mode.js'), 'utf8');
+const storyHtml=fs.readFileSync(path.join(root,'story-mode.html'),'utf8');
+for(const id of ['debugCard','debugQuake','debugReinforce','debugDesert','debugPurge','debugCannon','debugRifle','debugTurn','debugFx','debugVoice0','debugVoice1']){
+ assert.match(storyHtml,new RegExp(`id="${id}"`),`Missing story debug button: ${id}`);
+ assert.ok(source.includes(`$("${id}").onclick`),`Debug button has no handler: ${id}`);
+}
+assert.match(source,/if\(win&&!devPreview&&!debugModified\)/,'Debug-driven game results must not unlock chapters');
+assert.match(source,/if\(devPreview\|\|debugModified\|\|!p/,'Debug-driven captures must not grant collection cards');
 assert.match(source, /function compactMode\(\)\{return stage>=0&&stage<D\.chapters\.length\}/,
   'Do not silently restrict story events to the 5x6 chapters again');
 for (const token of ['compactCardStart(actor)', 'compactIntro()', 'compactCalligraphy(false)',

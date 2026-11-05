@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -319,7 +319,7 @@ function popup(title,text,options,img){
  modal.classList.remove("hidden");
 }
 function collect(p){
- if(devPreview||!p||p.cid==null)return;
+ if(devPreview||debugModified||!p||p.cid==null)return;
  const id=(p.origin===0?0:20)+p.cid;
  if(id<0||id>=40)return;
  try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+person(p).name,0)}}catch(e){}
@@ -465,7 +465,7 @@ function battle(i){
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
- epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];pendingWeaponKind=null;
+ epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];pendingWeaponKind=null;debugModified=false;
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
@@ -525,6 +525,10 @@ function render(){
  storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
+ const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
+ for(const id of ["debugCard","debugQuake","debugReinforce","debugDesert","debugPurge","debugCannon","debugRifle","debugTurn","debugFx","debugVoice0","debugVoice1"]){
+  $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3);
+ }
 }
 function square(y,x){
  if(ended||busy||compactTurnLocked||g.side!==0)return;
@@ -614,9 +618,9 @@ function computer(){
   if(!weapons.includes(kind))pendingWeaponKind=kind;
  }
 }
-function weaponCard(kind,ownerSide=1){
- if(ended||busy||weapons.includes(kind)||stage!==3)return;
- weapons.push(kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
+function weaponCard(kind,ownerSide=1,debug=false){
+ if(ended||busy||(!debug&&weapons.includes(kind))||stage!==3)return;
+ if(!debug)weapons.push(kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
  // Use exactly the same calligraphy, card-back, drop and flip UI as the five
  // ordinary incident cards. The weapon illustration is revealed by the player.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
@@ -657,7 +661,7 @@ async function fire(kind,ownerSide=1){
 }
 function finish(winner,reason){
  if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
- if(win&&!devPreview){
+ if(win&&!devPreview&&!debugModified){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
  }
@@ -695,6 +699,32 @@ $("storyFxToggle").onclick=()=>{fxEnabled=!fxEnabled;if(!fxEnabled){stopStoryCli
 const voiceSamples=["assets/audio/voice_shinsengumi_move_sorya.mp3","assets/audio/voice_kondo_isami_king_move.mp3","assets/audio/voice_hijikata_toshizo_move.mp3","assets/audio/saccho_voice_01_chesto.mp3","assets/audio/saccho_voice_02_uryaa.mp3","assets/audio/saccho_voice_03_toraeta.mp3"];
 let previewIndex=0;
 $("storyVoicePreview").onclick=()=>{window.StoryBgm?.unlock();if(!voiceEnabled)return;playStoryClip(voiceSamples[previewIndex++%voiceSamples.length],"voice")};
+function storyDebugReady(){return g&&!ended&&!busy&&!compactTurnLocked&&g.side===0&&!compactIncident&&!pendingWeaponDisplay&&$("storyPopup").classList.contains("hidden")}
+function storyDebugRun(action,changesBoard=false){
+ if(!storyDebugReady())return;
+ window.StoryBgm?.unlock();
+ if(changesBoard){debugModified=true;selected=null}
+ action();render();
+}
+function storyDebugIncident(kind){
+ const side=g.side,owner=kind==="援軍"?1-side:side;
+ const options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
+ if(!options.length){popup("テストできる駒がありません",kind+"の合法な対象が現在の盤面にありません。",[["閉じる",()=>{}]]);return}
+ const v=options[Math.floor(Math.random()*options.length)];
+ compactApplyIncident({kind,side,owner,y:v.y,x:v.x});
+}
+$("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
+$("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
+$("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("援軍"),true);
+$("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
+$("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
+$("debugCannon").onclick=()=>storyDebugRun(()=>weaponCard("cannon",1,true),true);
+$("debugRifle").onclick=()=>storyDebugRun(()=>weaponCard("rifle",1,true),true);
+$("debugTurn").onclick=()=>storyDebugRun(()=>compactTurn(0));
+$("debugFx").onclick=()=>storyDebugRun(()=>{compactSound("slash");const id=epoch;setTimeout(()=>{if(id===epoch)sfx("card")},400)});
+let debugVoiceIndex=[0,0];
+$("debugVoice0").onclick=()=>storyDebugRun(()=>{if(voiceEnabled)playStoryClip(voiceSamples[debugVoiceIndex[0]++%3],"voice")});
+$("debugVoice1").onclick=()=>storyDebugRun(()=>{if(voiceEnabled)playStoryClip(voiceSamples[3+debugVoiceIndex[1]++%3],"voice")});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()}});
 window.addEventListener("pagehide",()=>{stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()});
 $("storyVolume").value=String(storyVolume);$("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
