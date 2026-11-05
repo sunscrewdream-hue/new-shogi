@@ -375,7 +375,9 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
  background:url("assets/story/board-tobafushimi-ground-v2.webp") center/100% 100% no-repeat;
 }
-#storyBoard[data-stage="3"]>.sq{z-index:2}
+/* The edge props remain visible behind transparent squares, but never obscure a
+   piece, check ray or a player's selected/legal-move highlight. */
+#storyBoard[data-stage="3"]>.sq{z-index:4}
 @media(min-width:700px) and (min-height:700px){
  #storyBoard[data-stage="1"],#storyBoard[data-stage="3"]{width:min(96vw,520px,100%)!important}
 }
