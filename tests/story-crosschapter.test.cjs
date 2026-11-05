@@ -96,7 +96,7 @@ assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifl
   'Legacy weapon assets with opaque backgrounds must not be used');
 assert.doesNotMatch(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3"/,
  'The falsely named 「鉄砲」 clip must not be triggered as 「撃て」 or 「うわ」');
-assert.match(source, /master_samurai_gomen_v1\.mp3/, 'Defection must use only the trimmed 「御免！」 recording');
+assert.match(source, /master_battle_gomen_v1\.mp3/, 'Defection must use the newly approved 「ごめん！」 recording');
 assert.match(source, /master_samurai_loss_v1\.mp3/, 'The new 「無念だ」 recording was not connected');
 assert.match(source, /"寝返り":"assets\/story\/audio\/master_samurai_defection_v1\.mp3"/,
   'The confirmed 「寝返り」 recording must play when the story card is revealed');
@@ -133,8 +133,12 @@ assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_enemy_loss_v4.
 assert.ok(fs.existsSync(path.join(root,'assets/story/audio/sfx_blood_splatter_v1.mp3')));
 assert.match(source, /await playKabukiVoice\("awakening"\)/,
  'Awakening must wait until the capture voice is finished');
-assert.match(source, /playStoryClip\("assets\/story\/audio\/master_fire_voice_v2\.mp3","voice",done\)/,
- 'Both weapons must use the restored original 「撃て！」 clip immediately before fire');
+assert.match(source, /playStoryClip\("assets\/story\/audio\/master_battle_fire_v1\.mp3","voice",done\)/,
+ 'Both weapons must use the newly recorded 「撃て！」 clip immediately before fire');
+assert.match(source, /playStoryClip\("assets\/story\/audio\/master_battle_gyah_v1\.mp3","voice",done\)/,
+ 'Deaths must use the newly recorded 「ぎゃあ！」 clip');
+for(const name of ['fire','gomen','gyah'])assert.ok(fs.existsSync(path.join(root,'assets/story/audio/master_battle_'+name+'_v1.mp3')),
+ `New three-line battle voice is missing: ${name}`);
 assert.doesNotMatch(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",finish\)/,
  'The misidentified 「鉄砲」 clip must not play over a casualty');
 assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,

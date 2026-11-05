@@ -620,7 +620,7 @@ const battleVoiceUrls={
  sacchoUryaa:'assets/audio/saccho_voice_02_uryaa.mp3',
  sacchoCapture:'assets/audio/saccho_voice_03_toraeta.mp3',
  sacchoLoss:'assets/story/audio/master_samurai_loss_v1.mp3',
- gomen:'assets/story/audio/master_samurai_gomen_v1.mp3',
+ gomen:'assets/story/audio/master_battle_gomen_v1.mp3',
  defection:'assets/story/audio/master_samurai_defection_v1.mp3',
  sacchoEncore:'assets/audio/saccho_voice_05_madamada.mp3',
  sacchoFinisher:'assets/audio/saccho_voice_06_korede_saigo.mp3'
@@ -1398,7 +1398,7 @@ function runIncidentEffect(){
   if(effect.kind==='粛清'){playFx('purge');markBlood(effect.y,effect.x)}
   if(effect.kind==='寝返り'){animateCaptureEscort(effect.side,effect.y,effect.x,p,()=>{});incidentSfx()}
   if(effect.kind==='脱走'){incidentSfx();finish();return}
-  const voice=effect.kind==='寝返り'?null
+  const voice=effect.kind==='寝返り'?'gomen'
               :(effect.owner===1?'sacchoLoss':'loss');
   const clip=playBattleVoice(voice,finish);
   if(!clip)finish();else setTimeout(finish,15000);

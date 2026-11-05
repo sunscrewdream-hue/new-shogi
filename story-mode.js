@@ -32,9 +32,11 @@ function playKabukiVoice(kind){return new Promise(resolve=>{
  playStoryClip(path,"voice",resolve);
 })}
 function playCasualtyCry(){return new Promise(resolve=>{
- // The previous candidate actually says 「鉄砲」. Do not play that command
- // over a casualty. Reserve a short beat for the missing distinct scream.
- setTimeout(resolve,420);
+ // Dedicated 「ぎゃあ！」 from the user's three-line 2026-11-05 recording.
+ // Hold the sequence until this shout actually finishes.
+ let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
+ playStoryClip("assets/story/audio/master_battle_gyah_v1.mp3","voice",done);
+ setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
@@ -284,7 +286,7 @@ function compactApplyIncident(effect){
    // never play its unrelated 「助太刀致す」 second half.
    let escortDone=false,voiceDone=false;
    const resume=()=>{if(escortDone&&voiceDone)finish()};
-   playStoryClip("assets/story/audio/master_samurai_gomen_v1.mp3","voice",()=>{voiceDone=true;resume()});
+   playStoryClip("assets/story/audio/master_battle_gomen_v1.mp3","voice",()=>{voiceDone=true;resume()});
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
@@ -738,7 +740,7 @@ async function fire(kind,ownerSide=1){
  // The spoken order to fire is distinct from the subsequent discharge and impact.
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
   // Restore the previously mastered original 「撃て！」 clip.
-  playStoryClip("assets/story/audio/master_fire_voice_v2.mp3","voice",done);setTimeout(done,4500)});
+  playStoryClip("assets/story/audio/master_battle_fire_v1.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
  const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,async(shot,hit)=>{
   if(id!==epoch||shot.y<0)return;
