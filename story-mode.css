@@ -1016,3 +1016,6 @@ body.game-effect-scroll-locked{touch-action:none}
 .compact-card-artwork{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;z-index:0;pointer-events:none}
 .compact-card-face #compactCardHeading,.compact-card-face #compactCardText{position:relative;z-index:1}
 .compact-card-face.revealed #compactCardText{position:absolute;z-index:2}
+
+/* Every turn announcement follows the actual board center, including later turns. */
+#compactTurnNotice #compactTurnArt,#compactTurnNotice #compactTurnFallback{translate:0 var(--turn-center-offset,0px)}
