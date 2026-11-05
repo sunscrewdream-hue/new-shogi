@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[];
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -27,14 +27,15 @@ function playStoryClip(path,channel="fx",onDone=null){
 }
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
-function sfx(t){
+function sfx(t,onDone=null){
  if(t==="cannon"||t==="rifle"||t==="blast"){
   window.StoryBgm?.duck();
-  playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3");return;
+  playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3","fx",onDone);return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_loss_v2.mp3"};
- if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx");return}
+ if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx",onDone);return}
+ onDone?.();
  // No legacy synthesized fallback: only approved recorded assets are played.
 }
 // Every playable chapter reuses the approved main-game event assets and rules.
@@ -62,16 +63,16 @@ const compactAudio={
  banner:"assets/audio/sfx/taiko_dodon.mp3",
  quake:"assets/audio/sfx/rumble.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
- desert:"assets/audio/sfx/gravel_run.mp3",
+ desert:"assets/story/audio/master_gravel_run_v2.mp3",
  reinforce:"assets/audio/sfx/taiko_dodon.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
 };
-function compactSound(kind){
+function compactSound(kind,onDone=null){
  if(kind==="slash")kind=["slash1","slash2","slash3"][Math.floor(Math.random()*3)];
- const src=compactAudio[kind]||({slash1:"assets/audio/sfx/sword_slash_1.mp3",slash2:"assets/audio/sfx/sword_slash_2.mp3",slash3:"assets/audio/sfx/sword_slash_3.mp3"})[kind];if(!src)return;
+ const src=compactAudio[kind]||({slash1:"assets/audio/sfx/sword_slash_1.mp3",slash2:"assets/audio/sfx/sword_slash_2.mp3",slash3:"assets/audio/sfx/sword_slash_3.mp3"})[kind];if(!src){onDone?.();return}
  const isVoice=["move0","move1","kondo","hijikata","check","sacchoCapture","sacchoLoss","saigo","kido","sacchoCheck","sacchoPromote","sacchoChesto","sacchoUryaa"].includes(kind);
- playStoryClip(src,isVoice?"voice":"fx");
+ playStoryClip(src,isVoice?"voice":"fx",onDone);
 }
 function hideCompactFx(){
  stopStoryQuakeBattle();
@@ -172,8 +173,8 @@ function compactResumeTurn(){
  if(ended)return;busy=false;compactTurnLocked=true;render();const game=epoch;
  // Chapter-specific artillery comes AFTER the shared incident card sequence,
  // rather than being silently skipped while the move animation still owns the lock.
- if(pendingWeaponKind){const kind=pendingWeaponKind;pendingWeaponKind=null;
-  setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind)},700);return}
+ if(pendingWeaponKind){const {kind,side}=pendingWeaponKind;pendingWeaponKind=null;
+  setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind,side)},700);return}
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -220,7 +221,11 @@ function compactApplyIncident(effect){
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
-   render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");setTimeout(finish,1400);
+   render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");
+   // The purged officer's own faction voices their loss, after the blade cue.
+   setTimeout(()=>{if(game!==epoch)return;
+    if(p.s===0)sfx("loss",finish);else compactSound("sacchoLoss",finish);
+   },900);
   }else{render();setTimeout(finish,650)}
  };
  if(kind==="脱走"){
@@ -465,7 +470,7 @@ function battle(i){
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
- epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;weapons=[];pendingWeaponKind=null;debugModified=false;
+ epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;playerTurns=0;weapons=[];pendingWeaponKind=null;debugModified=false;
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
@@ -549,6 +554,8 @@ function square(y,x){
 }
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
+ let moveVoiceDone=Promise.resolve();
+ const announce=(kind,player=compactSound)=>{moveVoiceDone=new Promise(resolve=>player(kind,resolve))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const willKill=compactMode()&&!m.drop&&!!g.board[m.Y][m.X]&&before>=3;
  const {unit,captured}=g.move(m,prom,willKill);
@@ -562,7 +569,7 @@ function makeMove(m,prom){
  }
  if(captured){
   if(!willKill){
-   if(actor===0)sfx("capture");else compactSound("sacchoCapture");
+   if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
@@ -574,15 +581,23 @@ function makeMove(m,prom){
   const gaveCheck=g.check(g.board,1-actor),nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
-  if(gaveCheck)compactSound("check");
-  else if(dedicated)compactSound(dedicated);
-  else if(nearby&&Math.random()<.45)compactSound(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
+  if(gaveCheck)announce("check");
+  else if(dedicated)announce(dedicated);
+  else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(compactMode()){
+  // Give both factions the same artillery opportunity in Toba-Fushimi.
+  // The special card is queued after any regular incident, without consuming a move.
+  if(stage===3&&actor===0){playerTurns++;
+   if(playerTurns===4||playerTurns===8){
+    const kind=playerTurns===4?"cannon":"rifle";
+    if(!weapons.includes("0:"+kind))pendingWeaponKind={kind,side:0};
+   }
+  }
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
-  const afterFx=()=>{
+  const afterFx=()=>moveVoiceDone.then(()=>{
    if(id!==epoch||ended)return;
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
@@ -593,13 +608,15 @@ function makeMove(m,prom){
     setTimeout(()=>{if(id===epoch&&!ended)compactCardStart(actor)},250);
    }
    else compactResumeTurn();
-  };
+  });
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
   else if(willKill){
    // A single deliberate sequence: calligraphy, blade, blood, fallen officer's voice.
    setTimeout(()=>{if(id===epoch)compactSound("slash")},1050);
    setTimeout(()=>{if(id===epoch)playStoryClip("assets/audio/sfx/purge_shukusei.mp3","fx")},1730);
-   setTimeout(()=>{if(id===epoch)(captured.s===0?sfx("loss"):compactSound("sacchoLoss"))},2350);
+   moveVoiceDone=new Promise(resolve=>setTimeout(()=>{if(id!==epoch)return resolve();
+    if(captured.s===0)sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
+   },2350));
    setTimeout(afterFx,3900);
   }else setTimeout(afterFx,prom?800:850);
   return;
@@ -614,13 +631,13 @@ function computer(){
  const p=move.drop?null:g.board[move.y][move.x],prom=!!p&&g.promoted(p,move.y,move.Y);
  makeMove(move,prom);enemyTurns++;
  if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
-  const kind=weapons.length===0?(Math.random()<.5?"cannon":"rifle"):weapons[0]==="cannon"?"rifle":"cannon";
-  if(!weapons.includes(kind))pendingWeaponKind=kind;
+  const kind=enemyTurns===4?"cannon":"rifle";
+  if(!weapons.includes("1:"+kind))pendingWeaponKind={kind,side:1};
  }
 }
 function weaponCard(kind,ownerSide=1,debug=false){
- if(ended||busy||(!debug&&weapons.includes(kind))||stage!==3)return;
- if(!debug)weapons.push(kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
+ if(ended||busy||(!debug&&weapons.includes(ownerSide+":"+kind))||stage!==3)return;
+ if(!debug)weapons.push(ownerSide+":"+kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
  // Use exactly the same calligraphy, card-back, drop and flip UI as the five
  // ordinary incident cards. The weapon illustration is revealed by the player.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
@@ -656,7 +673,9 @@ async function fire(kind,ownerSide=1){
  if(hits.length)storyBannerMessage(hits.map(r=>person(r.hit).name).join("・")+" に命中！ 駒が消滅。",0);
  else storyBannerMessage(kind==="cannon"?"砲弾２発は空きマスへ着弾！":"鉄砲は空振り！",0);
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
- else{if(hits.length){if(hits.some(r=>r.hit.s===0))sfx("loss");else compactSound("sacchoLoss")}
+ else{if(hits.length){await new Promise(resolve=>{
+   if(hits.some(r=>r.hit.s===0))sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
+  })}
   await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
 }
 function finish(winner,reason){

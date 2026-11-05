@@ -24,8 +24,18 @@ const turnNotice = source.match(/function compactTurn\(side,after,opening=false\
 assert.ok(turnNotice, 'Turn notice routine not found');
 assert.doesNotMatch(turnNotice, /compactSound\("check"\)/,
   'Check must play once at the move, not again after the following turn notice');
-assert.match(source, /if\(gaveCheck\)compactSound\("check"\)/,
+assert.match(source, /if\(gaveCheck\)announce\("check"\)/,
   'The move that gives check must still announce it');
+assert.match(source, /const afterFx=\(\)=>moveVoiceDone\.then\(/,
+  'Do not start the next turn while the moving officer is speaking');
+assert.match(source, /desert:"assets\/story\/audio\/master_gravel_run_v2\.mp3"/,
+  'Desertion and reinforcement footsteps must use the louder mastered sample');
+assert.match(source, /if\(p\.s===0\)sfx\("loss",finish\);else compactSound\("sacchoLoss",finish\)/,
+  'Purging an enemy officer must play the enemy loss voice');
+assert.match(source, /if\(stage===3&&actor===0\)/,
+  'The player must receive artillery cards in Toba-Fushimi');
+assert.match(source, /pendingWeaponKind=\{kind,side:1\}/,
+  'The enemy must retain its artillery cards');
 assert.match(source, /setTimeout\(depart,120\)/, 'Desertion disappearance must begin during exit motion');
 for (const file of [
   'assets/turn-notice/turn_shinsengumi_illustrated.png',
