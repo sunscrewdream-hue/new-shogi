@@ -453,7 +453,7 @@ function compactTurn(side,after,opening=false){
  if(!compactMode()||ended)return after?.();
  const stamp=++compactFxSerial,game=epoch;
  // Opening notice must use the battle viewport, not the story page scroll position.
- if(opening)window.scrollTo({top:0,behavior:"instant"});
+ // The opening battle position is already anchored before the VS sequence.
  compactTurnLocked=true;
  const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
  const title=side===0?"新選組の手番！":"敵軍の手番！";
@@ -751,7 +751,18 @@ function battle(i){
  document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  for(const side of [0,1]){clearTimeout(storyBannerTimers[side]);$(side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character","compact-awakened")}
- chooseView("storyBattle");window.scrollTo(0,0);render();if(compactMode()){document.body.classList.add("story-opening-viewport-lock");busy=true;render();compactIntro()}
+ chooseView("storyBattle");render();
+ if(compactMode()){
+  busy=true;render();
+  // Position the actual battle board before activating the opening presentation lock.
+  // The story page header and chapter heading make document scrollY=0 unreliable.
+  const boardRect=$("storyBoard").getBoundingClientRect();
+  const boardCenter=window.scrollY+boardRect.top+boardRect.height/2;
+  const desiredY=Math.max(0,Math.round(boardCenter-window.innerHeight/2));
+  window.scrollTo(0,desiredY);
+  document.body.classList.add("story-opening-viewport-lock");
+  compactIntro();
+ }
 }
 function render(){
  restoreStoryHover();
