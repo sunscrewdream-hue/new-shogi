@@ -44,7 +44,7 @@ function compactMode(){return stage>=0&&stage<D.chapters.length}
 const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
 const compactCardWeights=[["何事もなし",50],["援軍",20],["脱走",15],["粛清",10],["大地震",5]];
 const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
-function compactFighterKey(p){return String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown')}
+function compactFighterKey(p){return p?.uid??(String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown'))}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
  kondo:"assets/audio/voice_kondo_isami_king_move.mp3",
@@ -191,12 +191,22 @@ function compactApplyIncident(effect){
   }else{render();setTimeout(finish,650)}
  };
  if(kind==="脱走"){
-  const rect=board.children[y*g.w+x]?.getBoundingClientRect();
-  if(rect&&Element.prototype.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
-   const ghost=document.createElement("img");ghost.src="assets/sprites/figures/"+(owner===0?"shinsengumi_back":"saccho_front")+".webp";ghost.alt="";
-   Object.assign(ghost.style,{left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height*1.3+"px"});$("compactActionLayer").append(ghost);
-   ghost.animate([{transform:"rotate(-8deg)"},{offset:.24,transform:"rotate(8deg)"},{offset:.44,transform:"rotate(-8deg)"},{opacity:0,transform:`translate(${owner===0?-innerWidth:innerWidth}px,-70px) scale(.7)`}],{duration:1200,fill:"forwards"}).finished.catch(()=>{}).then(()=>{ghost.remove();remove()});
-  }else setTimeout(remove,900);
+  // The pawn vanishes as the officer departs; neither action waits for the other.
+  const B=g.clone(g.board);B[y][x]=null;
+  if(!compactSafeBoard(B)){finish();return}
+  const rect=board.children[y*g.w+x]?.getBoundingClientRect(),layer=$("compactActionLayer");
+  const motion=!!rect&&!!Element.prototype.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  let ghost=null;
+  if(motion){
+   const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
+   ghost=document.createElement("img");ghost.src="assets/sprites/figures/"+(owner===0?"shinsengumi_back":"saccho_front")+".webp";ghost.alt="";
+   Object.assign(ghost.style,{left:rect.left+rect.width/2-width/2+"px",top:rect.top+rect.height/2-height/2+"px",width:width+"px",height:height+"px"});layer.replaceChildren(ghost);
+  }
+  const depart=()=>{if(game!==epoch)return;g.board[y][x]=null;render()};
+  if(!ghost){depart();setTimeout(finish,180);return}
+  setTimeout(depart,120);
+  const travel=owner===0?-innerWidth:innerWidth;
+  ghost.animate([{offset:0,opacity:1,transform:"rotate(0)"},{offset:.12,transform:"rotate(-8deg)"},{offset:.24,transform:"rotate(8deg)"},{offset:.38,transform:"rotate(-6deg)"},{offset:.62,opacity:1,transform:`translate(${travel*.42}px,-38px) rotate(-15deg)`},{offset:1,opacity:0,transform:`translate(${travel}px,${-rect.top-100}px) rotate(16deg) scale(.5)`}],{duration:1350,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{ghost.remove();finish()});
  }else setTimeout(remove,850);
 }
 function compactIntro(){
@@ -235,7 +245,7 @@ function compactTurn(side,after,opening=false){
   if(game!==epoch||stamp!==compactFxSerial||ended)return;
   panel.classList.remove("show");
   compactTurnLocked=false;render();
-  if(g.check(g.board,side))compactSound("check");
+  // Check was announced on the move that gave check; don't repeat on turn notice.
   after?.();
  },1800);
 }

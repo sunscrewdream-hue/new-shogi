@@ -10,10 +10,13 @@ class StoryEngine{
   const used=[{},{}],make=(t,s)=>{
    const n=used[s][t]||0;used[s][t]=n+1;
    const cid=ROSTER[t][n]??null;
-   if(s===0)return{t,s,cid,origin:0,p:false,mob:n%8};
-   if(t==="玉")return{t,s,cid:this.stage===1?17:this.stage===3?0:null,origin:1,p:false,king:this.config.king,mob:0};
-   if(this.stage===2&&t==="銀"&&n===0)return{t,s,cid:7,origin:0,p:false,king:"todo",mob:0};
-   return{t,s,cid:this.stage===1||this.stage===3?cid:null,origin:1,p:false,mob:n%8};
+   // An officer's identity survives capture, change of allegiance and redeployment.
+   // In 5x6, multiple unnamed soldiers otherwise shared the same origin/type key.
+   const uid=`${s}:${t}:${n}`;
+   if(s===0)return{t,s,cid,origin:0,uid,p:false,mob:n%8};
+   if(t==="玉")return{t,s,cid:this.stage===1?17:this.stage===3?0:null,origin:1,uid,p:false,king:this.config.king,mob:0};
+   if(this.stage===2&&t==="銀"&&n===0)return{t,s,cid:7,origin:0,uid,p:false,king:"todo",mob:0};
+   return{t,s,cid:this.stage===1||this.stage===3?cid:null,origin:1,uid,p:false,mob:n%8};
   },B=this.board;
   if(this.w===5){
    const row=["金","銀","玉","銀","金"],row2=["歩","歩","飛","歩","歩"];

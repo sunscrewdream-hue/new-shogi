@@ -13,6 +13,13 @@ for (const token of ['compactCardStart(actor)', 'compactIntro()', 'compactCallig
   'animateCompactEscort(actor', 'compactTurn(side', 'compactCheckSources()']) {
   assert.ok(source.includes(token), `Missing shared story trigger: ${token}`);
 }
+const turnNotice = source.match(/function compactTurn\(side,after,opening=false\)\{([\s\S]*?)\n\}/)?.[1];
+assert.ok(turnNotice, 'Turn notice routine not found');
+assert.doesNotMatch(turnNotice, /compactSound\("check"\)/,
+  'Check must play once at the move, not again after the following turn notice');
+assert.match(source, /if\(gaveCheck\)compactSound\("check"\)/,
+  'The move that gives check must still announce it');
+assert.match(source, /setTimeout\(depart,120\)/, 'Desertion disappearance must begin during exit motion');
 for (const file of [
   'assets/turn-notice/turn_shinsengumi_illustrated.png',
   'assets/turn-notice/turn_enemy_illustrated.png',
@@ -38,6 +45,17 @@ for (let stage = 0; stage < 4; stage++) {
   assert.equal(game.w * game.h, stage === 0 || stage === 2 ? 30 : 81);
   assert.ok(game.legal(0).length > 0, `No opening move in chapter ${stage + 1}`);
   assert.ok(game.legal(1).length > 0, `Enemy has no opening move in chapter ${stage + 1}`);
+
+  const fighters = game.board.flat().filter(Boolean);
+  assert.equal(new Set(fighters.map(p => p.uid)).size, fighters.length,
+    `Chapter ${stage + 1} shares the same capture identity between distinct soldiers`);
+  const first = fighters.find(p => p.t === '歩');
+  const other = fighters.find(p => p.t === '歩' && p.s === first.s && p.uid !== first.uid);
+  assert.ok(other, `Chapter ${stage + 1} has no two distinct soldiers of one class`);
+  assert.notEqual(first.uid, other.uid);
+  const original = first.uid;
+  const switched = {...first, s: 1 - first.s, p: false};
+  assert.equal(switched.uid, original, 'Capture/redeployment must not reset officer identity');
 
   // The fourth capture of an awakened unit kills instead of entering the hand.
   game.board = Array.from({length: game.h}, () => Array(game.w).fill(null));
