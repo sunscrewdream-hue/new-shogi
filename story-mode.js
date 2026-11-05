@@ -822,7 +822,7 @@ function render(){
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
- for(const id of ["debugCard","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugFx","debugVoice0","debugVoice1"]){
+ for(const id of ["debugCard","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
   $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3);
  }
 }
@@ -1068,6 +1068,8 @@ function storyDebugIncident(kind){
  const v=options[Math.floor(Math.random()*options.length)];
  compactApplyIncident({kind,side,owner,y:v.y,x:v.x});
 }
+$("debugWin").onclick=()=>storyDebugRun(()=>finish(0,"開発テスト：新選組の勝利"),true);
+$("debugLose").onclick=()=>storyDebugRun(()=>finish(1,"開発テスト：薩長同盟の勝利"),true);
 $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
 $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
