@@ -48,9 +48,9 @@ function sfx(t,onDone=null){
 // Historical 5x6-only gating silently disabled cards, capture escorts, turn notices,
 // awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
 function compactMode(){return stage>=0&&stage<D.chapters.length}
-const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
-const compactCardWeights=[["何事もなし",50],["寝返り",20],["脱走",15],["粛清",10],["大地震",5]];
-const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
+const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
+const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]];
+const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
 function compactFighterKey(p){return p?.uid??(String(p?.origin??p?.s)+':'+String(p?.cid??p?.t??'unknown'))}
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
@@ -152,6 +152,11 @@ function compactCardReveal(){
  const kind=state.kind,side=state.side;let detail="";compactIncidentEffect=null;
  if(kind==="何事もなし")detail="何事もなし。盤面に変化なし";
  else if(kind==="大地震"){compactIncidentEffect={kind};detail="大地震！ 駒が揺れ動き、地面が崩れる"}
+ else if(kind==="援軍"){
+  const fallen=g.fallen[side];
+  if(fallen.length){const revived=fallen[Math.floor(Math.random()*fallen.length)];compactIncidentEffect={kind,side,uid:revived.uid};detail="援軍！ 戦死した"+revived.t+"が持ち駒に復活する"}
+  else detail="援軍：復活できる戦死者がいないため効果なし";
+ }
  else{
   const owner=kind==="寝返り"?1-side:side,options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
   if(!options.length)detail=kind+"：安全な対象がないため効果なし";
@@ -184,11 +189,9 @@ $("compactCardFace").onclick=()=>{
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
    $("compactCardPrompt").textContent="";
-   playKabukiVoice(item.kind).then(()=>{
-    if(pendingWeaponDisplay!==item)return;
-    item.voiceDone=true;
-    if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
-   });return;
+   // 「撃て！」 is spoken exactly once immediately before discharge in fire().
+   // Old cannon/rifle announcement clips contained unrelated 「うわっ！」.
+   item.voiceDone=true;return;
   }
   if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
@@ -212,6 +215,21 @@ function compactResumeTurn(){
 function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
+ if(effect.kind==="援軍"){
+  const fallen=g.fallen[effect.side],i=fallen.findIndex(p=>p.uid===effect.uid);
+  if(i<0){compactResumeTurn();return}
+  const revived=fallen.splice(i,1)[0];g.hands[effect.side].push({...revived,s:effect.side,p:false});
+  banner(effect.side,revived);render();
+  const hand=$("storyHand"+effect.side);
+  for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
+  storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒へ復活！",effect.side);
+  // Keep controls locked through the full shine and 「いざ出陣！」 voice.
+  let voiceDone=false,glowDone=false;
+  const finish=()=>{if(!voiceDone||!glowDone||game!==epoch)return;compactResumeTurn()};
+  playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",()=>{voiceDone=true;finish()});
+  setTimeout(()=>{if(game!==epoch)return;glowDone=true;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));finish()},2100);
+  return;
+ }
  if(effect.kind==="大地震"){
   board.classList.add("compact-quake");document.body.classList.add("story-quake-active");compactSound("quake");playStoryQuakeBattle();
   setTimeout(()=>{
@@ -237,6 +255,7 @@ function compactApplyIncident(effect){
   // A second safety check protects against any stale target or changed board.
   const B=g.clone(g.board);B[y][x]=null;if(!compactSafeBoard(B)){finish();return}
   g.board[y][x]=null;
+  if(kind==="粛清")g.fallen[p.s].push({...p,p:false});
   if(kind==="寝返り"){
    // Keep the gravel footsteps audible; the later drum used to cut them short.
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
@@ -546,7 +565,7 @@ function render(){
   if(!g.hands[s].length)hand.textContent="なし";
   const names={歩:"fu",香:"kyosha",桂:"keima",銀:"gin",金:"kin",角:"kaku",飛:"hisha"};
   for(const t of ["飛","角","金","銀","桂","香","歩"]){if(!groups[t])continue;
-   const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.setAttribute("aria-label",(s===0?"新選組":"薩長同盟")+"の持ち駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
+   const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.dataset.piece=t;b.setAttribute("aria-label",(s===0?"新選組":"薩長同盟")+"の持ち駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
    const fig=document.createElement("img");fig.className="story-hand-art story-hand-figure";fig.src="assets/sprites/figures/"+(s===0?"shinsengumi_back":"saccho_front")+".webp";fig.alt="";fig.draggable=false;fig.decoding="async";
    const letter=document.createElement("img");letter.className="story-hand-art story-hand-letter";letter.src="assets/sprites/letters/normal_"+names[t]+".webp";letter.alt="";letter.draggable=false;letter.decoding="async";
    const fallback=document.createElement("span");fallback.className="story-hand-fallback";fallback.textContent=t;
@@ -560,7 +579,7 @@ function render(){
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
- for(const id of ["debugCard","debugQuake","debugReinforce","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugFx","debugVoice0","debugVoice1"]){
+ for(const id of ["debugCard","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugFx","debugVoice0","debugVoice1"]){
   $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3);
  }
 }
@@ -793,6 +812,11 @@ function storyDebugIncident(kind){
 $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
 $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
+$("debugRevival").onclick=()=>storyDebugRun(()=>{
+ const fallen=g.fallen[g.side];
+ if(!fallen.length){popup("援軍の確認","まだ戦死者がいません。斬殺・粛清または砲撃などで駒が失われた後にお試しください。",[["閉じる",()=>{}]]);return}
+ compactApplyIncident({kind:"援軍",side:g.side,uid:fallen[fallen.length-1].uid});
+},true);
 $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
 async function storyDebugHitokiri(kill){

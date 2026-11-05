@@ -4,7 +4,7 @@ const BACK=["香","桂","銀","金","玉","金","銀","桂","香"];
 const ROSTER={玉:[0],飛:[1],角:[2],金:[3,4],銀:[5,6],桂:[7,8],香:[9,10],歩:[11,12,13,14,15,16,17,18,19]};
 const VALUES={玉:10000,飛:14,角:12,金:9,銀:7,桂:5,香:4,歩:2};
 class StoryEngine{
- constructor(stage){this.stage=stage;this.config=window.StoryData.chapters[stage];this.w=this.config.w;this.h=this.config.h;this.side=0;this.last=null;this.ply=0;this.holes=[];this.hands=[[],[]];this.board=Array.from({length:this.h},()=>Array(this.w).fill(null));this.setup();}
+ constructor(stage){this.stage=stage;this.config=window.StoryData.chapters[stage];this.w=this.config.w;this.h=this.config.h;this.side=0;this.last=null;this.ply=0;this.holes=[];this.hands=[[],[]];this.fallen=[[],[]];this.board=Array.from({length:this.h},()=>Array(this.w).fill(null));this.setup();}
  isHole(y,x){return this.holes.some(v=>v.y===y&&v.x===x&&this.ply<v.expiresPly)}
  setup(){
   const used=[{},{}],make=(t,s)=>{
@@ -90,6 +90,7 @@ class StoryEngine{
  move(m,prom=false,kill=false){
   const unit=m.drop?this.hands[this.side].find(p=>p.t===m.t):this.board[m.y][m.x];
   const captured=this.act(this.board,this.hands,this.side,m,prom,kill);
+  if(kill&&captured&&captured.t!=="玉")this.fallen[captured.s].push({...captured,p:false});
   this.last={y:m.Y,x:m.X};this.ply++;this.holes=this.holes.filter(v=>this.ply<v.expiresPly);this.side=1-this.side;
   return {unit,captured};
  }
@@ -125,7 +126,7 @@ class StoryEngine{
   for(let y=fromY+d;y>=0&&y<this.h;y+=d)if(this.board[y][x])return{kind,x,y,fromY,side,hit:this.board[y][x]};
   return{kind,x,y:-1,fromY,side,hit:null};
  }
- destroy(y,x){const p=this.board[y]?.[x];if(p)this.board[y][x]=null;return p}
+ destroy(y,x){const p=this.board[y]?.[x];if(p){this.board[y][x]=null;if(p.t!=="玉")this.fallen[p.s].push({...p,p:false})}return p}
 }
 window.StoryEngine=StoryEngine;
 })();

@@ -8,7 +8,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'story-mode.js'), 'utf8');
 const storyHtml=fs.readFileSync(path.join(root,'story-mode.html'),'utf8');
-for(const id of ['debugCard','debugQuake','debugReinforce','debugDesert','debugPurge','debugKill','debugAwaken','debugCannon','debugRifle','debugTurn','debugFx','debugVoice0','debugVoice1']){
+for(const id of ['debugCard','debugQuake','debugReinforce','debugRevival','debugDesert','debugPurge','debugKill','debugAwaken','debugCannon','debugRifle','debugTurn','debugFx','debugVoice0','debugVoice1']){
  assert.match(storyHtml,new RegExp(`id="${id}"`),`Missing story debug button: ${id}`);
  assert.ok(source.includes(`$("${id}").onclick`),`Debug button has no handler: ${id}`);
 }
@@ -42,6 +42,16 @@ assert.match(source,/compactFadeExpiredHoles\(id\)/,
   'Expired shell or quake holes must fade before proceeding');
 assert.match(source,/master_cliffcollapse_1s_v1\.mp3/,
   'Closing holes must use the treated cliff-fall audio');
+assert.match(source, /"援軍":"assets\/cards\/events\/reinforcement\.webp"/,
+ 'The original reinforcement illustration must be reused');
+assert.match(source,/"援軍":"assets\/audio\/events\/incident_voice_reinforcement\.mp3"/,
+ 'Reinforcement card must use the approved announcement');
+assert.match(source,/assets\/audio\/voice_iza_shutsujin\.mp3/,
+ 'The revived piece must receive the sortie voice');
+assert.match(source,/const fallen=g\.fallen\[effect\.side\]/,
+ 'Reinforcement must restore dead pieces, rather than defecting living enemies');
+assert.doesNotMatch(source,/playKabukiVoice\(item\.kind\)/,
+ 'Cannon and rifle cards must not speak the incorrect old line');
 assert.match(source, /setTimeout\(depart,120\)/, 'Desertion disappearance must begin during exit motion');
 for (const file of [
   'assets/turn-notice/turn_shinsengumi_illustrated.png',
@@ -106,8 +116,8 @@ assert.match(source, /await playKabukiVoice\("kill"\)/,
  'Kill must wait for the spoken calligraphy before playing blade effects');
 assert.match(source, /await playKabukiVoice\("awakening"\)/,
  'Awakening must wait until the capture voice is finished');
-assert.match(source, /playKabukiVoice\(item\.kind\)\.then/,
- 'Each weapon card must announce its own name before firing');
+assert.match(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",done\)/,
+ 'Both weapons must use the confirmed 「撃て！」 clip immediately before fire');
 assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,
   'Toba-Fushimi must show incident cards every three turns; others retain four');
 assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
@@ -163,10 +173,17 @@ for (let stage = 0; stage < 4; stage++) {
   game.board[game.h - 1][game.w - 1] = {t: '玉', s: 0};
   game.board[0][game.w - 1] = {t: '玉', s: 1};
   game.board[game.h - 2][0] = {t: '飛', s: 0, cid: 1, origin: 0};
-  game.board[game.h - 3][0] = {t: '歩', s: 1, cid: 11, origin: 1};
+  game.board[game.h - 3][0] = {t: '歩', s: 1, cid: 11, origin: 1, uid: 'enemy-killed-pawn'};
   const result = game.move({y: game.h - 2, x: 0, Y: game.h - 3, X: 0}, false, true);
   assert.equal(result.captured.t, '歩');
   assert.equal(game.hands[0].length, 0, `Kill added a captive in chapter ${stage + 1}`);
+  assert.equal(game.fallen[1].length, 1, `Killed soldier not recorded for future 援軍 in chapter ${stage + 1}`);
+  assert.equal(game.fallen[1][0].uid, 'enemy-killed-pawn');
+  const restored=game.fallen[1].pop();game.hands[1].push({...restored,s:1,p:false});
+  assert.equal(game.hands[1][0].uid,'enemy-killed-pawn','Reinforcement must preserve fallen soldier identity');
+  game.board[game.h-4][1]={t:'銀',s:0,uid:'shell-casualty'};
+  assert.equal(game.destroy(game.h-4,1).uid,'shell-casualty');
+  assert.equal(game.fallen[0][0].uid,'shell-casualty','Artillery casualties must enter reinforcement roster');
 }
 // A checked king may be saved by another piece. Do not incorrectly lock every
 // non-king square: an interposition is a legal move in the finished game.
