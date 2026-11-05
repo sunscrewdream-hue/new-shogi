@@ -30,10 +30,10 @@
   <div class="hand-container"><span>新選組の持ち駒（タップで駒打ち）</span><div id="storyHand0" class="story-hand"></div></div>
   <div id="playerStoryBanner" class="person-banner"><img id="playerStoryArt" src="" alt=""><div class="banner-text"><div id="playerStoryName" class="banner-name"></div><div id="playerStoryRole" class="banner-role"></div></div><div id="playerBannerStatus" class="story-banner-status" aria-hidden="true"></div><img class="hitokiri-stamp" src="assets/visuals/hitokiri_red_calligraphy.webp" alt="" aria-hidden="true"></div>
   <div class="battle-bottom"><button id="storyRules">操作・ルール</button><button id="storyResign">降参する</button></div>
-  <section id="storyDebugTools" class="story-debug-tools" aria-label="開発用演出テスト">
-   <h3>🛠 開発テスト・対局管理</h3><div class="story-debug-buttons"><button type="button" onclick="storySaveMatch()">💾 対局を保存</button><button type="button" onclick="storyLoadMatch()">📂 保存した対局</button></div>
+  <section id="storyDebugTools" class="story-debug-tools unified-debug-tools" aria-label="開発用演出テスト">
+   <h3>🛠 開発テスト・対局管理</h3><div class="story-debug-buttons unified-debug-buttons"><button type="button" onclick="storySaveMatch()">💾 対局を保存</button><button type="button" onclick="storyLoadMatch()">📂 保存した対局</button></div>
    <p>対局を進めずに演出を確認できます。事件札・兵器のテストは局面が変化する場合があります。</p>
-   <div class="story-debug-buttons">
+   <div class="story-debug-buttons unified-debug-buttons">
     <button type="button" id="debugCard">🎴 カード演出テスト</button>
     <button type="button" id="debugQuake">🌋 地震演出テスト</button>
     <button type="button" id="debugReinforce">🏇 寝返り</button>
