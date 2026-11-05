@@ -32,11 +32,9 @@ function playKabukiVoice(kind){return new Promise(resolve=>{
  playStoryClip(path,"voice",resolve);
 })}
 function playCasualtyCry(){return new Promise(resolve=>{
- let done=false;const finish=()=>{if(done)return;done=true;resolve()};
- // User-confirmed correction: the mistakenly named samurai_fire clip
- // actually contains the casualty's 「うわっ！」, not the order to fire.
- playStoryClip("assets/story/audio/master_samurai_fire_v1.mp3","voice",finish);
- setTimeout(finish,2400);
+ // The previous candidate actually says 「鉄砲」. Do not play that command
+ // over a casualty. Reserve a short beat for the missing distinct scream.
+ setTimeout(resolve,420);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 function chooseView(active){["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
@@ -197,9 +195,12 @@ $("compactCardFace").onclick=()=>{
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
    $("compactCardPrompt").textContent="";
-   // 「撃て！」 is spoken exactly once immediately before discharge in fire().
-   // Old cannon/rifle announcement clips contained unrelated 「うわっ！」.
-   item.voiceDone=true;return;
+   // Name the revealed weapon card first, then speak 「撃て！」 once at launch.
+   playKabukiVoice(item.kind).then(()=>{
+    if(pendingWeaponDisplay!==item)return;
+    item.voiceDone=true;
+    if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
+   });return;
   }
   if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
@@ -751,8 +752,8 @@ async function fire(kind,ownerSide=1){
   }
   if(!hit)return;
   if(kind==="cannon"){
-   // The new 「無念だ」 belongs to EACH individual casualty, not the end of the volley.
-   await new Promise(resolve=>hit.s===0?sfx("loss",resolve):compactSound("sacchoLoss",resolve));
+   // Cannon casualties share the immediate hit-cry slot with rifle casualties.
+   await playCasualtyCry();
   }else{
    await playCasualtyCry();if(id!==epoch)return;
    const square=shot.y+":"+shot.x;

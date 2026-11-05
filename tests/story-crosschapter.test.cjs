@@ -36,8 +36,8 @@ assert.match(source, /if\(stage===3&&actor===0\)/,
   'The player must receive artillery cards in Toba-Fushimi');
 assert.match(source, /pendingWeaponKind=\{kind,side:1\}/,
   'The enemy must retain its artillery cards');
-assert.match(source,/hit\.s===0\?sfx\("loss",resolve\):compactSound\("sacchoLoss",resolve\)/,
-  'Cannon casualty must be voiced before the next shot');
+assert.match(source,/if\(kind==="cannon"\)\{[\s\S]*?await playCasualtyCry\(\)/,
+  'Cannon casualty must reserve its hit-cry slot before the next shot');
 assert.match(source,/compactFadeExpiredHoles\(id\)/,
   'Expired shell or quake holes must fade before proceeding');
 assert.match(source,/master_cliffcollapse_1s_v1\.mp3/,
@@ -50,8 +50,8 @@ assert.match(source,/assets\/audio\/voice_iza_shutsujin\.mp3/,
  'The revived piece must receive the sortie voice');
 assert.match(source,/const fallen=g\.fallen\[effect\.side\]/,
  'Reinforcement must restore dead pieces, rather than defecting living enemies');
-assert.doesNotMatch(source,/playKabukiVoice\(item\.kind\)/,
- 'Cannon and rifle cards must not speak the incorrect old line');
+assert.match(source,/playKabukiVoice\(item\.kind\)\.then/,
+ 'Each weapon card must announce 大砲 or 鉄砲 before the fire command');
 assert.match(source, /setTimeout\(depart,120\)/, 'Desertion disappearance must begin during exit motion');
 for (const file of [
   'assets/turn-notice/turn_shinsengumi_illustrated.png',
@@ -94,7 +94,8 @@ assert.match(weapons, /used\.has/, 'Two cannon shells must strike different squa
 assert.match(weapons, /explosion-v3\.webp/, 'Transparent centered blast asset must be used');
 assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
   'Legacy weapon assets with opaque backgrounds must not be used');
-assert.match(source, /master_samurai_fire_v1\.mp3/, 'The corrected casualty cry is not connected');
+assert.doesNotMatch(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3"/,
+ 'The falsely named 「鉄砲」 clip must not be triggered as 「撃て」 or 「うわ」');
 assert.match(source, /master_samurai_gomen_v1\.mp3/, 'Defection must use only the trimmed 「御免！」 recording');
 assert.match(source, /master_samurai_loss_v1\.mp3/, 'The new 「無念だ」 recording was not connected');
 assert.match(source, /"寝返り":"assets\/story\/audio\/master_samurai_defection_v1\.mp3"/,
@@ -132,8 +133,8 @@ assert.match(source, /await playKabukiVoice\("awakening"\)/,
  'Awakening must wait until the capture voice is finished');
 assert.match(source, /playStoryClip\("assets\/story\/audio\/master_fire_voice_v2\.mp3","voice",done\)/,
  'Both weapons must use the restored original 「撃て！」 clip immediately before fire');
-assert.match(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",finish\)/,
- 'The misnamed 「うわっ！」 clip must only play as a casualty cry');
+assert.doesNotMatch(source, /playStoryClip\("assets\/story\/audio\/master_samurai_fire_v1\.mp3","voice",finish\)/,
+ 'The misidentified 「鉄砲」 clip must not play over a casualty');
 assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,
   'Toba-Fushimi must show incident cards every three turns; others retain four');
 assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
