@@ -43,6 +43,11 @@ for (const file of [
   'assets/story/audio/master_cannon.mp3',
   'assets/story/audio/master_rifle.mp3',
   'assets/story/audio/master_explosion.mp3',
+  'assets/cards/incident-title-outline-v3.webp',
+  'assets/story/audio/master_reinforcement_v2.mp3',
+  'assets/story/audio/master_loss_v2.mp3',
+  'assets/story/audio/master_fire_voice_v2.mp3',
+  'assets/story/audio/master_saccho_loss_v3.mp3',
 ]) assert.ok(fs.existsSync(path.join(root, file)), `Missing game asset: ${file}`);
 const weapons = fs.readFileSync(path.join(root, 'story-weapons.js'), 'utf8');
 assert.match(weapons, /story-projectile/, 'Projectile must not use opaque legacy bitmaps');
@@ -51,8 +56,8 @@ assert.match(weapons, /used\.has/, 'Two cannon shells must strike different squa
 assert.match(weapons, /explosion-v3\.webp/, 'Transparent centered blast asset must be used');
 assert.doesNotMatch(weapons, /cannonball\.webp|bullet\.webp|explosion\.webp|rifle-impact\.webp/,
   'Legacy weapon assets with opaque backgrounds must not be used');
-assert.match(source, /master_fire_voice\.mp3/, 'The artillery order-to-fire voice was not connected');
-assert.match(source, /master_reinforcement\.mp3/, 'Reinforcement did not receive its approved voice');
+assert.match(source, /master_fire_voice_v2\.mp3/, 'The level-matched artillery voice was not connected');
+assert.match(source, /master_reinforcement_v2\.mp3/, 'Reinforcement did not receive its level-matched voice');
 assert.match(source, /master_promotion_voice\.mp3/, 'Promotion prompt did not receive its approved voice');
 assert.match(source, /function compactCardInterval\(\)\{return stage===3\?3:4\}/,
   'Toba-Fushimi must show incident cards every three turns; others retain four');
@@ -66,8 +71,13 @@ assert.match(source, /if\(stage===3\)return g\.ply>=5&&\(g\.ply-5\)%3===0/,
   'Toba-Fushimi incidents must be staggered three half-moves apart');
 assert.doesNotMatch(source, /if\(actor===1&&!willKill\)/,
   'Ordinary captures must never trigger an additional loss voice');
-assert.match(source, /pendingWeaponDisplay=\{kind,revealed:false\}/,
+assert.match(source, /pendingWeaponDisplay=\{kind,ownerSide,revealed:false\}/,
   'Weapon cards must reuse the normal two-step back-and-reveal UI');
+assert.match(source, /compactSound\("slash"\)\},1010\)/, 'Opening clash must have a sword sound');
+assert.match(source, /if\(kind==="脱走"\|\|kind==="援軍"\)compactSound\("desert"\)/,
+  'Reinforcements and deserters must share footsteps');
+assert.match(source, /\$\("compactCardText"\)\.textContent=item\.kind==="cannon"/,
+  'Weapon cards must show their explanations in the ordinary card footer');
 
 const sandbox = {window: {}};
 vm.createContext(sandbox);
@@ -115,4 +125,15 @@ checked.board[7][3]={t:'金',s:0};
 assert.ok(checked.check(checked.board,0), 'Fixture must start in check');
 assert.ok(checked.legal(0).some(m=>m.y===7&&m.x===3&&m.Y===7&&m.X===4),
   'A non-king piece must be able to interpose against a rook check');
+const weaponsGame=new sandbox.window.StoryEngine(3);
+for(let i=0;i<100;i++){
+ const enemyCannon=weaponsGame.fire('cannon',1),allyCannon=weaponsGame.fire('cannon',0);
+ const enemyRifle=weaponsGame.fire('rifle',1),allyRifle=weaponsGame.fire('rifle',0);
+ assert.ok(enemyCannon.y>=5&&enemyCannon.y<=8,'Enemy cannon must land on player half');
+ assert.ok(allyCannon.y>=0&&allyCannon.y<=3,'Player cannon must land on enemy half');
+ assert.equal(enemyRifle.fromY,3,'Enemy rifle must launch from fourth rank');
+ assert.equal(allyRifle.fromY,5,'Player rifle must launch from fourth rank');
+ assert.ok(enemyRifle.y<0||enemyRifle.y>=4,'Enemy rifle must not hit behind its muzzle');
+ assert.ok(allyRifle.y<0||allyRifle.y<=4,'Player rifle must not hit behind its muzzle');
+}
 console.log('PASS: four story chapters, board dimensions, legal opening moves, capture-kill, and shared assets');

@@ -33,7 +33,7 @@ function sfx(t){
   playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3");return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_loss.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_loss_v2.mp3"};
  if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx");return}
  // No legacy synthesized fallback: only approved recorded assets are played.
 }
@@ -51,7 +51,7 @@ const compactAudio={
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
  sacchoCapture:"assets/audio/saccho_voice_03_toraeta.mp3",
- sacchoLoss:"assets/audio/saccho_voice_04_munen.mp3",
+ sacchoLoss:"assets/story/audio/master_saccho_loss_v3.mp3",
  saigo:"assets/audio/voice_saigo_takamori.mp3",
  kido:"assets/audio/voice_kido_takayoshi.mp3",
  sacchoCheck:"assets/audio/saccho_voice_06_korede_saigo.mp3",
@@ -156,8 +156,13 @@ function compactCardClose(){
 $("compactCardFace").onclick=()=>{
  if(pendingWeaponDisplay){
   const item=pendingWeaponDisplay;
-  if(!item.revealed){item.revealed=true;$("compactCardFace").style.backgroundImage=`url("assets/story/cards/${item.kind}-v2.webp")`;$("compactCardFace").classList.add("revealed");sfx("flip");$("compactCardPrompt").textContent="もう一度タップして砲撃を開始";return}
-  pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind);return;
+  if(!item.revealed){
+   item.revealed=true;$("compactCardFace").style.backgroundImage=`url("assets/story/cards/${item.kind}-v2.webp")`;
+   $("compactCardFace").classList.add("revealed");sfx("flip");
+   $("compactCardText").textContent=item.kind==="cannon"?"敵陣側の盤面に２発の砲弾が順番に落下。着弾点に３手の穴を残す。":"発射側の４段目から敵陣に向けて発砲。最初に命中した１枚が倒れる。";
+   $("compactCardPrompt").textContent="";return;
+  }
+  pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
  }
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
 };
@@ -190,7 +195,7 @@ function compactApplyIncident(effect){
  if(!p||p.s!==owner||p.t==="玉"){compactResumeTurn();return}
  compactIncidentMarks=[y+":"+x];banner(owner,p);render();
  // Finished match plays the gravel-run cue as the desertion starts, not after it ends.
- if(kind==="脱走")compactSound("desert");
+ if(kind==="脱走"||kind==="援軍")compactSound("desert");
  const finish=()=>{if(game!==epoch)return;compactIncidentMarks=[];compactResumeTurn()};
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
@@ -198,12 +203,12 @@ function compactApplyIncident(effect){
   const B=g.clone(g.board);B[y][x]=null;if(!compactSafeBoard(B)){finish();return}
   g.board[y][x]=null;
   if(kind==="援軍"){
-   compactSound("reinforce");
+   // Keep the gravel footsteps audible; the later drum used to cut them short.
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
    // The escort and the full reinforcement line must both finish before play resumes.
    let escortDone=false,voiceDone=false;
    const resume=()=>{if(escortDone&&voiceDone)finish()};
-   playStoryClip("assets/story/audio/master_reinforcement.mp3","voice",()=>{voiceDone=true;resume()});
+   playStoryClip("assets/story/audio/master_reinforcement_v2.mp3","voice",()=>{voiceDone=true;resume()});
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
@@ -232,6 +237,7 @@ function compactApplyIncident(effect){
 function compactIntro(){
  if(!compactMode())return;
  const game=epoch,root=$("compactIntroClash");root.classList.remove("show");void root.offsetWidth;root.classList.add("show");
+ setTimeout(()=>{if(game===epoch&&root.classList.contains("show"))compactSound("slash")},1010);
  setTimeout(()=>{if(game!==epoch||ended)return;root.classList.remove("show");busy=false;compactTurn(0,null,true)},2600);
 }
 function animateCompactEscort(side,y,x,captive,done){
@@ -555,7 +561,8 @@ function makeMove(m,prom){
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
   if(gaveCheck)compactSound("check");
-  else if(nearby&&Math.random()<.45)compactSound(dedicated||(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto"));
+  else if(dedicated)compactSound(dedicated);
+  else if(nearby&&Math.random()<.45)compactSound(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(compactMode()){
@@ -593,15 +600,15 @@ function computer(){
   if(!weapons.includes(kind))pendingWeaponKind=kind;
  }
 }
-function weaponCard(kind){
+function weaponCard(kind,ownerSide=1){
  if(ended||busy||weapons.includes(kind)||stage!==3)return;
- weapons.push(kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,revealed:false};render();
+ weapons.push(kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
  // Use exactly the same calligraphy, card-back, drop and flip UI as the five
  // ordinary incident cards. The weapon illustration is revealed by the player.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
  overlay.classList.add("hidden");face.classList.remove("revealed");
- face.style.backgroundImage='url("card-back-saccho-1024x1536.webp")';
- $("compactCardHeading").textContent="敵軍の事件札";$("compactCardText").textContent="";
+ face.style.backgroundImage=`url("${ownerSide===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp"}")`;
+ $("compactCardHeading").textContent=ownerSide===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";
  $("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
  stageLayer.classList.remove("hidden");const id=epoch;
  const banner=$("compactIncidentBanner");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
@@ -609,11 +616,11 @@ function weaponCard(kind){
   stageLayer.classList.add("hidden");overlay.classList.remove("hidden");face.style.animation="none";void face.offsetWidth;face.style.animation="";sfx("card");
  },1300);
 }
-async function fire(kind){
+async function fire(kind,ownerSide=1){
  const id=epoch;
  // The spoken order to fire is distinct from the subsequent discharge and impact.
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
-  playStoryClip("assets/story/audio/master_fire_voice.mp3","voice",done);setTimeout(done,4500)});
+  playStoryClip("assets/story/audio/master_fire_voice_v2.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
  const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,(shot,hit)=>{
   if(id!==epoch||kind!=="cannon"||shot.y<0)return;
@@ -624,7 +631,7 @@ async function fire(kind){
    if(g.king(0)&&g.king(1)&&!compactSafeBoard(g.board))g.holes.pop();
   }
   storyBannerMessage(`大砲 ${shot.index}/2：${shot.y+1}段${shot.x+1}列に着弾！`,0);render();
- });
+ },ownerSide);
  const result=results?.[results.length-1];
  if(!result||id!==epoch)return;
  const hits=results.filter(r=>r.hit);

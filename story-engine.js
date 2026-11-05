@@ -110,11 +110,20 @@ class StoryEngine{
   return score;
  }
  ai(){const ms=this.legal(1);if(!ms.length)return null;return ms.map(m=>({m,score:this.score(m,this.config.level)})).sort((a,b)=>b.score-a.score)[0].m}
- fire(kind){
+ fire(kind,side=1){
   const x=Math.floor(Math.random()*this.w);
-  if(kind==="cannon"){const y=Math.floor(Math.random()*this.h);return {kind,x,y,hit:this.board[y][x]}}
-  for(let y=0;y<this.h;y++)if(this.board[y][x])return{kind,x,y,hit:this.board[y][x]};
-  return{kind,x,y:-1,hit:null};
+  if(kind==="cannon"){
+   // Shells fall only on the opposing half, never on the firing army's rear.
+   const enemyRows=side===1?Array.from({length:Math.floor(this.h/2)},(_,i)=>this.h-Math.floor(this.h/2)+i)
+    :Array.from({length:Math.floor(this.h/2)},(_,i)=>i);
+   const y=enemyRows[Math.floor(Math.random()*enemyRows.length)];
+   return {kind,x,y,fromY:side===1?0:this.h-1,side,hit:this.board[y][x]};
+  }
+  // The musket launches from the 4th rank ON THE CARD OWNER'S SIDE.
+  // Only pieces further toward the enemy can be struck, never the firing side's back ranks.
+  const fromY=side===1?3:this.h-4,d=side===1?1:-1;
+  for(let y=fromY+d;y>=0&&y<this.h;y+=d)if(this.board[y][x])return{kind,x,y,fromY,side,hit:this.board[y][x]};
+  return{kind,x,y:-1,fromY,side,hit:null};
  }
  destroy(y,x){const p=this.board[y]?.[x];if(p)this.board[y][x]=null;return p}
 }

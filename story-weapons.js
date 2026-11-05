@@ -4,8 +4,9 @@ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const board=()=>document.getElementById("storyBoard");
 const cell=(g,y,x)=>board()?.children[y*g.w+x];
 const visible=cb=>typeof cb!=="function"||cb();
-async function projectile(g,kind,x,y,isActive){
- const root=board(),from=cell(g,0,x),to=cell(g,y<0?g.h-1:y,x);
+async function projectile(g,kind,shot,isActive){
+ const x=shot.x,y=shot.y,fromY=shot.fromY??0;
+ const root=board(),from=cell(g,fromY,x),to=cell(g,y<0?(shot.side===0?0:g.h-1):y,x);
  if(!root||!from||!to||!visible(isActive))return;
  // Pure CSS projectile: no opaque black rectangular backing from legacy bitmaps.
  const flying=document.createElement("span");
@@ -17,7 +18,8 @@ async function projectile(g,kind,x,y,isActive){
  const startX=a.left-area.left+a.width/2-size/2,startY=a.top-area.top+a.height/2-size/2;
  const endX=b.left-area.left+b.width/2-size/2,endY=b.top-area.top+b.height/2-size/2;
  if(flying.animate){
-  const animation=flying.animate([{transform:"translate("+startX+"px,"+(-size*2)+"px) scale(.75)",opacity:1},{transform:"translate("+endX+"px,"+endY+"px) scale(1.2)",opacity:1}],{duration:kind==="cannon"?1100:850,easing:"ease-in",fill:"forwards"});
+  const startingY=kind==="cannon"?startY+(shot.side===0?size*2:-size*2):startY;
+  const animation=flying.animate([{transform:"translate("+startX+"px,"+startingY+"px) scale(.75)",opacity:1},{transform:"translate("+endX+"px,"+endY+"px) scale(1.2)",opacity:1}],{duration:kind==="cannon"?1100:900,easing:"ease-in",fill:"forwards"});
   await animation.finished.catch(()=>{});
  }else{flying.style.transform="translate("+endX+"px,"+endY+"px)";await wait(950)}
  flying.remove();
@@ -32,24 +34,24 @@ async function impact(g,y,x,kind,isActive){
  const previousZ=c.style.zIndex;c.style.zIndex="26";
  await wait(kind==="cannon"?2250:1750);overlay.remove();c.style.zIndex=previousZ;
 }
-async function fire(g,kind,isActive,onSound,onImpact){
+async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1){
  const root=board();if(!root)return null;
  const shots=[],used=new Set(),count=kind==="cannon"?2:1;
  for(let index=1;index<=count;index++){
   if(!visible(isActive))return null;
-  let shot=g.fire(kind),attempts=0;
-  while(kind==="cannon"&&used.has(shot.y+":"+shot.x)&&attempts++<100)shot=g.fire(kind);
+  let shot=g.fire(kind,ownerSide),attempts=0;
+  while(kind==="cannon"&&used.has(shot.y+":"+shot.x)&&attempts++<100)shot=g.fire(kind,ownerSide);
   if(kind==="cannon"&&used.has(shot.y+":"+shot.x)){
-   const free=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(!used.has(y+":"+x))free.push({y,x});
+   const free=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if((ownerSide===1?y>=g.h-Math.floor(g.h/2):y<Math.floor(g.h/2))&&!used.has(y+":"+x))free.push({y,x});
    shot={...shot,...free[Math.floor(Math.random()*free.length)]};
   }
   used.add(shot.y+":"+shot.x);
   const warnings=[];
   if(kind==="cannon"){const c=cell(g,shot.y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
-  else for(let y=0;y<g.h;y++){const c=cell(g,y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
+  else for(let y=shot.fromY;y>=0&&y<g.h;y+=ownerSide===1?1:-1){const c=cell(g,y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
   const clear=()=>warnings.forEach(c=>c.classList.remove("warn"));
   await wait(1250);if(!visible(isActive)){clear();return null}
-  onSound?.(kind);await projectile(g,kind,shot.x,shot.y,isActive);
+  onSound?.(kind);await projectile(g,kind,shot,isActive);
   if(!visible(isActive)){clear();return null}
   if(shot.y>=0){if(kind==="cannon")onSound?.("blast");await impact(g,shot.y,shot.x,kind,isActive)}
   clear();if(!visible(isActive))return null;
