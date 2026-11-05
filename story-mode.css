@@ -550,10 +550,11 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 /* Ikedaya room architecture frames the original 5x6 tatami board without
    becoming part of the hit grid or changing the board's responsive dimensions. */
 #storyBoard[data-stage="0"].small-board::before{
- content:"";position:absolute;z-index:1;pointer-events:none;
- /* Match the transparent aperture to the actual 5x6 playable rectangle. */
- width:111%;height:115%;left:-5.5%;top:-10.7%;
- background:url("assets/story/board-ikedaya-room-perimeter-v1.webp") center/100% 100% no-repeat;
+ content:"";position:absolute;z-index:3;pointer-events:none;
+ /* Bird's-eye shoji perimeter sits just outside the playable 5x6 cells;
+    the central alpha aperture keeps every square and token unobstructed. */
+ width:122%;height:115%;left:-11%;top:-7.5%;
+ background:url("assets/story/board-ikedaya-room-perimeter-v2.webp") center/100% 100% no-repeat;
 }
 #storyBoard[data-stage="0"]>.sq{z-index:2}
 /* When in check, expose every legal defending piece, not just the king. */

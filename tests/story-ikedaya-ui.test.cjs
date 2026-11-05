@@ -14,10 +14,11 @@ assert.match(js,/storyHoverSide=side;banner\(side,p,true\)/,'Hover preview lasts
 assert.match(js,/clearTimeout\(storyBannerTimers\[side\]\);\$\(prefix\+"StoryBanner"\)\.classList\.remove\("show-character"\)/,'Pointer leave clears the character preview');
 assert.match(js,/if\(p\)banner\(1,p\);\s*makeMove\(move,prom\)/,'AI selection shows the selected enemy unit');
 assert.match(css,/#storyBoard\[data-stage="0"\]\.small-board::before/,'Ikedaya has a dedicated room perimeter');
-assert.match(css,/board-ikedaya-room-perimeter-v1\.webp/);
-assert.match(css,/#storyBoard\[data-stage="0"\]>.sq\{z-index:2\}/,'Board cells remain above the decorative perimeter');
-assert.ok(fs.statSync(path.join(root,'assets/story/board-ikedaya-room-perimeter-v1.webp')).size>10000);
-assert.match(css,/width:111%;height:115%;left:-5\.5%;top:-10\.7%/,'5x6 frame aligns with transparent inner aperture');
+assert.match(css,/board-ikedaya-room-perimeter-v2\.webp/);
+assert.match(css,/#storyBoard\[data-stage="0"\]>.sq\{z-index:2\}/,'Board cells keep their normal stacking context');
+assert.match(css,/content:"";position:absolute;z-index:3;pointer-events:none/,'Decorative overlay cannot intercept shogi moves');
+assert.ok(fs.statSync(path.join(root,'assets/story/board-ikedaya-room-perimeter-v2.webp')).size>10000);
+assert.match(css,/width:122%;height:115%;left:-11%;top:-7\.5%/,'5x6 frame aligns with transparent inner aperture');
 assert.match(js,/defendingPieces\?\.has\(y\+":"\+x\)/,'Every legal defensive piece is visibly marked');
 assert.match(js,/defendingDrops\?\.has\(t\)/,'A defensive drop from hand is visibly marked');
 
