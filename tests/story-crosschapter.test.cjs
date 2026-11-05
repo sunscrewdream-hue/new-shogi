@@ -120,7 +120,9 @@ assert.doesNotMatch(source, /await playKabukiVoice\("kill"\)/,
 assert.match(source, /await playCasualtyCry\(\)/,
  'Fatal capture and rifle hits must play the casualty cry');
 assert.match(source, /compactSound\("blood"/,
- 'Fatal capture and rifle hit must use a blood splash, not a sword sound');
+ 'Fatal capture and rifle hit must use the shared purge impact sound');
+assert.match(source,/blood:"assets\/audio\/sfx\/purge_shukusei\.mp3"/,
+ 'Fatal capture and rifle hit must reuse the exact purge SFX');
 assert.match(source,/debugAwakenKey=compactFighterKey\(officer\)/,
  'Awakening debug must show a persistent stamp on the officer banner');
 assert.match(source,/\}finally\{\s*if\(id===epoch&&!ended\)\{busy=false;compactTurnLocked=false;render\(\)\}/,

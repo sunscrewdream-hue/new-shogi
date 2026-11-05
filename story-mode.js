@@ -77,7 +77,8 @@ const compactAudio={
  desert:"assets/story/audio/master_gravel_run_v2.mp3",
  reinforce:"assets/audio/sfx/taiko_dodon.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
- blood:"assets/story/audio/sfx_blood_splatter_v1.mp3",
+ // One approved impact sound for purge, lethal slash and rifle casualties.
+ blood:"assets/audio/sfx/purge_shukusei.mp3",
  turn:"assets/audio/sfx/taiko_kaka.mp3"
 };
 function compactSound(kind,onDone=null){
