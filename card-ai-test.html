@@ -1071,8 +1071,10 @@ function showVictory(winner,reason='詰み'){
  el('promotionOverlay').classList.remove('show');
 
  el('endWinnerImage').style.display='';el('endLoserImage').style.display='';
- el('endWinnerImage').src=winner===0?'assets/visuals/victory_kondo.webp':'assets/visuals/victory_saigo.webp';
- el('endLoserImage').src=winner===0?'assets/visuals/defeat_saigo.webp':'assets/visuals/defeat_kondo.webp';
+ // Approved story-mode victory artwork; retired character portraits are not referenced.
+ el('endWinnerImage').src=winner===0?'assets/visuals/victory_shinsengumi_scene.webp':'assets/visuals/victory_saccho_scene.webp';
+ el('endLoserImage').removeAttribute('src');
+ el('endLoserImage').style.display='none';
  el('endWinnerImage').alt=(winner===0?'近藤勇':'西郷隆盛')+'の勝利';
  el('endLoserImage').alt=(winner===0?'西郷隆盛':'近藤勇')+'の敗北';
  overlay.classList.remove('enemy-win');
