@@ -1007,3 +1007,6 @@ body.game-effect-scroll-locked{touch-action:none}
 
 /* Mobile seal fine alignment: stop just before the portrait. */
 @media(max-width:600px){#storyBattle .person-banner .hitokiri-stamp{left:-7%;}}
+
+/* Story illustrations are complete images: do not layer the old provisional scene behind them. */
+#storyDialogue .scene-ikedaya:is(.ikedaya-first-page,.ikedaya-second-page,.ikedaya-third-page,.ikedaya-fourth-page){background-color:#d8c4a8;background-blend-mode:normal}
