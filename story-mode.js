@@ -134,22 +134,33 @@ function compactEligible(owner,types=null){const out=[];for(let y=0;y<g.h;y++)fo
  const B=g.clone(g.board);B[y][x]=null;if(compactSafeBoard(B))out.push({y,x,p});
  }return out}
 function compactPlanQuake(){
- const all=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]&&g.board[y][x].t!=="玉")all.push({y,x});
- // The completed 9x9 game moves 3-6 pieces. On a sparse 5x6 story board
- // that many safe moves may not exist; retain the same effect with 1-2
- // pieces as a fallback rather than silently losing the earthquake card.
- const minimum=g.w===5?1:3;
- for(let count=Math.min(6,all.length);count>=minimum;count--)for(let attempt=0;attempt<45;attempt++){
-  const B=g.clone(g.board),candidates=[...all].sort(()=>Math.random()-.5),shifts=[];
-  for(const v of candidates){if(shifts.length>=count)break;if(!B[v.y][v.x])continue;
-   const positions=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
-    const Y=v.y+dy,X=v.x+dx;if((dy||dx)&&Y>=0&&Y<g.h&&X>=0&&X<g.w&&!B[Y][X]&&!g.isHole(Y,X))positions.push({Y,X});
+ // Mini-board earthquake: move at most two distinct pieces, without chaining
+ // one piece through multiple squares or replacing any other piece.
+ const all=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)
+  if(g.board[y][x]&&g.board[y][x].t!=="玉")all.push({y,x});
+ const maxMoves=g.w===5?2:6,minMoves=g.w===5?1:3;
+ for(let count=Math.min(maxMoves,all.length);count>=minMoves;count--)
+  for(let attempt=0;attempt<80;attempt++){
+   const B=g.clone(g.board),candidates=[...all].sort(()=>Math.random()-.5),shifts=[];
+   const usedSources=new Set(),usedTargets=new Set();
+   for(const v of candidates){
+    if(shifts.length>=count)break;
+    const source=v.y+":"+v.x;
+    if(usedTargets.has(source)||usedSources.has(source)||!B[v.y][v.x])continue;
+    const positions=[];
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+     const Y=v.y+dy,X=v.x+dx,target=Y+":"+X;
+     if((dy||dx)&&Y>=0&&Y<g.h&&X>=0&&X<g.w&&!B[Y][X]&&!g.isHole(Y,X)
+        &&!usedSources.has(target)&&!usedTargets.has(target))positions.push({Y,X});
+    }
+    if(!positions.length)continue;
+    const target=positions[Math.floor(Math.random()*positions.length)];
+    B[target.Y][target.X]=B[v.y][v.x];B[v.y][v.x]=null;
+    usedSources.add(source);usedTargets.add(target.Y+":"+target.X);
+    shifts.push({...v,...target});
    }
-   if(!positions.length)continue;const target=positions[Math.floor(Math.random()*positions.length)];
-   B[target.Y][target.X]=B[v.y][v.x];B[v.y][v.x]=null;shifts.push({...v,...target});
+   if(shifts.length===count&&compactSafeBoard(B))return {B,shifts};
   }
-  if(shifts.length===count&&compactSafeBoard(B))return {B,shifts};
- }
  return null;
 }
 function compactCardStart(side){
@@ -291,7 +302,7 @@ function compactApplyIncident(effect){
   // Even if an animation callback fails, never leave the match locked forever.
   quakeWatchdog=setTimeout(()=>{console.warn("地震演出のタイムアウトを復旧");quakeRecovery()},12000);
   setTimeout(()=>{
-   if(game!==epoch)return;
+   if(game!==epoch||quakeFinished)return;
    board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");
    let plan;
    try{plan=compactPlanQuake()}catch(error){console.error("地震の移動計画を復旧しました",error);quakeRecovery();return}
@@ -304,7 +315,7 @@ function compactApplyIncident(effect){
    if(signature(plan.B)!==originalSignature){console.error("地震計画で駒数が変化したため中止");quakeRecovery();return}
    let index=0;
    const nextShift=()=>{
-    if(game!==epoch)return;
+    if(game!==epoch||quakeFinished)return;
     if(index>=plan.shifts.length){
      // Validate the complete result before showing craters or releasing the turn.
      if(signature(g.board)!==originalSignature){
@@ -339,6 +350,7 @@ function compactApplyIncident(effect){
     compactQuakeMove=shift;compactQuakeLanding=null;
     compactIncidentMarks=[shift.y+":"+shift.x,shift.Y+":"+shift.X];render();
     setTimeout(()=>{if(game!==epoch)return;
+     if(quakeFinished)return;
      const p=g.board[shift.y]?.[shift.x];
      if(p&&!g.board[shift.Y][shift.X]){
       g.board[shift.Y][shift.X]=p;g.board[shift.y][shift.x]=null;
