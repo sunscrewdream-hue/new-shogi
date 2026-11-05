@@ -167,7 +167,7 @@ function compactPlanQuake(){
 function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");face.style.backgroundImage=`url("${side===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp"}")`;
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");face.style.backgroundImage="none";$("compactCardArtwork").src=side===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp";
  $("compactCardHeading").textContent=side===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";$("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
  const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
@@ -193,7 +193,7 @@ function compactCardReveal(){
    detail=kind==="寝返り"?"敵の"+v.p.t+"が寝返り、味方の持ち駒に加わる":kind==="脱走"?"味方の"+v.p.t+"が脱走する":"味方の"+v.p.t+"を粛清する";
   }
  }
- const face=$("compactCardFace");face.style.backgroundImage=`url("${compactCardFaces[kind]}")`;face.classList.add("revealed");
+ const face=$("compactCardFace");face.style.backgroundImage="none";$("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;$("compactCardPrompt").textContent="";
  state.voiceDone=false;
  sfx("flip");
