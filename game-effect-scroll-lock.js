@@ -4,6 +4,7 @@
  const selectors=[
   "body.story-opening-viewport-lock",
   "#cardOverlay.show","#incidentBanner.show","#turnNotice.show",
+  "#promotionOverlay.show","#hitokiriNotice.show",
   "#compactCardOverlay:not(.hidden)","#compactIncidentStage:not(.hidden)",
   "#compactTurnNotice.show",".compact-game-fx.show",
   "#storyPopup:not(.hidden)","#compactAwakenNotice.show",
@@ -15,8 +16,9 @@
  const blockTouch=e=>{if(locked&&e.cancelable)e.preventDefault()};
  const centerStoryBoard=()=>{
   const battle=document.getElementById("storyBattle");
-  const board=document.getElementById("storyBoard");
-  if(!battle||battle.classList.contains("hidden")||!board)return false;
+  const storyVisible=!!battle&&!battle.classList.contains("hidden");
+  const board=storyVisible?document.getElementById("storyBoard"):document.getElementById("board");
+  if(!board||(!storyVisible&&board.getClientRects().length===0))return false;
   const rect=board.getBoundingClientRect();
   if(!rect.height)return false;
   const viewport=window.visualViewport?.height||window.innerHeight;
@@ -27,7 +29,7 @@
  const sync=()=>{
   const next=active();if(next===locked)return;
   if(next){
-   // Snap the board into view before freezing any story effect.\n   const storyCentered=centerStoryBoard();\n   scrollY=window.scrollY||document.documentElement.scrollTop||0;
+   // Snap the board into view before freezing any story effect.\n   centerStoryBoard();\n   scrollY=window.scrollY||document.documentElement.scrollTop||0;
    previous={htmlOverflow:document.documentElement.style.overflow,bodyOverflow:document.body.style.overflow,htmlOverscroll:document.documentElement.style.overscrollBehavior,bodyOverscroll:document.body.style.overscrollBehavior};
    document.documentElement.style.overflow="hidden";
    document.body.style.overflow="hidden";
@@ -47,7 +49,7 @@
    // Never jump back to an obsolete story-page scroll offset after battle begins.
    const battle=document.getElementById("storyBattle");
    const battleVisible=!!battle&&!battle.classList.contains("hidden");
-   if(battleVisible)centerStoryBoard();else window.scrollTo(0,scrollY);
+   if(!centerStoryBoard())window.scrollTo(0,scrollY);
   }
  };
  const start=()=>{
