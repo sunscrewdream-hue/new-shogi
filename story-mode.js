@@ -464,6 +464,7 @@ function compactTurn(side,after,opening=false){
  setTimeout(()=>{
   if(game!==epoch||stamp!==compactFxSerial||ended)return;
   panel.classList.remove("show");
+  if(opening)document.body.classList.remove("story-opening-viewport-lock");
   compactTurnLocked=false;render();
   // Check was announced on the move that gave check; don't repeat on turn notice.
   after?.();
@@ -740,6 +741,7 @@ function line(){
 }
 function battle(i){
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
+ document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};reinforcementSerial=0;
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;playerTurns=0;weapons=[];pendingWeaponKind=null;debugModified=false;
@@ -749,7 +751,7 @@ function battle(i){
  document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  for(const side of [0,1]){clearTimeout(storyBannerTimers[side]);$(side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character","compact-awakened")}
- chooseView("storyBattle");window.scrollTo({top:0,behavior:"instant"});render();if(compactMode()){busy=true;render();compactIntro()}
+ chooseView("storyBattle");window.scrollTo(0,0);render();if(compactMode()){document.body.classList.add("story-opening-viewport-lock");busy=true;render();compactIntro()}
 }
 function render(){
  restoreStoryHover();
