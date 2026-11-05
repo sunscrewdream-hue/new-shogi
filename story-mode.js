@@ -808,6 +808,9 @@ function leave(){
 $( "storyDevToggle" ).onclick=()=>{devPreview=!devPreview;screenHome()};
 $("dialogueNext").onclick=()=>{
  const sortie=stage>=0&&stage<4&&at===dialog.length-1;
+ // 本編の事件札と同じ紙をめくる録音を、物語のページ切り替えにも使用。
+ // 最終ページの出陣ボイスには重ねない。
+ if(at<dialog.length-1)sfx("flip");
  if(sortie&&voiceEnabled){
   window.StoryBgm?.duck();
   playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice");
