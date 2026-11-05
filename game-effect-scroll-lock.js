@@ -23,7 +23,10 @@
   if(!rect.height)return false;
   const viewport=window.visualViewport?.height||window.innerHeight;
   const target=Math.max(0,Math.round(window.scrollY+rect.top+rect.height/2-viewport/2));
-  window.scrollTo(0,target);
+  window.scrollTo({top:target,left:0,behavior:"instant"});
+  const updated=board.getBoundingClientRect();
+  document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(updated.top+updated.height/2-viewport/2)+"px");
+  requestAnimationFrame(()=>{const b=board.getBoundingClientRect();document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(b.top+b.height/2-(window.visualViewport?.height||window.innerHeight)/2)+"px")});
   return true;
  };
  const sync=()=>{
