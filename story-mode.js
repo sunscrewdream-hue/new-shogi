@@ -752,7 +752,7 @@ function render(){
   if(compactQuakeMove&&(compactQuakeMove.y===y&&compactQuakeMove.x===x||compactQuakeMove.Y===y&&compactQuakeMove.X===x))btn.classList.add("compact-quake-mark");
   if(compactQuakeMove?.y===y&&compactQuakeMove.x===x){
    btn.classList.add("compact-quake-origin");
-   const cell=board.getBoundingClientRect().width/g.w;
+   const cell=root.getBoundingClientRect().width/g.w;
    btn.style.setProperty("--quake-dx",(compactQuakeMove.X-x)*cell+"px");
    btn.style.setProperty("--quake-dy",(compactQuakeMove.Y-y)*cell+"px");
   }
