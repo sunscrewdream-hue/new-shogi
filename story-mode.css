@@ -359,18 +359,20 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
    The winter diorama extends beyond the grid without enlarging its 520px cap. */
 #storyBoard[data-stage="3"]{
  width:min(96vw,520px,100%)!important;
- border:3px solid #49433e!important;
+ /* Keep the completed 3px geometry, but remove its visible rectangular rim. */
+ border:3px solid transparent!important;
  background-image:url("assets/story/board-tobafushimi-ground-v2.webp")!important;
  background-position:center;background-size:100% 100%;background-repeat:no-repeat;
  overflow:visible;position:relative;isolation:isolate;
 }
 #storyBoard[data-stage="3"]::before{
- content:"";position:absolute;pointer-events:none;z-index:0;
+ /* Winter debris is the foreground layer: its irregular edge softens the square. */
+ content:"";position:absolute;pointer-events:none;z-index:3;
  width:125%;height:125%;left:-12.5%;top:-12.5%;
  background:url("assets/story/board-tobafushimi-perimeter-v2.webp") center/100% 100% no-repeat;
 }
 #storyBoard[data-stage="3"]::after{
- content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
  background:url("assets/story/board-tobafushimi-ground-v2.webp") center/100% 100% no-repeat;
 }
 #storyBoard[data-stage="3"]>.sq{z-index:2}
