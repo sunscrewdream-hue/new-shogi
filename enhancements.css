@@ -135,3 +135,8 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 /* Present the approved dark ink calligraphy on softly illuminated washi. */
 #titleMain{padding:clamp(8px,2vw,16px);border:1px solid #d0b48966;border-radius:5px;background:radial-gradient(ellipse at 50% 40%,#f3e7cbf5,#d1bd99e8);box-shadow:0 8px 24px #07141a55}
 #titleLogo{filter:drop-shadow(0 2px 1px #63472c35)}
+
+/* Mobile-only: larger, slightly left-shifted Hitokiri seal; desktop unchanged. */
+@media(max-width:600px){
+ .dialogue-panel .hitokiri-stamp{left:9%;bottom:-1%;width:86%;height:78%}
+}
