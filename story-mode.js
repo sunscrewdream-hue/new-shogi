@@ -272,12 +272,24 @@ function compactApplyIncident(effect){
  if(effect.kind==="大地震"){
   compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactIncidentMarks=[];
   board.classList.add("compact-quake");document.body.classList.add("story-quake-active");compactSound("quake");playStoryQuakeBattle();
+  const quakeSnapshot=g.clone(g.board);
+  const quakeCount=B=>B.flat().filter(Boolean).length;
+  let quakeFinished=false;
+  let quakeWatchdog=null;
   const quakeRecovery=()=>{
-   if(game!==epoch)return;
+   if(game!==epoch||quakeFinished)return;
+   quakeFinished=true;
+   if(quakeWatchdog!==null)clearTimeout(quakeWatchdog);
+   if(quakeCount(g.board)!==quakeCount(quakeSnapshot)){
+    console.error("地震中の駒消失を検知、盤面を復元");
+    g.board=g.clone(quakeSnapshot);
+   }
    board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");
    compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactIncidentMarks=[];
    stopStoryQuakeBattle();render();compactResumeTurn();
   };
+  // Even if an animation callback fails, never leave the match locked forever.
+  quakeWatchdog=setTimeout(()=>{console.warn("地震演出のタイムアウトを復旧");quakeRecovery()},12000);
   setTimeout(()=>{
    if(game!==epoch)return;
    board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");
@@ -318,8 +330,8 @@ function compactApplyIncident(effect){
      setTimeout(()=>{if(game!==epoch)return;
       compactQuakeCracks=[];g.holes.push(...chosen);render();
      },650);
-     setTimeout(()=>{if(game!==epoch)return;
-      compactIncidentMarks=[];compactResumeTurn();
+     setTimeout(()=>{if(game!==epoch||quakeFinished)return;
+      compactIncidentMarks=[];quakeRecovery();
      },1450);
      return;
     }
