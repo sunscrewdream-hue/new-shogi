@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null;
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -111,7 +111,7 @@ function hideCompactFx(){
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;
- compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
+ compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
 function compactPickCard(){let roll=Math.random()*100;for(const [name,weight] of compactCardWeights){roll-=weight;if(roll<0)return name}return "何事もなし"}
@@ -254,18 +254,58 @@ function compactApplyIncident(effect){
   return;
  }
  if(effect.kind==="大地震"){
+  compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactIncidentMarks=[];
   board.classList.add("compact-quake");document.body.classList.add("story-quake-active");compactSound("quake");playStoryQuakeBattle();
   setTimeout(()=>{
-   if(game!==epoch)return;board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");const plan=compactPlanQuake();
-   if(plan){g.board=plan.B;g.last=null;compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
-    // Craters follow the main game's vacated-square rule, but only if both sides retain legal moves.
-    const vacated=plan.shifts.map(v=>({y:v.y,x:v.x})).filter(v=>!g.board[v.y][v.x]).sort(()=>Math.random()-.5);
-    for(const p of vacated){if(g.holes.length>=2)break;g.holes.push({...p,expiresPly:g.ply+3});
-     if(!compactSafeBoard(g.board))g.holes.pop();
+   if(game!==epoch)return;
+   board.classList.remove("compact-quake");document.body.classList.remove("story-quake-active");
+   const plan=compactPlanQuake();g.last=null;selected=null;
+   if(!plan){render();compactResumeTurn();return}
+   let index=0;
+   const nextShift=()=>{
+    if(game!==epoch)return;
+    if(index>=plan.shifts.length){
+     compactQuakeMove=null;compactQuakeLanding=null;
+     compactIncidentMarks=plan.shifts.map(v=>v.Y+":"+v.X);
+     // The completed match first shows cracks in vacated squares, then collapses them.
+     // Test each proposed crater together with previously selected craters.
+     const vacated=[...new Map(plan.shifts.map(v=>[v.y+":"+v.x,{y:v.y,x:v.x}])).values()]
+      .filter(v=>!g.board[v.y][v.x]&&!g.isHole(v.y,v.x)).sort(()=>Math.random()-.5);
+     const chosen=[];
+     for(const p of vacated){if(chosen.length>=2)break;
+      const candidate={...p,expiresPly:g.ply+3};g.holes.push(candidate);
+      const safe=compactSafeBoard(g.board);g.holes.pop();
+      if(safe){chosen.push(candidate);g.holes.push(candidate)}
+     }
+     // Retain the same safe combination while the visual crack phase plays.
+     for(let i=0;i<chosen.length;i++)g.holes.pop();
+     compactQuakeCracks=chosen;render();
+     setTimeout(()=>{if(game!==epoch)return;
+      compactQuakeCracks=[];g.holes.push(...chosen);render();
+     },650);
+     setTimeout(()=>{if(game!==epoch)return;
+      compactIncidentMarks=[];compactResumeTurn();
+     },1450);
+     return;
     }
-   }
-   render();setTimeout(()=>{if(game!==epoch)return;compactIncidentMarks=[];compactResumeTurn()},1400);
-  },1000);return;
+    const shift=plan.shifts[index++];
+    compactQuakeMove=shift;compactQuakeLanding=null;
+    compactIncidentMarks=[shift.y+":"+shift.x,shift.Y+":"+shift.X];render();
+    setTimeout(()=>{if(game!==epoch)return;
+     const p=g.board[shift.y]?.[shift.x];
+     if(p&&!g.board[shift.Y][shift.X]){
+      g.board[shift.Y][shift.X]=p;g.board[shift.y][shift.x]=null;
+     }else{
+      // A stale animation must never leave a board different from the valid plan.
+      g.board=g.clone(plan.B);index=plan.shifts.length;
+     }
+     compactQuakeMove=null;compactQuakeLanding={y:shift.Y,x:shift.X};
+     compactIncidentMarks=[shift.Y+":"+shift.X];render();
+     setTimeout(nextShift,420);
+    },460);
+   };
+   nextShift();
+  },1750);return;
  }
  const {kind,side,owner,y,x}=effect,p=g.board[y]?.[x];
  if(!p||p.s!==owner||p.t==="玉"){compactResumeTurn();return}
@@ -648,7 +688,16 @@ function render(){
   if(p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
   if(attackers.attackers.has(y+":"+x))btn.classList.add("compact-check-attacker");
   if(attackers.rays.has(y+":"+x))btn.classList.add("compact-check-ray");
-  if(compactIncidentMarks.includes(y+":"+x))btn.classList.add("compact-incident-target");
+  if(compactIncidentMarks.includes(y+":"+x)&&!compactQuakeMove)btn.classList.add("compact-incident-target");
+  if(compactQuakeMove&&(compactQuakeMove.y===y&&compactQuakeMove.x===x||compactQuakeMove.Y===y&&compactQuakeMove.X===x))btn.classList.add("compact-quake-mark");
+  if(compactQuakeMove?.y===y&&compactQuakeMove.x===x){
+   btn.classList.add("compact-quake-origin");
+   const cell=board.getBoundingClientRect().width/g.w;
+   btn.style.setProperty("--quake-dx",(compactQuakeMove.X-x)*cell+"px");
+   btn.style.setProperty("--quake-dy",(compactQuakeMove.Y-y)*cell+"px");
+  }
+  if(compactQuakeLanding?.y===y&&compactQuakeLanding.x===x)btn.classList.add("compact-quake-landing");
+  if(compactQuakeCracks.some(v=>v.y===y&&v.x===x))btn.classList.add("compact-quake-crack");
   if(compactMode()&&g.isHole(y,x))btn.classList.add("compact-hole");
   if(compactClosingHoles.some(hole=>hole.y===y&&hole.x===x))btn.classList.add("compact-hole-closing",...(compactHoleFading?["compact-hole-fading"]:[]));
   if(compactBloodMarks.includes(y+":"+x))btn.classList.add("compact-blood");
