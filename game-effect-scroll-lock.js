@@ -24,6 +24,7 @@
   const viewport=window.visualViewport?.height||window.innerHeight;
   const target=Math.max(0,Math.round(window.scrollY+rect.top+rect.height/2-viewport/2));
   window.scrollTo({top:target,left:0,behavior:"instant"});
+  if(!storyVisible)board.scrollIntoView({block:"center",inline:"nearest",behavior:"instant"});
   const updated=board.getBoundingClientRect();
   document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(updated.top+updated.height/2-viewport/2)+"px");
   requestAnimationFrame(()=>{const b=board.getBoundingClientRect();document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(b.top+b.height/2-(window.visualViewport?.height||window.innerHeight)/2)+"px")});
@@ -41,6 +42,7 @@
    document.documentElement.classList.add("game-effect-scroll-locked");
    document.body.classList.add("game-effect-scroll-locked");
    locked=true;
+   requestAnimationFrame(centerStoryBoard);
   }else{
    document.documentElement.style.overflow=previous?.htmlOverflow??"";
    document.body.style.overflow=previous?.bodyOverflow??"";
