@@ -38,7 +38,7 @@ const turnNotice = source.match(/function compactTurn\(side,after,opening=false\
 assert.ok(turnNotice, 'Turn notice routine not found');
 assert.doesNotMatch(turnNotice, /compactSound\("check"\)/,
   'Check must play once at the move, not again after the following turn notice');
-assert.match(source, /if\(gaveCheck\)announce\("check"\)/,
+assert.match(source, /if\(moveCues\.includes\("check"\)\)announce\("check"\)/,
   'The move that gives check must still announce it');
 assert.match(source, /const afterFx=\(\)=>moveVoiceDone\.then\(/,
   'Do not start the next turn while the moving officer is speaking');
@@ -56,7 +56,7 @@ assert.match(source, /compactIncidentEffect=\{kind:"weapon",weaponKind,side\}/,
   'Only a revealed weapon card may create an artillery incident');
 assert.match(source, /if\(effect\.kind==="weapon"\)\{[\s\S]*?fire\(weaponKind,side\)/,
   'A weapon card must trigger the attack when closed');
-assert.match(source, /const gaveCheck=g\.check\(g\.board,1-actor\);[\s\S]*?if\(captured\)\{[\s\S]*?if\(gaveCheck\)announce\("check"\)/,
+assert.match(source, /const gaveCheck=g\.check\(g\.board,1-actor\);[\s\S]*?ShinsengumiBattleRules\.voiceCues\([\s\S]*?if\(captured\)\{[\s\S]*?for\(const cue of moveCues\)/,
   'Capturing moves that give check must announce check');
 assert.match(source, /await playBloodImpact\(\);if\(id!==epoch\)return;[\s\S]*?await playCasualtyCry\(\)/,
   'Rifle casualties must play impact before their cry');
