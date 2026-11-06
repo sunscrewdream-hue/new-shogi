@@ -1017,6 +1017,16 @@ body.game-effect-scroll-locked{touch-action:none}
 .compact-card-artwork{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;z-index:0;pointer-events:none}
 .compact-card-face #compactCardHeading,.compact-card-face #compactCardText{position:relative;z-index:1}
 .compact-card-face.revealed #compactCardText{position:absolute;z-index:2}
+/* One physical card turns over: the back is exchanged for the front only
+   while its edge faces the viewer. No second image remains underneath. */
+@keyframes storyCardTurnOver{
+ 0%{transform:perspective(900px) rotateY(0deg)}
+ 49.9%{transform:perspective(900px) rotateY(90deg)}
+ 50%{transform:perspective(900px) rotateY(-90deg)}
+ 100%{transform:perspective(900px) rotateY(0deg)}
+}
+.compact-card-face.flipping,.compact-card-face.flipping.revealed{animation:storyCardTurnOver .62s ease-in-out both!important;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.compact-card-face.flipping,.compact-card-face.flipping.revealed{animation:none!important}}
 
 /* Every turn announcement follows the actual board center, including later turns. */
 #compactTurnNotice #compactTurnArt,#compactTurnNotice #compactTurnFallback{translate:0 var(--turn-center-offset,0px)}
