@@ -1026,6 +1026,7 @@ body.game-effect-scroll-locked{touch-action:none}
  100%{transform:perspective(900px) rotateY(0deg)}
 }
 .compact-card-face.flipping,.compact-card-face.flipping.revealed{animation:storyCardTurnOver .62s ease-in-out both!important;pointer-events:none}
+.compact-card-face.revealed:not(.flipping){animation:none!important;transform:none!important}
 @media(prefers-reduced-motion:reduce){.compact-card-face.flipping,.compact-card-face.flipping.revealed{animation:none!important}}
 
 /* Every turn announcement follows the actual board center, including later turns. */
