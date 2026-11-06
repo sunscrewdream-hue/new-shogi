@@ -192,7 +192,7 @@ function compactPlanQuake(){
 function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");face.style.backgroundImage="none";$("compactCardArtwork").src=side===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp";
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");face.dataset.side=String(side);face.style.backgroundImage="none";$("compactCardArtwork").src="";
  $("compactCardHeading").textContent=side===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";$("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
  const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
@@ -246,7 +246,7 @@ $("compactCardFace").onclick=()=>{
   const item=pendingWeaponDisplay;
   if(!item.revealed){
    item.revealed=true;item.voiceDone=false;item.closeRequested=false;
-   const face=$("compactCardFace");face.style.backgroundImage="none";sfx("flip");
+ const face=$("compactCardFace");face.style.backgroundImage="none";sfx("flip");
    const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
@@ -1011,7 +1011,7 @@ function weaponCard(kind,ownerSide=1,debug=false){
  // Use exactly the same calligraphy, card-back, drop and flip UI as the five
  // ordinary incident cards. The weapon illustration is revealed by the player.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
- overlay.classList.add("hidden");face.classList.remove("revealed");
+ overlay.classList.add("hidden");face.classList.remove("revealed");face.dataset.side=String(ownerSide);
  face.style.backgroundImage="none";
  $("compactCardArtwork").src=ownerSide===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp";
  $("compactCardHeading").textContent=ownerSide===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";
