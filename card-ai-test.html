@@ -8,21 +8,6 @@
   flex-direction:column;text-align:center;padding:24px 18px;
   animation:cardDrop .55s ease-out;cursor:pointer;
 }
-#cardOverlay:not(.ai-turn) #cardFace:not(.revealed){
-  background-image:url("card-back-shinsengumi-1024x1536.webp");
-}
-#cardOverlay.ai-turn #cardFace:not(.revealed){
-  background-color:#71151e;
-  background-image:url("card-back-saccho-1024x1536.webp");
-}
-#cardFace:not(.revealed) #cardTitle{
-  font-size:clamp(20px,5.5vw,25px);line-height:1.3;
-  color:#fff4d4;text-shadow:0 2px 5px #041522,0 0 8px #000b;
-}
-#cardFace:not(.revealed) #cardDetail{
-  max-width:100%;font-size:clamp(13px,3.5vw,16px);
-  color:#fff6dc;text-shadow:0 2px 4px #061423,0 0 8px #000c;
-}
 #cardFace.revealed{
   border:7px double #c99e61;
 }
@@ -172,16 +157,6 @@ body.quake-world::before{animation:kyotoWorldQuake 1.65s ease-out both;will-chan
  body.quake-world::before,#board.quake{animation:none}
 }
 
-/* Card backs were designed around large central ink lettering. */
-#cardFace:not(.revealed) #cardTitle{
- display:block!important;max-width:90%;margin:auto;padding:0 4px;
- font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
- font-size:clamp(28px,7.5vw,34px);font-weight:900;
- line-height:1.4;color:#ffefb7;letter-spacing:.04em;
- -webkit-text-stroke:.8px #382313;
- text-shadow:0 3px 3px #060a0f,2px 2px 1px #120909,0 0 10px #0009;
- pointer-events:none;
-}
 #cardFace.revealed #cardTitle{display:none!important}
 /* The event-calligraphy image already has a transparent alpha channel. */
 #incidentBanner{background:transparent!important;animation:none!important}
@@ -559,14 +534,10 @@ body.local-match #enemyOfficerPanel .dialogue-status{transform:none}
 @keyframes introUpperVertical{0%,7%{transform:translateY(-115%)}42%,49%{transform:translateY(0)}100%{transform:translateY(125%)}}
 @keyframes introLowerVertical{0%,7%{transform:translateY(115%)}42%,49%{transform:translateY(0)}100%{transform:translateY(-125%)}}
 @media(prefers-reduced-motion:reduce){#actionLayer img,#hitokiriNotice{animation:none!important;transition:none!important}}
-/* A true two-sided card: back and front occupy opposite faces of one object. */
+/* Front-only illustrated incident cards. No hidden back, duplicate face or 3D layer. */
 #cardOverlay{perspective:1100px}
-#cardFace{position:relative;transform-style:preserve-3d;transition:transform .46s cubic-bezier(.2,.7,.25,1)!important;animation:none!important;background:none!important;overflow:visible!important}
-#cardFace.revealed{transform:none;background:none!important}
-#cardFace::before,.card-front-art{position:absolute;inset:0;border-radius:inherit;backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none}
-#cardFace::before{display:none!important}
-#cardOverlay.ai-turn #cardFace::before{background-image:url("card-back-saccho-1024x1536.webp")}
-.card-front-art{transform:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat;overflow:hidden}
+#cardFace{position:relative;transition:none!important;animation:none!important;overflow:hidden!important}
+#cardFace.revealed{transform:none}
 #cardFace.revealed{animation:finishedPageReveal .46s ease-out both!important}
 @keyframes finishedPageReveal{from{transform:rotateY(-85deg)}to{transform:rotateY(0deg)}}
 #cardFace #cardEffectPanel{pointer-events:none}
@@ -1325,9 +1296,6 @@ function startIncident(s,queued=false){
 function draw(s){
  pendingCardSide=s;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;lastIncidentKind='何事もなし';
  const face=el('cardFace');
- let front=face.querySelector('.card-front-art');
- if(!front){front=document.createElement('div');front.className='card-front-art';front.appendChild(el('cardEffectPanel'));face.appendChild(front)}
- front.style.backgroundImage='';
  face.classList.remove('revealed','ai-card');
  face.style.backgroundImage='';
  el('cardEffectText').textContent='';
@@ -1335,7 +1303,7 @@ function draw(s){
  el('cardOverlay').classList.toggle('ai-turn',s===1);
  el('cardTitle').textContent=s===1?'敵軍の事件札':'新選組の事件札';
  el('cardDetail').textContent='';
- el('cardPrompt').textContent=(s===1?'薩長同盟':'新選組')+'の事件札・タップしてめくる';
+ el('cardPrompt').textContent='';
  el('cardOverlay').classList.add('show');
  playFx('card');
  void face.offsetWidth;
@@ -1347,7 +1315,7 @@ function revealCard(){
  playFx('flip');
  resolveCard(pendingCardSide);
  const face=el('cardFace');
- face.querySelector('.card-front-art').style.backgroundImage='url("'+incidentCardFaces[lastIncidentKind]+'")';
+ face.style.setProperty('background-image','url("'+incidentCardFaces[lastIncidentKind]+'")','important');
  face.classList.add('revealed');
  face.setAttribute('aria-label',lastIncidentKind+'。もう一度タップして閉じる');
  // Present the actual resolved effect within the lower half of the illustrated card.
