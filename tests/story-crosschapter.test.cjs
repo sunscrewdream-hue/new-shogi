@@ -160,7 +160,7 @@ assert.match(source, /pendingWeaponDisplay=\{kind,ownerSide,revealed:false\}/,
 assert.match(source, /compactSound\("slash"\)\},1010\)/, 'Opening clash must have a sword sound');
 assert.match(source, /if\(kind==="脱走"\|\|kind==="寝返り"\)compactSound\("desert"\)/,
   'Defectors and deserters must share footsteps');
-assert.match(source, /\$\("compactCardText"\)\.textContent=item\.kind==="cannon"/,
+assert.match(source, /const detail=item\.kind==="cannon"/,
   'Weapon cards must show their explanations in the ordinary card footer');
 assert.match(source, /side===1\?1400:1800/, 'Turn notice needs the completed match queue delay');
 assert.match(source, /setTimeout\(\(\)=>\{if\(id===epoch&&!ended\)compactCardStart\(actor\)\},250\)/,
