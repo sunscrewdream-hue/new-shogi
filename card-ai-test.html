@@ -6,7 +6,7 @@
   box-shadow:0 12px 35px #000a,0 0 30px #d8b36c55;
   color:#fff0c7;display:flex;align-items:center;justify-content:center;
   flex-direction:column;text-align:center;padding:24px 18px;
-  animation:cardDrop .55s ease-out;cursor:pointer;transition:transform .45s;
+  animation:cardDrop .55s ease-out;cursor:pointer;
 }
 #cardOverlay:not(.ai-turn) #cardFace:not(.revealed){
   background-image:url("card-back-shinsengumi-1024x1536.webp");
@@ -24,7 +24,6 @@
   color:#fff6dc;text-shadow:0 2px 4px #061423,0 0 8px #000c;
 }
 #cardFace.revealed{
-  transform:rotateY(360deg);
   border:7px double #c99e61;
 }
 #cardOverlay:not(.ai-turn) #cardFace.revealed{
