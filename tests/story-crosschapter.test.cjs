@@ -7,6 +7,20 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'story-mode.js'), 'utf8');
+// Draws, not ply timers, must be the only route to normal artillery.
+const deckStart=source.indexOf('function compactPickCard(side){');
+const deckEnd=source.indexOf('\nfunction compactCardInterval()',deckStart);
+assert.ok(deckStart>=0&&deckEnd>deckStart);
+const draw=vm.runInNewContext(source.slice(deckStart,deckEnd)+'\ncompactPickCard',{
+ stage:3,compactCardWeights:[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]],
+ weapons:[],Math:{random:()=>.85}
+});
+assert.equal(draw(0),'大砲','Cannon can only be drawn from the Toba incident deck');
+const drawRifle=vm.runInNewContext(source.slice(deckStart,deckEnd)+'\ncompactPickCard',{
+ stage:3,compactCardWeights:[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]],
+ weapons:[],Math:{random:()=>.95}
+});
+assert.equal(drawRifle(1),'鉄砲','Rifle can only be drawn from the Toba incident deck');
 const storyHtml=fs.readFileSync(path.join(root,'story-mode.html'),'utf8');
 for(const id of ['debugCard','debugQuake','debugReinforce','debugRevival','debugDesert','debugPurge','debugKill','debugAwaken','debugCannon','debugRifle','debugTurn','debugFx','debugVoice0','debugVoice1']){
  assert.match(storyHtml,new RegExp(`id="${id}"`),`Missing story debug button: ${id}`);
@@ -32,14 +46,16 @@ assert.match(source, /desert:"assets\/story\/audio\/master_gravel_run_v2\.mp3"/,
   'Desertion and reinforcement footsteps must use the louder mastered sample');
 assert.match(source, /if\(p\.s===0\)sfx\("loss",finish\);else compactSound\("sacchoLoss",finish\)/,
   'Purging an enemy officer must play the enemy loss voice');
-assert.match(source, /if\(stage===3&&actor===0\)/,
-  'The player must receive artillery cards in Toba-Fushimi');
-assert.match(source, /pendingWeaponKind=\{kind,side:1,afterPly:/,
-  'The enemy must retain its scheduled artillery');
-assert.match(source, /weaponCard\(kind,side\)/,
-  'Scheduled artillery must display a card before firing');
-assert.match(source, /compactCardDue\(actor\)&&!\(pendingWeaponKind&&g\.ply>=pendingWeaponKind\.afterPly\)/,
-  'A scheduled weapon card must replace, not duplicate, a regular incident');
+assert.match(source, /if\(stage===3\)\{[\s\S]*?deck\.push\(\["大砲",10\]\)/,
+  'Toba-Fushimi must add cannon to the actual card deck');
+assert.match(source, /deck\.push\(\["鉄砲",10\]\)/,
+  'Toba-Fushimi must add rifle to the actual card deck');
+assert.doesNotMatch(source, /pendingWeaponKind=\{kind,side:/,
+  'Neither army may fire a weapon on a fixed turn without drawing a card');
+assert.match(source, /compactIncidentEffect=\{kind:"weapon",weaponKind,side\}/,
+  'Only a revealed weapon card may create an artillery incident');
+assert.match(source, /if\(effect\.kind==="weapon"\)\{[\s\S]*?fire\(weaponKind,side\)/,
+  'A weapon card must trigger the attack when closed');
 assert.match(source, /const gaveCheck=g\.check\(g\.board,1-actor\);[\s\S]*?if\(captured\)\{[\s\S]*?if\(gaveCheck\)announce\("check"\)/,
   'Capturing moves that give check must announce check');
 assert.match(source, /await new Promise\(resolve=>compactSound\("blood",resolve\)\);if\(id!==epoch\)return;[\s\S]*?await playCasualtyCry\(\)/,
