@@ -28,7 +28,8 @@ function playGestureAudio(path,onDone,channel="voice"){
   loading=battleVoiceLoading.get(path);
   if(!loading){loading=fetch(path).then(response=>{if(!response.ok)throw Error("voice HTTP "+response.status);return response.arrayBuffer()}).then(bytes=>context.decodeAudioData(bytes)).then(buffer=>{battleVoiceBuffers.set(path,buffer);return buffer});battleVoiceLoading.set(path,loading)}
  }
- let settled=false;const finish=()=>{if(settled)return;settled=true;onDone?.()};
+ let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},9000);
+ const finish=()=>{if(settled)return;settled=true;clearTimeout(watchdog);onDone?.()};
  Promise.resolve(loading).then(buffer=>{
   if(!voiceEnabled||document.hidden){finish();return}
   stopStoryClip(channel);
@@ -73,8 +74,8 @@ function playStoryClip(path,channel="fx",onDone=null){
  let a=storyClipCache.get(path);if(!a){a=new Audio(path);a.preload=channel==="voice"?"auto":"none";a.playsInline=true;storyClipCache.set(path,a)}
  stopStoryClip(channel);a.currentTime=0;a.volume=channel==="voice"?voiceLevel():fxLevel();
  if(channel==="voice")activeStoryVoice=a;else activeStoryFx=a;
- let settled=false;const finish=()=>{if(settled)return;settled=true;a.removeEventListener("ended",finish);a.removeEventListener("error",finish);a.removeEventListener("pause",finish);onDone?.()};
- if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish)}
+ let settled=false,watchdog=null;const finish=()=>{if(settled)return;settled=true;if(watchdog!==null)clearTimeout(watchdog);a.removeEventListener("ended",finish);a.removeEventListener("error",finish);a.removeEventListener("pause",finish);onDone?.()};
+ if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish);watchdog=setTimeout(()=>{console.warn("音声終了通知タイムアウト",path);finish()},9000)}
  a.play().catch(finish);return a;
 }
 const kabukiVoice={promotion:"assets/story/audio/master_kabuki_promotion_v1.mp3",cannon:"assets/story/audio/master_kabuki_cannon_v1.mp3",rifle:"assets/story/audio/master_kabuki_rifle_v1.mp3",awakening:"assets/story/audio/master_kabuki_awakening_v1.mp3",kill:"assets/story/audio/master_kabuki_kill_v1.mp3"};
