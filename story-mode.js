@@ -204,12 +204,13 @@ function compactCardRemaining(){
  const cycle=compactCardInterval()*2;return compactCardInterval()-Math.floor((g.ply%cycle)/2);
 }
 function compactSafeBoard(B){return !g.check(B,0)&&!g.check(B,1)&&g.legal(0,B,g.hands).length>0&&g.legal(1,B,g.hands).length>0}
-function compactEligible(owner,types=null){const out=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
- const p=g.board[y][x];if(!p||p.s!==owner||p.t==="玉"||(types&&!types.includes(p.t)))continue;
- // Incidents may cause check just like an ordinary capture; king safety is
- // checked on the next player's turn. Do not silently cancel a drawn card.
- out.push({y,x,p});
- }return out}
+function compactEligible(owner,types=null){
+ return window.ShinsengumiIncidentRules.eligibleTargets({
+  board:g.board,owner,allowedTypes:types,
+  check:(board,side)=>g.check(board,side),
+  legalMoves:(board,side)=>g.legal(side,board,g.hands)
+ });
+}
 function compactPlanQuake(){
  // Mini-board earthquake: move at most two distinct pieces, without chaining
  // one piece through multiple squares or replacing any other piece.
