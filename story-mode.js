@@ -235,7 +235,10 @@ function compactResumeTurn(){
  // Chapter-specific artillery comes AFTER the shared incident card sequence,
  // rather than being silently skipped while the move animation still owns the lock.
  if(pendingWeaponKind&&g.ply>=(pendingWeaponKind.afterPly??0)){const {kind,side}=pendingWeaponKind;pendingWeaponKind=null;
-  setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind,side)},700);return}
+  // Artillery is a scripted battle event, NOT a second draw from 動乱の刻.
+  // Preserve both armies' cannon/rifle attacks without showing a duplicate card.
+  busy=true;weapons.push(side+":"+kind);
+  setTimeout(()=>{if(game===epoch&&!ended)fire(kind,side)},700);return}
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -261,23 +264,25 @@ function compactApplyIncident(effect){
   if(!revived){compactResumeTurn();return}
   banner(effect.side,revived,true);render();
   const hand=$("storyHand"+effect.side);
-  for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
-  storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒に加わった！",effect.side);
+  storyBannerMessage("援軍！ "+person(revived).name+"が到着する！",effect.side);
   // A returning officer runs in from outside the screen and lands in the hand.
   // Reuse the desertion footsteps; the sortie voice starts after the run.
   const goal=hand.closest(".hand-container")?.getBoundingClientRect(),layer=$("compactActionLayer");
   const figure=document.createElement("img");figure.src="assets/sprites/figures/"+(effect.side===0?"shinsengumi_back":"saccho_front")+".webp";figure.alt="";figure.className="story-reinforcement-runner";
   const width=66,startX=effect.side===0?-width-30:innerWidth+30,startY=goal?goal.top+goal.height/2-55:innerHeight/2;
-  Object.assign(figure.style,{left:startX+"px",top:startY+"px",width:width+"px",height:"92px"});layer.replaceChildren(figure);
-  const run=figure.animate&&goal&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-   ?figure.animate([{opacity:0,transform:"translateX(0) scale(.85)"},{opacity:1,offset:.18,transform:"translateX("+((goal.left+goal.width/2-startX)*.18)+"px)"},{opacity:1,offset:.88,transform:"translateX("+(goal.left+goal.width/2-startX)+"px)"},{opacity:0,transform:"translateX("+(goal.left+goal.width/2-startX)+"px) scale(.6)"}],{duration:1700,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{})
-   :later(1700);
-  const footsteps=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,3000)});
-  Promise.all([run,footsteps]).then(()=>{figure.remove();if(game!==epoch)return;
-   playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",()=>{
-    if(game!==epoch)return;
-    setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));if(!(compactCaptures[compactFighterKey(revived)]>=3))$(effect.side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character");compactResumeTurn()},450)
-   });
+  Object.assign(figure.style,{left:startX+"px",top:startY+"px",width:width+"px",height:"92px",visibility:"hidden"});layer.replaceChildren(figure);
+  // The command must finish before footsteps and the running animation begin.
+  playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",async()=>{
+   if(game!==epoch)return;
+   figure.style.visibility="visible";
+   for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
+   const run=figure.animate&&goal&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ?figure.animate([{opacity:0,transform:"translateX(0) scale(.85)"},{opacity:1,offset:.18,transform:"translateX("+((goal.left+goal.width/2-startX)*.18)+"px)"},{opacity:1,offset:.88,transform:"translateX("+(goal.left+goal.width/2-startX)+"px)"},{opacity:0,transform:"translateX("+(goal.left+goal.width/2-startX)+"px) scale(.6)"}],{duration:1700,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{})
+    :later(1700);
+   const footsteps=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,3000)});
+   await Promise.all([run,footsteps]);figure.remove();if(game!==epoch)return;
+   storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒に加わった！",effect.side);
+   setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));if(!(compactCaptures[compactFighterKey(revived)]>=3))$(effect.side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character");compactResumeTurn()},450);
   });
   return;
  }
@@ -343,6 +348,7 @@ function compactApplyIncident(effect){
      setTimeout(()=>{
       if(game!==epoch||quakeFinished)return;
       compactQuakeCracks=[];
+      if(chosen.length)playStoryClip("assets/story/audio/master_cliffcollapse_1s_v1.mp3","fx");
       for(const hole of chosen)if(!g.board[hole.y][hole.x])g.holes.push(hole);
       render();
      },650);
@@ -951,11 +957,11 @@ function makeMove(m,prom){
   });
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
   else if(willKill){
-   // Lethal capture: no 斬殺 title/voice. Show 「うわっ！」 then blood splash.
+   // Lethal capture: impact/blood first, then the casualty cries out.
    (async()=>{
-    await playCasualtyCry();if(id!==epoch||ended)return;
     const square=m.Y+":"+m.X;compactBloodMarks.push(square);render();
     await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch||ended)return;
+    await playCasualtyCry();if(id!==epoch||ended)return;
     await later(850);compactBloodMarks=compactBloodMarks.filter(v=>v!==square);render();
     if(id===epoch&&!ended)afterFx();
    })();
@@ -1005,10 +1011,9 @@ async function fire(kind,ownerSide=1){
   if(kind==="cannon"){
    // Each of the two blasts changes one square and opens its own three-move hole.
    const crater={y:shot.y,x:shot.x,expiresPly:g.ply+3};
-   if(!g.board[crater.y][crater.x]&&!g.isHole(crater.y,crater.x)){
-    g.holes.push(crater);
-    if(g.king(0)&&g.king(1)&&!compactSafeBoard(g.board))g.holes.pop();
-   }
+   // A landed shell always makes a crater. The ordinary quake safety filter
+   // must not silently undo an artillery hit, even if it restricts legal moves.
+   if(!g.board[crater.y][crater.x]&&!g.isHole(crater.y,crater.x))g.holes.push(crater);
    storyBannerMessage(`大砲 ${shot.index}/2：${shot.y+1}段${shot.x+1}列に着弾！`,0);render();
   }
   if(!hit)return;
@@ -1194,6 +1199,7 @@ async function storyDebugHitokiri(kill){
    // Let the tester see the persistent stamp on the officer banner.
    await later(1200);
   }else{
+   await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch||ended)return;
    await playCasualtyCry();if(id!==epoch||ended)return;
    const victim=g.board.flatMap((row,y)=>row.map((p,x)=>p&&p.s===1?y+":"+x:null)).find(Boolean);
    if(victim){compactBloodMarks.push(victim);render()}
