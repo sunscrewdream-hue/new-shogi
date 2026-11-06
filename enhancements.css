@@ -28,7 +28,6 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #abandonYes{background:#7e2b2c;color:white;border-color:#cf7670}
 #hitokiriNotice{top:15%!important;width:min(92vw,650px)!important;max-width:none!important;filter:drop-shadow(0 10px 9px #000) drop-shadow(0 0 10px #a40b16);text-shadow:none!important;-webkit-text-stroke:0!important}
 #hitokiriNotice img{display:block;width:100%;height:auto}
-.dialogue-panel.hitokiri-banner:after{content:'';position:absolute;inset:0;z-index:7;background:linear-gradient(#2f071182,#2f071190),url('assets/visuals/hitokiri_awakening_v1.webp') center/92% auto no-repeat;filter:drop-shadow(0 1px 4px #e7434d)}
 /* Victory: stage-height transparent cutouts, no framed postcard. */
 #endOverlay{background:radial-gradient(ellipse at 45% 35%,#613c33b8,#090e19ec 70%);padding:0;overflow:hidden}
 #endPanel{border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:visible;width:100vw;max-width:1100px;max-height:100dvh;height:100dvh;position:relative;padding:0!important;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;isolation:isolate}
@@ -92,14 +91,11 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 /* Pure red ink lettering, with no plaque, gradient, or secondary ornament. */
 #hitokiriNotice{width:min(88vw,640px)!important;filter:none!important;background:none!important;text-shadow:none!important;top:20%!important}
 #hitokiriNotice img{display:block;width:100%;height:auto;filter:drop-shadow(0 3px 3px #070508ae)}
-.dialogue-panel.hitokiri-banner:after,.dialogue-panel.hitokiri-kill-banner:after{content:'';display:block;position:absolute;inset:0;z-index:7;pointer-events:none;filter:none;background:url('assets/visuals/hitokiri_red_calligraphy.webp') center/94% auto no-repeat}
-.dialogue-panel.hitokiri-kill-banner:after{background-image:url('assets/visuals/hitokiri_kill_calligraphy.webp')}
 
 /* The awakening mark is a personal red-ink seal ON the portrait, not a temporary banner. */
 .dialogue-panel .hitokiri-stamp{position:absolute;z-index:9;left:18%;bottom:2%;top:auto;width:48%;height:43%;object-fit:contain;object-position:center;pointer-events:none;opacity:0;transform-origin:center;transform:rotate(-7deg) scale(1);filter:drop-shadow(0 2px 2px #290000b0) drop-shadow(0 0 5px #a40000a0)}
 .dialogue-panel.has-portrait .hitokiri-stamp.active,.dialogue-panel.has-portrait .hitokiri-stamp.preview{opacity:1;transform:rotate(-7deg) scale(1);animation:hitokiriSealImpact .48s cubic-bezier(.14,1.18,.26,1) both}
 @keyframes hitokiriSealImpact{0%{opacity:0;transform:rotate(-7deg) scale(3.1)}48%{opacity:1;transform:rotate(-7deg) scale(.86)}76%{opacity:1;transform:rotate(-7deg) scale(1.1)}100%{opacity:1;transform:rotate(-7deg) scale(1)}}
-.dialogue-panel.hitokiri-banner:after,.dialogue-panel.hitokiri-kill-banner:after{content:none!important;display:none!important}
 
 /* Keep the reinforcement token above every phone UI layer, with a legible travelling badge. */
 .defection-flight{z-index:290!important;overflow:visible!important;filter:drop-shadow(0 0 10px #ffe1a7) drop-shadow(0 4px 5px #000b)}
