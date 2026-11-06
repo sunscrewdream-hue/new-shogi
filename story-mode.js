@@ -202,7 +202,7 @@ function compactCardStart(side){
  },1300);
 }
 function compactCardReveal(){
- const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.flipping=true;state.kind=compactPickCard(state.side);
+ const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.kind=compactPickCard(state.side);
  const kind=state.kind,side=state.side;let detail="";compactIncidentEffect=null;
  if(kind==="何事もなし")detail="何事もなし。盤面に変化なし";
  else if(kind==="大地震"){compactIncidentEffect={kind};detail="大地震！ 駒が揺れ動き、地面が崩れる"}
@@ -224,15 +224,9 @@ function compactCardReveal(){
   }
  }
  const face=$("compactCardFace");face.style.backgroundImage="none";
- face.classList.add("flipping");
- // Keep the actual card back visible for the first half of the turn.
- // Replace it exactly at the edge-on midpoint, never underneath the back.
- setTimeout(()=>{
-  if(compactIncident!==state)return;
-  $("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
-  $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;
- },310);
- setTimeout(()=>{if(compactIncident===state){state.flipping=false;face.classList.remove("flipping");if(state.closeRequested&&state.voiceDone)compactCardClose()}},630);
+ // The existing paper-flip sound marks an immediate back-to-face swap.
+ $("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
+ $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;
  $("compactCardPrompt").textContent="";
  state.voiceDone=false;
  sfx("flip");
@@ -243,7 +237,7 @@ function compactCardReveal(){
  playStoryClip(compactCardVoices[kind],"voice",done);setTimeout(done,15000);
 }
 function compactCardClose(){
- const state=compactIncident;if(!state||!state.revealed||state.flipping)return;
+ const state=compactIncident;if(!state||!state.revealed)return;
  if(!state.voiceDone){state.closeRequested=true;$("compactCardPrompt").textContent="セリフ再生後に進みます…";return}
  compactIncident=null;$("compactCardOverlay").classList.add("hidden");compactApplyIncident(compactIncidentEffect);compactIncidentEffect=null;
 }
@@ -251,22 +245,21 @@ $("compactCardFace").onclick=()=>{
  if(pendingWeaponDisplay){
   const item=pendingWeaponDisplay;
   if(!item.revealed){
-   item.revealed=true;item.flipping=true;item.voiceDone=false;item.closeRequested=false;
-   const face=$("compactCardFace");face.style.backgroundImage="none";face.classList.add("flipping");sfx("flip");
+   item.revealed=true;item.voiceDone=false;item.closeRequested=false;
+   const face=$("compactCardFace");face.style.backgroundImage="none";sfx("flip");
    const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
-   setTimeout(()=>{if(pendingWeaponDisplay!==item)return;$("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent=detail},310);
-   setTimeout(()=>{if(pendingWeaponDisplay===item){item.flipping=false;face.classList.remove("flipping");if(item.closeRequested&&item.voiceDone){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}}},630);
+   $("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent=detail;
    $("compactCardPrompt").textContent="";
    // Name the revealed weapon card first, then speak 「撃て！」 once at launch.
    playKabukiVoice(item.kind).then(()=>{
     if(pendingWeaponDisplay!==item)return;
     item.voiceDone=true;
-   if(item.closeRequested&&!item.flipping){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
+   if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
    });return;
   }
-  if(item.flipping||!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
+  if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
  }
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
