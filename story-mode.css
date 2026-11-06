@@ -353,8 +353,7 @@
 .compact-card-face span{text-shadow:0 2px 8px #000,0 0 9px #000;background:#1a1318ad;padding:8px;border-radius:4px}
 .compact-card-face #compactCardHeading{font-size:clamp(23px,7vw,36px);font-weight:900}
 .compact-card-face #compactCardText{font-size:clamp(14px,3.8vw,18px);line-height:1.6}
-.compact-card-face.revealed{animation:compactCardFlip .55s ease-out}
-@keyframes compactCardFlip{from{transform:rotateY(90deg)}to{transform:rotateY(0)}}
+.compact-card-face.revealed{animation:none}
 #compactCardPrompt{font-size:14px;color:#f3dfbc;text-shadow:0 2px 6px #000}
 #storyBoard .sq.compact-incident-target{background:#f5dc6ac0!important;box-shadow:inset 0 0 0 3px #fff0a0,0 0 12px 5px #ffb82d;animation:compactTargetPulse .4s infinite alternate}
 @keyframes compactTargetPulse{to{filter:brightness(1.8);background:#ee5649ba}}
@@ -402,7 +401,7 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  font-size:clamp(28px,7.5vw,34px);line-height:1.4;font-weight:900;color:#ffefb7;letter-spacing:.04em;-webkit-text-stroke:.8px #382313;
  text-shadow:0 3px 3px #060a0f,2px 2px 1px #120909,0 0 10px #0009;pointer-events:none}
 .compact-card-face #compactCardText{display:none}
-.compact-card-face.revealed{animation:compactCardFlip .55s ease-out;background-size:contain;border:0;background-color:transparent}
+.compact-card-face.revealed{animation:none;background-size:contain;border:0;background-color:transparent}
 .compact-card-face.revealed #compactCardHeading{display:none}
 .compact-card-face.revealed #compactCardText{display:flex;position:absolute;z-index:7;bottom:2.5%;left:5%;right:5%;width:auto;box-sizing:border-box;
  max-height:44%;overflow-y:auto;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 9px;
@@ -1019,15 +1018,7 @@ body.game-effect-scroll-locked{touch-action:none}
 .compact-card-face.revealed #compactCardText{position:absolute;z-index:2}
 /* One physical card turns over: the back is exchanged for the front only
    while its edge faces the viewer. No second image remains underneath. */
-@keyframes storyCardTurnOver{
- 0%{transform:perspective(900px) rotateY(0deg)}
- 49.9%{transform:perspective(900px) rotateY(90deg)}
- 50%{transform:perspective(900px) rotateY(-90deg)}
- 100%{transform:perspective(900px) rotateY(0deg)}
-}
-.compact-card-face.flipping,.compact-card-face.flipping.revealed{animation:storyCardTurnOver .62s ease-in-out both!important;pointer-events:none}
-.compact-card-face.revealed:not(.flipping){animation:none!important;transform:none!important}
-@media(prefers-reduced-motion:reduce){.compact-card-face.flipping,.compact-card-face.flipping.revealed{animation:none!important}}
+.compact-card-face.revealed{animation:none!important;transform:none!important}
 
 /* Every turn announcement follows the actual board center, including later turns. */
 #compactTurnNotice #compactTurnArt,#compactTurnNotice #compactTurnFallback{translate:0 var(--turn-center-offset,0px)}
