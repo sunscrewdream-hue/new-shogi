@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14242d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="mobile-web-app-capable" content="yes"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/app-icon-512.png"><title>新選組将棋｜幕末動乱・盤上決戦</title><link rel="preload" href="assets/turn-notice/turn_shinsengumi_illustrated.png" as="image" type="image/webp"><link rel="prefetch" href="assets/turn-notice/turn_enemy_illustrated.png" as="image" type="image/png"><link rel="preload" href="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" as="image" type="image/png"><link rel="stylesheet" href="enhancements.css?v=hitokiri-right20261106c"><script src="shared-incident-rules.js?v=parity-20261107a"></script><script defer src="enhancements.js?v=20261105-newvoice3"></script><style>html{width:100%;max-width:100%;overflow-x:hidden!important;overscroll-behavior-x:none}body{width:100%;max-width:100%;overflow-x:hidden!important;touch-action:pan-y;overscroll-behavior-x:none}#titleScreen{width:100%;max-width:100%;left:0;right:0;overflow-x:hidden!important;touch-action:pan-y}#titleInner{max-width:100%;min-width:0;box-sizing:border-box}body{font-family:system-ui;background:#eee9dd;color:#29231a;text-align:center;margin:8px}#board{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));grid-template-rows:repeat(9,minmax(0,1fr));width:min(96vw,520px);aspect-ratio:1;box-sizing:border-box;margin:10px auto;border:3px solid #69452b;background:#d4ad70;overflow:hidden}.sq{box-sizing:border-box;border:0;border-right:1px solid #967347;border-bottom:1px solid #967347;display:grid;place-items:center;font-size:clamp(16px,5vw,28px);font-weight:bold;min-width:0;min-height:0;aspect-ratio:1} .sq:nth-child(9n){border-right:0} .sq:nth-last-child(-n+9){border-bottom:0}.enemy{transform:rotate(180deg)}.sel{background:#ffd65a!important;box-shadow:inset 0 0 0 3px #e6a300,0 0 12px #ffc400;z-index:1}.hint{background:#8ee5a0!important;box-shadow:inset 0 0 0 3px #249e4a,inset 0 0 14px #6aff9a;cursor:pointer}.capture-hint{background:#ff9c91!important;box-shadow:inset 0 0 0 3px #dc3c31,inset 0 0 14px #ff7777;cursor:pointer}.sq{transition:background .12s,box-shadow .12s}.last-move{box-shadow:inset 0 0 0 4px #f0b400!important;background:#ffe0a0!important}.hand{min-height:35px}.thinking{display:inline-block;animation:pulse 1s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}button{padding:9px;margin:3px;border:1px solid #87643c;border-radius:5px;background:#fff8e9;font-size:15px}#event{min-height:40px;font-weight:bold;color:#653c16}small{display:block} @keyframes cardDrop{0%{transform:translateY(-70px) scale(1.45);opacity:0}70%{transform:translateY(8px) scale(.96);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}#cardOverlay{position:fixed;inset:0;background:#000b;z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:20px}#cardOverlay.show{display:flex}#cardFace{
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#14242d"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="mobile-web-app-capable" content="yes"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="assets/app-icon-512.png"><title>新選組将棋｜幕末動乱・盤上決戦</title><link rel="preload" href="assets/turn-notice/turn_shinsengumi_illustrated.png" as="image" type="image/webp"><link rel="prefetch" href="assets/turn-notice/turn_enemy_illustrated.png" as="image" type="image/png"><link rel="preload" href="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" as="image" type="image/png"><link rel="stylesheet" href="enhancements.css?v=hitokiri-right20261106c"><script src="shared-incident-rules.js?v=parity-20261107a"></script><script src="shared-battle-rules.js?v=battle-20261107a"></script><script defer src="enhancements.js?v=20261105-newvoice3"></script><style>html{width:100%;max-width:100%;overflow-x:hidden!important;overscroll-behavior-x:none}body{width:100%;max-width:100%;overflow-x:hidden!important;touch-action:pan-y;overscroll-behavior-x:none}#titleScreen{width:100%;max-width:100%;left:0;right:0;overflow-x:hidden!important;touch-action:pan-y}#titleInner{max-width:100%;min-width:0;box-sizing:border-box}body{font-family:system-ui;background:#eee9dd;color:#29231a;text-align:center;margin:8px}#board{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));grid-template-rows:repeat(9,minmax(0,1fr));width:min(96vw,520px);aspect-ratio:1;box-sizing:border-box;margin:10px auto;border:3px solid #69452b;background:#d4ad70;overflow:hidden}.sq{box-sizing:border-box;border:0;border-right:1px solid #967347;border-bottom:1px solid #967347;display:grid;place-items:center;font-size:clamp(16px,5vw,28px);font-weight:bold;min-width:0;min-height:0;aspect-ratio:1} .sq:nth-child(9n){border-right:0} .sq:nth-last-child(-n+9){border-bottom:0}.enemy{transform:rotate(180deg)}.sel{background:#ffd65a!important;box-shadow:inset 0 0 0 3px #e6a300,0 0 12px #ffc400;z-index:1}.hint{background:#8ee5a0!important;box-shadow:inset 0 0 0 3px #249e4a,inset 0 0 14px #6aff9a;cursor:pointer}.capture-hint{background:#ff9c91!important;box-shadow:inset 0 0 0 3px #dc3c31,inset 0 0 14px #ff7777;cursor:pointer}.sq{transition:background .12s,box-shadow .12s}.last-move{box-shadow:inset 0 0 0 4px #f0b400!important;background:#ffe0a0!important}.hand{min-height:35px}.thinking{display:inline-block;animation:pulse 1s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}button{padding:9px;margin:3px;border:1px solid #87643c;border-radius:5px;background:#fff8e9;font-size:15px}#event{min-height:40px;font-weight:bold;color:#653c16}small{display:block} @keyframes cardDrop{0%{transform:translateY(-70px) scale(1.45);opacity:0}70%{transform:translateY(8px) scale(.96);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}#cardOverlay{position:fixed;inset:0;background:#000b;z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:20px}#cardOverlay.show{display:flex}#cardFace{
   width:min(70vw,280px);height:min(105vw,410px);
   border:0;border-radius:14px;box-sizing:border-box;
   background-color:#152f45;background-size:100% 100%;
@@ -635,7 +635,7 @@ const battleVoiceUrls={
  loss:'assets/story/audio/master_samurai_loss_v1.mp3',
  sacchoChesto:'assets/audio/saccho_voice_01_chesto.mp3',
  sacchoUryaa:'assets/audio/saccho_voice_02_uryaa.mp3',
- sacchoCapture:'assets/audio/saccho_voice_03_toraeta.mp3',
+ sacchoCapture:'assets/audio/voice_capture_toraeta.mp3',
  sacchoLoss:'assets/story/audio/master_samurai_loss_v1.mp3',
  gomen:'assets/story/audio/master_battle_gomen_v1.mp3',
  defection:'assets/story/audio/master_samurai_defection_v1.mp3',
@@ -1162,22 +1162,25 @@ let noticeQueue=0;function commit(m,prom=false){
  const movingPiece=!m.drop?b[m.y]?.[m.x]:(handIdentities[turn][m.t]||[])[0];
  const originSide=movingPiece?.originSide??movingPiece?.s??turn,officer=movingPiece?.cid;
  const speaker={...(movingPiece||{}),s:speakerSide,t:m.drop?m.t:movingPiece?.t,originSide};
- const capturerKey=String(originSide)+':'+String(officer??'unknown');
+ const capturerKey=window.ShinsengumiBattleRules.fighterKey(speaker);
  const personCaptures=Number(captureCounts[capturerKey]||0);
- const forcedKill=captured&&ruleSettings.hitokiri&&personCaptures>=3;
+ const capturePlan=window.ShinsengumiBattleRules.captureResult({captured,drop:!!m.drop,previous:personCaptures,hitokiri:ruleSettings.hitokiri});
+ const forcedKill=capturePlan.lethal;
  if(rulePreset!=='traditional')setCharacterBanner(speakerSide,speaker,'',0);
  if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
  apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});
  lastMove={y:m.Y,x:m.X};
- if(forcedKill){captureCounts[capturerKey]=0;playFx('purge');markBlood(m.Y,m.X);flashHitokiri('人斬り・斬殺！')}
- else{if(!captured)sound(false);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=personCaptures+1;if(captureCounts[capturerKey]===3)flashHitokiri('人斬り覚醒');}}
+ if(forcedKill){captureCounts[capturerKey]=capturePlan.next;playFx('purge');markBlood(m.Y,m.X);flashHitokiri('人斬り・斬殺！')}
+ else{if(!captured)sound(false);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=capturePlan.next;if(capturePlan.awakened)flashHitokiri('人斬り覚醒');}}
  const gaveCheck=check(b,1-speakerSide);
  const actor=originSide===0
   ?(officer===0?'kondoIsami':officer===1?'hijikataToshizo':chooseMoveVoice(speakerSide,captured,prom,gaveCheck))
   :(officer===0?'saigoTakamori':officer===2?'kidoTakayoshi':chooseMoveVoice(speakerSide,captured,prom,gaveCheck));
  const dedicatedDialogue=['kondoIsami','hijikataToshizo','saigoTakamori','kidoTakayoshi'].includes(actor);
  const nearbyEnemy=b.some((row,Y)=>row.some((piece,X)=>piece&&piece.s!==speakerSide&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
- const voiceKey=captured&&!forcedKill?(speakerSide===0?'capture':'sacchoCapture'):gaveCheck?'oute':dedicatedDialogue?actor:(nearbyEnemy&&Math.random()<.45?actor:null);
+ const voiceCues=window.ShinsengumiBattleRules.voiceCues({captured,lethal:forcedKill,gaveCheck});
+ const voiceKeys=voiceCues.map(cue=>cue==='capture'?(speakerSide===0?'capture':'sacchoCapture'):'oute');
+ if(!voiceKeys.length&&!forcedKill){const fallback=dedicatedDialogue?actor:(nearbyEnemy&&Math.random()<.45?actor:null);if(fallback)voiceKeys.push(fallback)}
  sel=null;turn=1-turn;ply++;playerTurnReady=false;
  if(rulePreset==='traditional')positionHistory.push({key:positionKey(b,h,turn),mover:speakerSide,gaveCheck});
  if(quakeHoles.length){const oldCount=quakeHoles.length;quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(quakeHoles.length<oldCount){playFx('cliffcollapse');if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}}
@@ -1201,7 +1204,12 @@ let noticeQueue=0;function commit(m,prom=false){
   const e=epoch;
   setTimeout(()=>{if(e!==epoch)return;animateCaptureEscort(speakerSide,m.Y,m.X,capturedPiece,()=>{animationCompleted=true;resume()})},160);
  }
- const voiceStart=()=>{if(thisEpoch!==epoch||ended)return;if(!voiceKey){voiceCompleted=true;resume();return}playMoveBattleVoice(voiceKey,speakerSide,()=>{voiceCompleted=true;resume()})};
+ const voiceStart=()=>{if(thisEpoch!==epoch||ended)return;
+  const queue=[...voiceKeys];const next=()=>{if(thisEpoch!==epoch||ended)return;
+   const key=queue.shift();if(!key){voiceCompleted=true;resume();return}
+   playMoveBattleVoice(key,speakerSide,next);
+  };next();
+ };
  if(captured&&rulePreset!=='traditional')setTimeout(voiceStart,420);else voiceStart();
 }
 function tap(y,x){if(!playerTurnReady||ended||busy||incidentRunning||pendingCardSide!==null||(gameMode==='ai'&&turn!==0))return;let p=b[y][x],all=legalMoves(b,h,turn);if(sel){let m=all.find(m=>m.Y===y&&m.X===x&&(sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x));if(m){if(!m.drop&&promote(b[m.y][m.x],m.y,m.Y)&&!forced(b[m.y][m.x],m.Y)){askPromotion(m);return}commit(m,false);return}}sel=p?.s===turn?{y,x}:null;if(sel)showOfficer(p);render()}
