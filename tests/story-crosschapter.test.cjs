@@ -60,8 +60,8 @@ assert.match(source, /const gaveCheck=g\.check\(g\.board,1-actor\);[\s\S]*?if\(c
   'Capturing moves that give check must announce check');
 assert.match(source, /await playBloodImpact\(\);if\(id!==epoch\)return;[\s\S]*?await playCasualtyCry\(\)/,
   'Rifle casualties must play impact before their cry');
-assert.match(source, /out\.push\(\{y,x,p\}\)/,
-  'An available non-king target must not be discarded by an overstrict safety filter');
+assert.match(source, /ShinsengumiIncidentRules\.eligibleTargets\(/,
+  'Story incident targets must use the completed mode shared safety routine');
 assert.match(source,/if\(kind==="cannon"\)\{[\s\S]*?await playCasualtyCry\(\)/,
   'Cannon casualty must reserve its hit-cry slot before the next shot');
 assert.match(source,/compactFadeExpiredHoles\(id\)/,
