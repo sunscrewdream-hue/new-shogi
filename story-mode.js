@@ -116,8 +116,7 @@ const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],
 const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
 // Awakening counts belong to a person, even after capture and redeployment.
 function compactFighterKey(p){
- if(!p)return null;
- return p.cid!=null?String(p.origin??p.s)+':'+String(p.cid):p.uid??String(p.origin??p.s)+':'+String(p.t??'unknown');
+ return window.ShinsengumiBattleRules.fighterKey(p);
 }
 const compactAudio={
  move0:"assets/audio/voice_shinsengumi_move_sorya.mp3",
@@ -978,23 +977,23 @@ function makeMove(m,prom){
  let moveVoiceDone=Promise.resolve();
  const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
- const willKill=compactMode()&&!m.drop&&!!g.board[m.Y][m.X]&&before>=3;
+ const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
+ const willKill=capturePlan.lethal;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
  if(compactMode())compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
-  compactCaptures[key]=willKill?0:before+1;
-  // Fatal capture no longer displays or speaks 「斬殺」.
-  if(!willKill&&compactCaptures[key]===3){
-   justAwakened=true;
-  }
+  compactCaptures[key]=capturePlan.next;
+  justAwakened=capturePlan.awakened;
  }
  const gaveCheck=g.check(g.board,1-actor);
+ const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck});
  if(captured){
   if(!willKill){
-   if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
-   if(gaveCheck)announce("check");
+   for(const cue of moveCues){if(cue==="capture"){
+    if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
+   }else announce("check")}
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
@@ -1006,7 +1005,7 @@ function makeMove(m,prom){
   const nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
-  if(gaveCheck)announce("check");
+  if(moveCues.includes("check"))announce("check");
   else if(dedicated)announce(dedicated);
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
