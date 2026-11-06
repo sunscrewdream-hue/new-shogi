@@ -562,11 +562,13 @@ body.local-match #enemyOfficerPanel .dialogue-status{transform:none}
 /* A true two-sided card: back and front occupy opposite faces of one object. */
 #cardOverlay{perspective:1100px}
 #cardFace{position:relative;transform-style:preserve-3d;transition:transform .46s cubic-bezier(.2,.7,.25,1)!important;animation:none!important;background:none!important;overflow:visible!important}
-#cardFace.revealed{transform:rotateY(180deg)!important;background:none!important}
+#cardFace.revealed{transform:rotateY(180deg);background:none!important}
 #cardFace::before,.card-front-art{position:absolute;inset:0;border-radius:inherit;backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none}
-#cardFace::before{content:"";background:url("card-back-shinsengumi-1024x1536.webp") center/100% 100% no-repeat;transform:rotateY(0)}
+#cardFace::before{display:none!important}
 #cardOverlay.ai-turn #cardFace::before{background-image:url("card-back-saccho-1024x1536.webp")}
 .card-front-art{transform:rotateY(180deg);background-size:100% 100%;background-position:center;background-repeat:no-repeat;overflow:hidden}
+#cardFace.revealed{animation:finishedPageReveal .46s ease-out both!important}
+@keyframes finishedPageReveal{from{transform:rotateY(95deg)}to{transform:rotateY(180deg)}}
 #cardFace #cardEffectPanel{pointer-events:none}
 @media(prefers-reduced-motion:reduce){#cardFace{transition-duration:.01ms!important}}
 </style><style id="unified-dev-style">.unified-debug-tools{max-width:520px;margin:18px auto 4px;padding:12px;border:1px dashed #b38b54;border-radius:8px;background:#151c20e8;box-sizing:border-box;color:#f3ddb2}.unified-debug-tools h3{margin:0 0 5px;font:800 15px system-ui;color:#f4d18d}.unified-debug-tools p{margin:0 0 12px;font:12px/1.6 system-ui;color:#c7c2b6}.unified-debug-buttons{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.unified-debug-buttons button{font:700 12px/1.3 system-ui;padding:9px 10px;background:#34434b;color:#f3ddb2;border:1px solid #8d7959;border-radius:6px;min-height:36px;cursor:pointer}.unified-debug-buttons button:disabled{opacity:.38;cursor:default}@media(max-width:430px){.unified-debug-tools{padding:10px 7px}.unified-debug-buttons button{flex:1 1 42%;font-size:11px}}</style><style id="mobile-title-fit-20261106">
@@ -1336,6 +1338,8 @@ function draw(s){
  el('cardPrompt').textContent=(s===1?'薩長同盟':'新選組')+'の事件札・タップしてめくる';
  el('cardOverlay').classList.add('show');
  playFx('card');
+ void face.offsetWidth;
+ revealCard();
 }
 function revealCard(){
  if(pendingCardSide===null||cardRevealed)return;
