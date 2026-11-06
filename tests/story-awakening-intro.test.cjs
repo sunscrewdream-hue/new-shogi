@@ -35,5 +35,5 @@ for(const name of ['intro_shinsengumi_washi_v2.webp','intro_saccho_washi_v2.webp
 for(const name of ['intro_shinsengumi_washi_mobile_v3.webp','intro_saccho_washi_mobile_v3.webp'])assert.ok(fs.statSync(path.join(root,'assets/visuals',name)).size>100000);
 assert.match(js,/function compactPlanQuake\(/);
 assert.match(js,/quakeRecovery\(\)/);
-assert.match(js,/attempt<45/);
+assert.match(js,/attempt<80/);
 console.log('PASS: individual three-capture awakenings, neutral banners, protected quake path, both new sortie arts');
