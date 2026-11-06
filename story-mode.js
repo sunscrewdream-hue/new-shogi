@@ -132,7 +132,9 @@ function compactCardRemaining(){
 function compactSafeBoard(B){return !g.check(B,0)&&!g.check(B,1)&&g.legal(0,B,g.hands).length>0&&g.legal(1,B,g.hands).length>0}
 function compactEligible(owner,types=null){const out=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
  const p=g.board[y][x];if(!p||p.s!==owner||p.t==="玉"||(types&&!types.includes(p.t)))continue;
- const B=g.clone(g.board);B[y][x]=null;if(compactSafeBoard(B))out.push({y,x,p});
+ // Incidents may cause check just like an ordinary capture; king safety is
+ // checked on the next player's turn. Do not silently cancel a drawn card.
+ out.push({y,x,p});
  }return out}
 function compactPlanQuake(){
  // Mini-board earthquake: move at most two distinct pieces, without chaining
@@ -202,7 +204,7 @@ function compactCardReveal(){
   $("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
   $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;
  },310);
- setTimeout(()=>{if(compactIncident===state){state.flipping=false;face.classList.remove("flipping")}},630);
+ setTimeout(()=>{if(compactIncident===state){state.flipping=false;face.classList.remove("flipping");if(state.closeRequested&&state.voiceDone)compactCardClose()}},630);
  $("compactCardPrompt").textContent="";
  state.voiceDone=false;
  sfx("flip");
@@ -227,13 +229,13 @@ $("compactCardFace").onclick=()=>{
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
    setTimeout(()=>{if(pendingWeaponDisplay!==item)return;$("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent=detail},310);
-   setTimeout(()=>{if(pendingWeaponDisplay===item){item.flipping=false;face.classList.remove("flipping")}},630);
+   setTimeout(()=>{if(pendingWeaponDisplay===item){item.flipping=false;face.classList.remove("flipping");if(item.closeRequested&&item.voiceDone){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}}},630);
    $("compactCardPrompt").textContent="";
    // Name the revealed weapon card first, then speak 「撃て！」 once at launch.
    playKabukiVoice(item.kind).then(()=>{
     if(pendingWeaponDisplay!==item)return;
     item.voiceDone=true;
-    if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
+   if(item.closeRequested&&!item.flipping){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
    });return;
   }
   if(item.flipping||!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
@@ -246,10 +248,9 @@ function compactResumeTurn(){
  // Chapter-specific artillery comes AFTER the shared incident card sequence,
  // rather than being silently skipped while the move animation still owns the lock.
  if(pendingWeaponKind&&g.ply>=(pendingWeaponKind.afterPly??0)){const {kind,side}=pendingWeaponKind;pendingWeaponKind=null;
-  // Artillery is a scripted battle event, NOT a second draw from 動乱の刻.
-  // Preserve both armies' cannon/rifle attacks without showing a duplicate card.
-  busy=true;weapons.push(side+":"+kind);
-  setTimeout(()=>{if(game===epoch&&!ended)fire(kind,side)},700);return}
+  // A cannon/rifle must first be drawn and revealed. It substitutes for a
+  // regular incident on this turn, so never show two consecutive cards.
+  setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind,side)},700);return}
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -404,8 +405,6 @@ function compactApplyIncident(effect){
  const finish=()=>{if(game!==epoch)return;compactIncidentMarks=[];compactResumeTurn()};
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
-  // A second safety check protects against any stale target or changed board.
-  const B=g.clone(g.board);B[y][x]=null;if(!compactSafeBoard(B)){finish();return}
   g.board[y][x]=null;
   if(kind==="粛清")g.fallen[p.s].push({...p,p:false});
   if(kind==="寝返り"){
@@ -428,8 +427,6 @@ function compactApplyIncident(effect){
  };
  if(kind==="脱走"){
   // The pawn vanishes as the officer departs; neither action waits for the other.
-  const B=g.clone(g.board);B[y][x]=null;
-  if(!compactSafeBoard(B)){finish();return}
   const rect=board.children[y*g.w+x]?.getBoundingClientRect(),layer=$("compactActionLayer");
   const motion=!!rect&&!!Element.prototype.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   let ghost=null;
@@ -921,9 +918,11 @@ function makeMove(m,prom){
    justAwakened=true;
   }
  }
+ const gaveCheck=g.check(g.board,1-actor);
  if(captured){
   if(!willKill){
-   if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
+   if(gaveCheck)announce("check");
+   else if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
@@ -932,7 +931,7 @@ function makeMove(m,prom){
   if(actor===0)collect(captured);banner(1-actor,captured);
  }else{
   sfx("move");
-  const gaveCheck=g.check(g.board,1-actor),nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
+  const nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
   if(gaveCheck)announce("check");
@@ -946,7 +945,7 @@ function makeMove(m,prom){
   if(stage===3&&actor===0){playerTurns++;
    if(playerTurns===4||playerTurns===8){
     const kind=playerTurns===4?"cannon":"rifle";
-    if(!weapons.includes("0:"+kind))pendingWeaponKind={kind,side:0,afterPly:compactCardDue(actor)?g.ply+2:g.ply};
+    if(!weapons.includes("0:"+kind))pendingWeaponKind={kind,side:0,afterPly:g.ply};
    }
   }
   busy=true;render();const id=epoch;
@@ -963,7 +962,7 @@ function makeMove(m,prom){
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
-   if(compactCardDue(actor)){
+   if(compactCardDue(actor)&&!(pendingWeaponKind&&g.ply>=pendingWeaponKind.afterPly)){
     busy=true;compactTurnLocked=true;render();
     // Same 250ms beat between the completed game's move and incident title.
     setTimeout(()=>{if(id===epoch&&!ended)compactCardStart(actor)},250);
@@ -995,7 +994,7 @@ function computer(){
  makeMove(move,prom);enemyTurns++;
  if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
   const kind=enemyTurns===4?"cannon":"rifle";
-  if(!weapons.includes("1:"+kind))pendingWeaponKind={kind,side:1,afterPly:compactCardDue(1)?g.ply+2:g.ply};
+  if(!weapons.includes("1:"+kind))pendingWeaponKind={kind,side:1,afterPly:g.ply};
  }
 }
 function weaponCard(kind,ownerSide=1,debug=false){
@@ -1037,9 +1036,10 @@ async function fire(kind,ownerSide=1){
    // Cannon casualties share the immediate hit-cry slot with rifle casualties.
    await playCasualtyCry();
   }else{
-   await playCasualtyCry();if(id!==epoch)return;
    const square=shot.y+":"+shot.x;
-   compactBloodMarks.push(square);render();compactSound("blood");
+   compactBloodMarks.push(square);render();
+   await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch)return;
+   await playCasualtyCry();if(id!==epoch)return;
    await later(1600);
    compactBloodMarks=compactBloodMarks.filter(v=>v!==square);
    if(id===epoch)render();
