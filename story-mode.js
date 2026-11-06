@@ -115,7 +115,9 @@ const compactAudio={
  kondo:"assets/audio/voice_kondo_isami_king_move.mp3",
  hijikata:"assets/audio/voice_hijikata_toshizo_move.mp3",
  move1:"assets/audio/voice_saccho_move_taa.mp3",
- sacchoCapture:"assets/audio/saccho_voice_03_toraeta.mp3",
+ // The 0.98-second enemy take was masked during the capture escort on phones.
+ // Use the same audible, approved 1.75-second 「捕らえた！」 as the player.
+ sacchoCapture:"assets/audio/voice_capture_toraeta.mp3",
  sacchoLoss:"assets/story/audio/master_enemy_loss_v4.mp3",
  saigo:"assets/audio/voice_saigo_takamori.mp3",
  kido:"assets/audio/voice_kido_takayoshi.mp3",
@@ -138,7 +140,10 @@ function compactSound(kind,onDone=null){
  if(kind==="slash")kind=["slash1","slash2","slash3"][Math.floor(Math.random()*3)];
  const src=compactAudio[kind]||({slash1:"assets/audio/sfx/sword_slash_1.mp3",slash2:"assets/audio/sfx/sword_slash_2.mp3",slash3:"assets/audio/sfx/sword_slash_3.mp3"})[kind];if(!src){onDone?.();return}
  const isVoice=["move0","move1","kondo","hijikata","check","sacchoCapture","sacchoLoss","saigo","kido","sacchoCheck","sacchoPromote","sacchoChesto","sacchoUryaa"].includes(kind);
- if(kind==="sacchoCapture"||kind==="check")playBattleShout(src,onDone);
+ if(kind==="sacchoCapture"||kind==="check"){
+  window.StoryBgm?.duck();
+  playBattleShout(src,onDone);
+ }
  else playStoryClip(src,isVoice?"voice":"fx",onDone);
 }
 async function compactFadeExpiredHoles(game){
