@@ -177,7 +177,7 @@ function compactCardStart(side){
  },1300);
 }
 function compactCardReveal(){
- const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.kind=compactPickCard();
+ const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.flipping=true;state.kind=compactPickCard();
  const kind=state.kind,side=state.side;let detail="";compactIncidentEffect=null;
  if(kind==="何事もなし")detail="何事もなし。盤面に変化なし";
  else if(kind==="大地震"){compactIncidentEffect={kind};detail="大地震！ 駒が揺れ動き、地面が崩れる"}
@@ -193,8 +193,17 @@ function compactCardReveal(){
    detail=kind==="寝返り"?"敵の"+v.p.t+"が寝返り、味方の持ち駒に加わる":kind==="脱走"?"味方の"+v.p.t+"が脱走する":"味方の"+v.p.t+"を粛清する";
   }
  }
- const face=$("compactCardFace");face.style.backgroundImage="none";$("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
- $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;$("compactCardPrompt").textContent="";
+ const face=$("compactCardFace");face.style.backgroundImage="none";
+ face.classList.add("flipping");
+ // Keep the actual card back visible for the first half of the turn.
+ // Replace it exactly at the edge-on midpoint, never underneath the back.
+ setTimeout(()=>{
+  if(compactIncident!==state)return;
+  $("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
+  $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;
+ },310);
+ setTimeout(()=>{if(compactIncident===state){state.flipping=false;face.classList.remove("flipping")}},630);
+ $("compactCardPrompt").textContent="";
  state.voiceDone=false;
  sfx("flip");
  if(!voiceEnabled){state.voiceDone=true;return}
@@ -204,7 +213,7 @@ function compactCardReveal(){
  playStoryClip(compactCardVoices[kind],"voice",done);setTimeout(done,15000);
 }
 function compactCardClose(){
- const state=compactIncident;if(!state||!state.revealed)return;
+ const state=compactIncident;if(!state||!state.revealed||state.flipping)return;
  if(!state.voiceDone){state.closeRequested=true;$("compactCardPrompt").textContent="セリフ再生後に進みます…";return}
  compactIncident=null;$("compactCardOverlay").classList.add("hidden");compactApplyIncident(compactIncidentEffect);compactIncidentEffect=null;
 }
@@ -212,11 +221,13 @@ $("compactCardFace").onclick=()=>{
  if(pendingWeaponDisplay){
   const item=pendingWeaponDisplay;
   if(!item.revealed){
-   item.revealed=true;item.voiceDone=false;item.closeRequested=false;$("compactCardFace").style.backgroundImage=`url("assets/story/cards/${item.kind}-v2.webp")`;
-   $("compactCardFace").classList.add("revealed");sfx("flip");
-   $("compactCardText").textContent=item.kind==="cannon"
+   item.revealed=true;item.flipping=true;item.voiceDone=false;item.closeRequested=false;
+   const face=$("compactCardFace");face.style.backgroundImage="none";face.classList.add("flipping");sfx("flip");
+   const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
+   setTimeout(()=>{if(pendingWeaponDisplay!==item)return;$("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent=detail},310);
+   setTimeout(()=>{if(pendingWeaponDisplay===item){item.flipping=false;face.classList.remove("flipping")}},630);
    $("compactCardPrompt").textContent="";
    // Name the revealed weapon card first, then speak 「撃て！」 once at launch.
    playKabukiVoice(item.kind).then(()=>{
@@ -225,7 +236,7 @@ $("compactCardFace").onclick=()=>{
     if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
    });return;
   }
-  if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
+  if(item.flipping||!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
  }
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
@@ -260,11 +271,11 @@ function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
  if(effect.kind==="援軍"){
-  const revived=compactGrantReinforcement(effect);
-  if(!revived){compactResumeTurn();return}
-  banner(effect.side,revived,true);render();
+  const candidate=effect.reserve?{t:"銀",s:effect.side,origin:effect.side}:g.fallen[effect.side].find(p=>p.uid===effect.uid);
+  if(!candidate){compactResumeTurn();return}
+  banner(effect.side,candidate,true);render();
   const hand=$("storyHand"+effect.side);
-  storyBannerMessage("援軍！ "+person(revived).name+"が到着する！",effect.side);
+  storyBannerMessage("援軍！ "+person(candidate).name+"が到着する！",effect.side);
   // A returning officer runs in from outside the screen and lands in the hand.
   // Reuse the desertion footsteps; the sortie voice starts after the run.
   const goal=hand.closest(".hand-container")?.getBoundingClientRect(),layer=$("compactActionLayer");
@@ -275,12 +286,16 @@ function compactApplyIncident(effect){
   playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",async()=>{
    if(game!==epoch)return;
    figure.style.visibility="visible";
-   for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
    const run=figure.animate&&goal&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
     ?figure.animate([{opacity:0,transform:"translateX(0) scale(.85)"},{opacity:1,offset:.18,transform:"translateX("+((goal.left+goal.width/2-startX)*.18)+"px)"},{opacity:1,offset:.88,transform:"translateX("+(goal.left+goal.width/2-startX)+"px)"},{opacity:0,transform:"translateX("+(goal.left+goal.width/2-startX)+"px) scale(.6)"}],{duration:1700,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{})
     :later(1700);
    const footsteps=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,3000)});
    await Promise.all([run,footsteps]);figure.remove();if(game!==epoch)return;
+   // Only now does the reinforcement become a usable piece in the hand.
+   const revived=compactGrantReinforcement(effect);
+   if(!revived){compactResumeTurn();return}
+   render();
+   for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
    storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒に加わった！",effect.side);
    setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));if(!(compactCaptures[compactFighterKey(revived)]>=3))$(effect.side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character");compactResumeTurn()},450);
   });
@@ -990,7 +1005,8 @@ function weaponCard(kind,ownerSide=1,debug=false){
  // ordinary incident cards. The weapon illustration is revealed by the player.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
  overlay.classList.add("hidden");face.classList.remove("revealed");
- face.style.backgroundImage=`url("${ownerSide===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp"}")`;
+ face.style.backgroundImage="none";
+ $("compactCardArtwork").src=ownerSide===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp";
  $("compactCardHeading").textContent=ownerSide===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";
  $("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
  stageLayer.classList.remove("hidden");const id=epoch;
