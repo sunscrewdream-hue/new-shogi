@@ -165,8 +165,9 @@
 }
 /* Prologue lines are editorially composed columns; never let a viewport reflow them. */
 #storyDialogue.prologue-typeset #dialogueBody{
- white-space:pre;
- overflow-wrap:normal;
+ /* Long editorial lines must wrap into another vertical column on short phones. */
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
  word-break:normal;
  text-align:start;
  height:340px;
