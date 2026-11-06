@@ -11,7 +11,7 @@ const fxLevel=()=>Math.min(.5,storyVolume/100*2.1);
 const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
 // Enemy moves run from timers, outside a touch gesture. A gesture-unlocked
 // Web Audio voice channel keeps capture and check shouts playable on iOS.
-let battleVoiceContext=null,battleVoiceActive=null;
+let battleVoiceContext=null,battleVoiceActive=null,battleImpactActive=null;
 const battleVoiceBuffers=new Map(),battleVoiceLoading=new Map();
 function unlockBattleVoice(){
  if(!battleVoiceContext){const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return null;battleVoiceContext=new AudioContextClass()}
@@ -20,9 +20,9 @@ function unlockBattleVoice(){
 }
 document.addEventListener("pointerdown",unlockBattleVoice,{passive:true});
 document.addEventListener("touchstart",unlockBattleVoice,{passive:true});
-function playBattleShout(path,onDone){
- if(!voiceEnabled||document.hidden){onDone?.();return}
- const context=unlockBattleVoice();if(!context){playStoryClip(path,"voice",onDone);return}
+function playGestureAudio(path,onDone,channel="voice"){
+ if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden){onDone?.();return}
+ const context=unlockBattleVoice();if(!context){playStoryClip(path,channel,onDone);return}
  let loading=battleVoiceBuffers.get(path);
  if(!loading){
   loading=battleVoiceLoading.get(path);
@@ -31,13 +31,16 @@ function playBattleShout(path,onDone){
  let settled=false;const finish=()=>{if(settled)return;settled=true;onDone?.()};
  Promise.resolve(loading).then(buffer=>{
   if(!voiceEnabled||document.hidden){finish();return}
-  stopStoryClip("voice");
-  if(battleVoiceActive){try{battleVoiceActive.stop()}catch(e){}battleVoiceActive=null}
-  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=voiceLevel();source.connect(gain).connect(context.destination);
-  battleVoiceActive=source;source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;finish()};
-  context.resume().then(()=>source.start()).catch(()=>{playStoryClip(path,"voice",finish)});
- }).catch(()=>playStoryClip(path,"voice",finish));
+  stopStoryClip(channel);
+  const previous=channel==="voice"?battleVoiceActive:battleImpactActive;
+  if(previous){try{previous.stop()}catch(e){}}
+  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=channel==="voice"?voiceLevel():fxLevel();source.connect(gain).connect(context.destination);
+  if(channel==="voice")battleVoiceActive=source;else battleImpactActive=source;
+  source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;if(battleImpactActive===source)battleImpactActive=null;finish()};
+  context.resume().then(()=>source.start()).catch(()=>{playStoryClip(path,channel,finish)});
+ }).catch(()=>playStoryClip(path,channel,finish));
 }
+function playBattleShout(path,onDone){playGestureAudio(path,onDone,"voice")}
 // Cannon impact needs its own channel: shot, hit cry and other FX must not
 // interrupt the explosion halfway through.
 const cannonImpactAudio=new Audio("assets/story/audio/master_explosion.mp3");
@@ -58,7 +61,10 @@ function stopStoryClip(channel){
  if(channel==="voice"){
   activeStoryVoice=null;
   if(battleVoiceActive){try{battleVoiceActive.stop()}catch(e){}battleVoiceActive=null}
- }else activeStoryFx=null;
+ }else{
+  activeStoryFx=null;
+  if(battleImpactActive){try{battleImpactActive.stop()}catch(e){}battleImpactActive=null}
+ }
 }
 function playStoryClip(path,channel="fx",onDone=null){
  if(!path){onDone?.();return null}
@@ -84,6 +90,8 @@ function playCasualtyCry(){return new Promise(resolve=>{
  setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
+// Never leave battle input locked if mobile Safari omits an audio-ended event.
+function playBloodImpact(){return Promise.race([new Promise(resolve=>compactSound("blood",resolve)),later(1700)])}
 function hideStoryEndOverlay(){const node=$("storyEndOverlay");if(node)node.classList.add("hidden")}
 function chooseView(active){hideStoryEndOverlay();["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t,onDone=null){
@@ -140,7 +148,8 @@ function compactSound(kind,onDone=null){
  if(kind==="slash")kind=["slash1","slash2","slash3"][Math.floor(Math.random()*3)];
  const src=compactAudio[kind]||({slash1:"assets/audio/sfx/sword_slash_1.mp3",slash2:"assets/audio/sfx/sword_slash_2.mp3",slash3:"assets/audio/sfx/sword_slash_3.mp3"})[kind];if(!src){onDone?.();return}
  const isVoice=["move0","move1","kondo","hijikata","check","sacchoCapture","sacchoLoss","saigo","kido","sacchoCheck","sacchoPromote","sacchoChesto","sacchoUryaa"].includes(kind);
- if(kind==="sacchoCapture"||kind==="check"){
+ if(kind==="blood")playGestureAudio(src,onDone,"fx");
+ else if(kind==="sacchoCapture"||kind==="check"){
   window.StoryBgm?.duck();
   playBattleShout(src,onDone);
  }
@@ -1026,11 +1035,17 @@ function makeMove(m,prom){
   else if(willKill){
    // Lethal capture: impact/blood first, then the casualty cries out.
    (async()=>{
-    const square=m.Y+":"+m.X;compactBloodMarks.push(square);render();
-    await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch||ended)return;
-    await playCasualtyCry();if(id!==epoch||ended)return;
-    await later(850);compactBloodMarks=compactBloodMarks.filter(v=>v!==square);render();
-    if(id===epoch&&!ended)afterFx();
+    const square=m.Y+":"+m.X;
+    try{
+     compactBloodMarks.push(square);render();
+     await playBloodImpact();if(id!==epoch||ended)return;
+     await playCasualtyCry();if(id!==epoch||ended)return;
+     await later(850);
+    }catch(error){console.error("斬殺演出の復旧処理",error)}
+    finally{
+     compactBloodMarks=compactBloodMarks.filter(v=>v!==square);
+     if(id===epoch&&!ended){render();afterFx()}
+    }
    })();
   }else setTimeout(afterFx,prom?800:850);
   return;
@@ -1085,7 +1100,7 @@ async function fire(kind,ownerSide=1){
   }else{
    const square=shot.y+":"+shot.x;
    compactBloodMarks.push(square);render();
-   await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch)return;
+   await playBloodImpact();if(id!==epoch)return;
    await playCasualtyCry();if(id!==epoch)return;
    await later(1600);
    compactBloodMarks=compactBloodMarks.filter(v=>v!==square);
@@ -1262,11 +1277,11 @@ async function storyDebugHitokiri(kill){
    // Let the tester see the persistent stamp on the officer banner.
    await later(1200);
   }else{
-   await new Promise(resolve=>compactSound("blood",resolve));if(id!==epoch||ended)return;
+   await playBloodImpact();if(id!==epoch||ended)return;
    await playCasualtyCry();if(id!==epoch||ended)return;
    const victim=g.board.flatMap((row,y)=>row.map((p,x)=>p&&p.s===1?y+":"+x:null)).find(Boolean);
    if(victim){compactBloodMarks.push(victim);render()}
-   await new Promise(resolve=>compactSound("blood",resolve));
+   await playBloodImpact();
    await later(800);compactBloodMarks=[];
   }
  }finally{
