@@ -1018,7 +1018,16 @@ body.game-effect-scroll-locked{touch-action:none}
 .compact-card-face.revealed #compactCardText{position:absolute;z-index:2}
 /* One physical card turns over: the back is exchanged for the front only
    while its edge faces the viewer. No second image remains underneath. */
-.compact-card-face.revealed{animation:none!important;transform:none!important}
+.compact-card-overlay{perspective:1100px}
+.compact-card-face{transform-style:preserve-3d;transition:transform .46s cubic-bezier(.2,.7,.25,1)!important;animation:none!important;overflow:visible!important;background:none!important}
+.compact-card-face.revealed{animation:none!important;transform:rotateY(180deg)!important}
+.compact-card-back,.compact-card-front{position:absolute!important;inset:0;display:block;width:100%;height:100%;border-radius:inherit;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;pointer-events:none}
+.compact-card-back{background:center / 100% 100% no-repeat url("card-back-shinsengumi-1024x1536.webp");transform:rotateY(0deg)}
+.compact-card-face[data-side="1"] .compact-card-back{background-image:url("card-back-saccho-1024x1536.webp")}
+.compact-card-front{transform:rotateY(180deg);background:#171318}
+.compact-card-front #compactCardArtwork{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.compact-card-face.revealed .compact-card-front #compactCardText{position:absolute;z-index:2}
+@media(prefers-reduced-motion:reduce){.compact-card-face{transition-duration:.01ms!important}}
 
 /* Every turn announcement follows the actual board center, including later turns. */
 #compactTurnNotice #compactTurnArt,#compactTurnNotice #compactTurnFallback{translate:0 var(--turn-center-offset,0px)}
