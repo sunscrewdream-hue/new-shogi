@@ -3,12 +3,22 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,enemyTurns=0,playerTurns=0,weapons=[],pendingWeaponKind=null,pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0;
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
 const fxLevel=()=>Math.min(.5,storyVolume/100*2.1);
 const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
+// Cannon impact needs its own channel: shot, hit cry and other FX must not
+// interrupt the explosion halfway through.
+const cannonImpactAudio=new Audio("assets/story/audio/master_explosion.mp3");
+cannonImpactAudio.preload="auto";cannonImpactAudio.playsInline=true;
+function playCannonImpact(){
+ if(!fxEnabled||document.hidden||storyVolume<=0)return;
+ cannonImpactAudio.pause();cannonImpactAudio.currentTime=0;
+ cannonImpactAudio.volume=Math.min(.75,storyVolume/100*4.5);
+ cannonImpactAudio.play().catch(error=>console.warn("砲弾着弾音を再生できません",error));
+}
 const storyQuakeBattle=new Audio("assets/audio/sfx/battle_charge_mono_64kbps.mp3");let quakeBattleRuns=0;
 storyQuakeBattle.preload="auto";storyQuakeBattle.playsInline=true;
 function stopStoryQuakeBattle(){storyQuakeBattle.pause();storyQuakeBattle.currentTime=0;quakeBattleRuns=0}
@@ -42,9 +52,10 @@ const later=ms=>new Promise(r=>setTimeout(r,ms));
 function hideStoryEndOverlay(){const node=$("storyEndOverlay");if(node)node.classList.add("hidden")}
 function chooseView(active){hideStoryEndOverlay();["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t,onDone=null){
- if(t==="cannon"||t==="rifle"||t==="blast"){
+ if(t==="blast"){window.StoryBgm?.duck();playCannonImpact();onDone?.();return}
+ if(t==="cannon"||t==="rifle"){
   window.StoryBgm?.duck();
-  playStoryClip("assets/story/audio/master_"+(t==="blast"?"explosion":t)+".mp3","fx",onDone);return;
+  playStoryClip("assets/story/audio/master_"+t+".mp3","fx",onDone);return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/story/audio/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
@@ -56,9 +67,9 @@ function sfx(t,onDone=null){
 // Historical 5x6-only gating silently disabled cards, capture escorts, turn notices,
 // awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
 function compactMode(){return stage>=0&&stage<D.chapters.length}
-const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp"};
+const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp","大砲":"assets/story/cards/cannon-v2.webp","鉄砲":"assets/story/cards/rifle-v2.webp"};
 const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]];
-const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3"};
+const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
 // Awakening counts belong to a person, even after capture and redeployment.
 function compactFighterKey(p){
  if(!p)return null;
@@ -119,7 +130,19 @@ function hideCompactFx(){
  compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
-function compactPickCard(){let roll=Math.random()*100;for(const [name,weight] of compactCardWeights){roll-=weight;if(roll<0)return name}return "何事もなし"}
+function compactPickCard(side){
+ // Artillery belongs to the Toba-Fushimi deck, never to a turn-count timer.
+ // Each army can draw each weapon at most once; other chapters are unchanged.
+ const base=stage===3?compactCardWeights.map(([name,weight])=>[name,weight*.8]):compactCardWeights;
+ const deck=[...base];
+ if(stage===3){
+  if(!weapons.includes(side+":cannon"))deck.push(["大砲",10]);
+  if(!weapons.includes(side+":rifle"))deck.push(["鉄砲",10]);
+ }
+ let roll=Math.random()*deck.reduce((sum,item)=>sum+item[1],0);
+ for(const [name,weight] of deck){roll-=weight;if(roll<0)return name}
+ return "何事もなし";
+}
 function compactCardInterval(){return stage===3?3:4}
 function compactCardDue(actor){
  if(stage===3)return g.ply>=5&&(g.ply-5)%3===0; // Alternate sides; avoid back-to-back incidents.
@@ -179,10 +202,15 @@ function compactCardStart(side){
  },1300);
 }
 function compactCardReveal(){
- const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.flipping=true;state.kind=compactPickCard();
+ const state=compactIncident;if(!state||state.revealed)return;state.revealed=true;state.flipping=true;state.kind=compactPickCard(state.side);
  const kind=state.kind,side=state.side;let detail="";compactIncidentEffect=null;
  if(kind==="何事もなし")detail="何事もなし。盤面に変化なし";
  else if(kind==="大地震"){compactIncidentEffect={kind};detail="大地震！ 駒が揺れ動き、地面が崩れる"}
+ else if(kind==="大砲"||kind==="鉄砲"){
+  const weaponKind=kind==="大砲"?"cannon":"rifle";
+  compactIncidentEffect={kind:"weapon",weaponKind,side};
+  detail=kind==="大砲"?"大砲！ 敵陣の2か所へ砲撃し、着弾地点に穴を開ける":"鉄砲！ 敵陣へ銃撃する";
+ }
  else if(kind==="援軍"){
   const fallen=g.fallen[side];
   if(fallen.length){const revived=fallen[Math.floor(Math.random()*fallen.length)];compactIncidentEffect={kind,side,uid:revived.uid};detail="援軍！ 戦死した"+revived.t+"が持ち駒に復活する"}
@@ -245,12 +273,6 @@ $("compactCardFace").onclick=()=>{
 };
 function compactResumeTurn(){
  if(ended)return;busy=false;compactTurnLocked=true;render();const game=epoch;
- // Chapter-specific artillery comes AFTER the shared incident card sequence,
- // rather than being silently skipped while the move animation still owns the lock.
- if(pendingWeaponKind&&g.ply>=(pendingWeaponKind.afterPly??0)){const {kind,side}=pendingWeaponKind;pendingWeaponKind=null;
-  // A cannon/rifle must first be drawn and revealed. It substitutes for a
-  // regular incident on this turn, so never show two consecutive cards.
-  setTimeout(()=>{if(game===epoch&&!ended)weaponCard(kind,side)},700);return}
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -271,6 +293,11 @@ function compactGrantReinforcement(effect){
 function compactApplyIncident(effect){
  if(!effect){compactResumeTurn();return}
  const game=epoch,board=$("storyBoard");busy=true;compactTurnLocked=true;
+ if(effect.kind==="weapon"){
+  const {weaponKind,side}=effect;
+  if(!weapons.includes(side+":"+weaponKind))weapons.push(side+":"+weaponKind);
+  fire(weaponKind,side);return;
+ }
  if(effect.kind==="援軍"){
   const candidate=effect.reserve?{t:"銀",s:effect.side,origin:effect.side}:g.fallen[effect.side].find(p=>p.uid===effect.uid);
   if(!candidate){compactResumeTurn();return}
@@ -773,7 +800,7 @@ function battle(i){
  document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};reinforcementSerial=0;
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
- epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;enemyTurns=0;playerTurns=0;weapons=[];pendingWeaponKind=null;debugModified=false;
+ epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
@@ -940,14 +967,6 @@ function makeMove(m,prom){
  }
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
  if(compactMode()){
-  // Give both factions the same artillery opportunity in Toba-Fushimi.
-  // The special card is queued after any regular incident, without consuming a move.
-  if(stage===3&&actor===0){playerTurns++;
-   if(playerTurns===4||playerTurns===8){
-    const kind=playerTurns===4?"cannon":"rifle";
-    if(!weapons.includes("0:"+kind))pendingWeaponKind={kind,side:0,afterPly:g.ply};
-   }
-  }
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
   const afterFx=()=>moveVoiceDone.then(async()=>{
@@ -962,7 +981,7 @@ function makeMove(m,prom){
    compactArrival=null;
    if(result){finish(result.winner,result.why);return}
    busy=false;
-   if(compactCardDue(actor)&&!(pendingWeaponKind&&g.ply>=pendingWeaponKind.afterPly)){
+   if(compactCardDue(actor)){
     busy=true;compactTurnLocked=true;render();
     // Same 250ms beat between the completed game's move and incident title.
     setTimeout(()=>{if(id===epoch&&!ended)compactCardStart(actor)},250);
@@ -991,11 +1010,7 @@ function computer(){
  if(!move){finish(0,"敵軍に指す手なし");return}
  const p=move.drop?null:g.board[move.y][move.x],prom=!!p&&g.promoted(p,move.y,move.Y);
  if(p)banner(1,p);
- makeMove(move,prom);enemyTurns++;
- if(!ended&&stage===3&&(enemyTurns===4||enemyTurns===8)){
-  const kind=enemyTurns===4?"cannon":"rifle";
-  if(!weapons.includes("1:"+kind))pendingWeaponKind={kind,side:1,afterPly:g.ply};
- }
+ makeMove(move,prom);
 }
 function weaponCard(kind,ownerSide=1,debug=false){
  if(ended||busy||(!debug&&weapons.includes(ownerSide+":"+kind))||stage!==3)return;
