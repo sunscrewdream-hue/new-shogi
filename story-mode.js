@@ -192,8 +192,8 @@ function compactPlanQuake(){
 function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");face.dataset.side=String(side);face.style.backgroundImage="none";$("compactCardArtwork").src="";
- $("compactCardHeading").textContent=side===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";$("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");$("compactCardArtwork").removeAttribute("src");
+ $("compactCardHeading").textContent="";$("compactCardText").textContent="";$("compactCardPrompt").textContent="";
  const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
  compactSound("banner");
@@ -224,7 +224,7 @@ function compactCardReveal(){
   }
  }
  const face=$("compactCardFace");face.style.backgroundImage="none";
- // The existing paper-flip sound marks an immediate back-to-face swap.
+ // The paper-flip sound accompanies the illustrated front entering the screen.
  $("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;
  $("compactCardPrompt").textContent="";
@@ -1008,14 +1008,12 @@ function computer(){
 function weaponCard(kind,ownerSide=1,debug=false){
  if(ended||busy||(!debug&&weapons.includes(ownerSide+":"+kind))||stage!==3)return;
  if(!debug)weapons.push(ownerSide+":"+kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
- // Use exactly the same calligraphy, card-back, drop and flip UI as the five
- // ordinary incident cards. The weapon illustration is revealed by the player.
+ // Weapon cards share the same front-only reveal used by ordinary incidents.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
- overlay.classList.add("hidden");face.classList.remove("revealed");face.dataset.side=String(ownerSide);
- face.style.backgroundImage="none";
+ overlay.classList.add("hidden");face.classList.remove("revealed");
  $("compactCardArtwork").removeAttribute("src");
- $("compactCardHeading").textContent=ownerSide===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";
- $("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
+ $("compactCardHeading").textContent="";$("compactCardText").textContent="";
+ $("compactCardPrompt").textContent="";
  stageLayer.classList.remove("hidden");const id=epoch;
  const banner=$("compactIncidentBanner");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
  compactSound("banner");setTimeout(()=>{if(id!==epoch||!pendingWeaponDisplay||pendingWeaponDisplay.kind!==kind)return;
