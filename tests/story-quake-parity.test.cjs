@@ -63,7 +63,7 @@ assert.match(complete,/function quakeEffect\(/);
 assert.match(story,/function compactPlanQuake\(/);
 assert.match(story,/compactQuakeMove=shift/);
 assert.match(story,/compactQuakeCracks=chosen;render\(\)/);
-assert.match(story,/compactQuakeCracks=\[\];g\.holes\.push\(\.\.\.chosen\)/);
+assert.match(story,/compactQuakeCracks=\[\];[\s\S]*?for\(const hole of chosen\)if\(!g\.board\[hole\.y\]\[hole\.x\]\)g\.holes\.push\(hole\)/);
 assert.match(css,/\.sq\.compact-quake-origin \.story-token\{animation:storyQuakeTravel/);
 assert.match(css,/\.sq\.compact-quake-mark\{animation:storyQuakeRedFlash/);
 assert.match(css,/quake_crack\.webp/);
