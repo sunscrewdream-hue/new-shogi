@@ -36,8 +36,16 @@ assert.match(source, /if\(stage===3&&actor===0\)/,
   'The player must receive artillery cards in Toba-Fushimi');
 assert.match(source, /pendingWeaponKind=\{kind,side:1,afterPly:/,
   'The enemy must retain its scheduled artillery');
-assert.match(source, /weapons\.push\(side\+":"\+kind\);[\s\S]*?fire\(kind,side\)/,
-  'Scheduled artillery must fire directly without a second incident card');
+assert.match(source, /weaponCard\(kind,side\)/,
+  'Scheduled artillery must display a card before firing');
+assert.match(source, /compactCardDue\(actor\)&&!\(pendingWeaponKind&&g\.ply>=pendingWeaponKind\.afterPly\)/,
+  'A scheduled weapon card must replace, not duplicate, a regular incident');
+assert.match(source, /const gaveCheck=g\.check\(g\.board,1-actor\);[\s\S]*?if\(captured\)\{[\s\S]*?if\(gaveCheck\)announce\("check"\)/,
+  'Capturing moves that give check must announce check');
+assert.match(source, /await new Promise\(resolve=>compactSound\("blood",resolve\)\);if\(id!==epoch\)return;[\s\S]*?await playCasualtyCry\(\)/,
+  'Rifle casualties must play impact before their cry');
+assert.match(source, /out\.push\(\{y,x,p\}\)/,
+  'An available non-king target must not be discarded by an overstrict safety filter');
 assert.match(source,/if\(kind==="cannon"\)\{[\s\S]*?await playCasualtyCry\(\)/,
   'Cannon casualty must reserve its hit-cry slot before the next shot');
 assert.match(source,/compactFadeExpiredHoles\(id\)/,
