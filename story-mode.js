@@ -1013,7 +1013,7 @@ function weaponCard(kind,ownerSide=1,debug=false){
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
  overlay.classList.add("hidden");face.classList.remove("revealed");face.dataset.side=String(ownerSide);
  face.style.backgroundImage="none";
- $("compactCardArtwork").src=ownerSide===0?"card-back-shinsengumi-1024x1536.webp":"card-back-saccho-1024x1536.webp";
+ $("compactCardArtwork").removeAttribute("src");
  $("compactCardHeading").textContent=ownerSide===0?"新選組の事件札":"敵軍の事件札";$("compactCardText").textContent="";
  $("compactCardPrompt").textContent="動乱の刻 — タップしてめくる";
  stageLayer.classList.remove("hidden");const id=epoch;
