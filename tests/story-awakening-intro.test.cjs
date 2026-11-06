@@ -9,13 +9,15 @@ const html=fs.readFileSync(path.join(root,'story-mode.html'),'utf8');
 const completed=fs.readFileSync(path.join(root,'enhancements.js'),'utf8');
 const keySource=js.match(/function compactFighterKey\(p\)\{[\s\S]*?\n\}/)?.[0];
 assert.ok(keySource,'Unique officer identity function exists');
-const key=vm.runInNewContext(keySource+'\ncompactFighterKey',{});
+const context={window:{}};vm.createContext(context);
+vm.runInContext(fs.readFileSync(path.join(root,'shared-battle-rules.js'),'utf8'),context);
+const key=vm.runInContext(keySource+'\ncompactFighterKey',context);
 assert.equal(key({origin:0,cid:1,uid:'0:other:4'}),'0:1');
 assert.equal(key({origin:0,cid:1,uid:'new-piece-after-capture',s:1}),'0:1');
 assert.notEqual(key({origin:0,cid:1}),key({origin:0,cid:2}));
 assert.notEqual(key({uid:'0:歩:0'}),key({uid:'0:歩:1'}));
 assert.match(completed,/syncHitokiriSeal\(side\)/);
-assert.match(js,/compactCaptures\[key\]===3/);
+assert.match(js,/capturePlan\.awakened/);
 assert.match(js,/if\(!hold&&!awakened\)/);
 const seal=fs.readFileSync(path.join(root,'enhancements.css'),'utf8');
 for(const dimension of ['left:18%','bottom:2%','width:48%','height:43%']){
