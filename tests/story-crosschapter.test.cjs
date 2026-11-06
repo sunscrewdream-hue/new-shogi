@@ -34,8 +34,10 @@ assert.match(source, /if\(p\.s===0\)sfx\("loss",finish\);else compactSound\("sac
   'Purging an enemy officer must play the enemy loss voice');
 assert.match(source, /if\(stage===3&&actor===0\)/,
   'The player must receive artillery cards in Toba-Fushimi');
-assert.match(source, /pendingWeaponKind=\{kind,side:1\}/,
-  'The enemy must retain its artillery cards');
+assert.match(source, /pendingWeaponKind=\{kind,side:1,afterPly:/,
+  'The enemy must retain its scheduled artillery');
+assert.match(source, /weapons\.push\(side\+":"\+kind\);[\s\S]*?fire\(kind,side\)/,
+  'Scheduled artillery must fire directly without a second incident card');
 assert.match(source,/if\(kind==="cannon"\)\{[\s\S]*?await playCasualtyCry\(\)/,
   'Cannon casualty must reserve its hit-cry slot before the next shot');
 assert.match(source,/compactFadeExpiredHoles\(id\)/,
@@ -148,7 +150,7 @@ assert.match(source, /document\.body\.classList\.add\("story-quake-active"\)/,
 assert.match(source, /const crater=\{y:shot\.y,x:shot\.x,expiresPly:g\.ply\+3\}/,
   'Each cannon impact must leave its own temporary crater');
 assert.match(source, /expiresPly:g\.ply\+3/, 'Craters must expire after three moves');
-assert.match(source, /assets\/visuals\/defeat_kondo_clean\.webp/, 'Clean defeat artwork must be used');
+assert.match(source, /assets\/visuals\/victory_saccho_scene\.webp/, 'The enemy victory scene must be used on defeat');
 assert.match(source, /if\(stage===3\)return g\.ply>=5&&\(g\.ply-5\)%3===0/,
   'Toba-Fushimi incidents must be staggered three half-moves apart');
 assert.doesNotMatch(source, /if\(actor===1&&!willKill\)/,
