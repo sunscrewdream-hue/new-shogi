@@ -58,7 +58,7 @@ assert.match(source, /if\(effect\.kind==="weapon"\)\{[\s\S]*?fire\(weaponKind,si
   'A weapon card must trigger the attack when closed');
 assert.match(source, /const gaveCheck=g\.check\(g\.board,1-actor\);[\s\S]*?if\(captured\)\{[\s\S]*?if\(gaveCheck\)announce\("check"\)/,
   'Capturing moves that give check must announce check');
-assert.match(source, /await new Promise\(resolve=>compactSound\("blood",resolve\)\);if\(id!==epoch\)return;[\s\S]*?await playCasualtyCry\(\)/,
+assert.match(source, /await playBloodImpact\(\);if\(id!==epoch\)return;[\s\S]*?await playCasualtyCry\(\)/,
   'Rifle casualties must play impact before their cry');
 assert.match(source, /out\.push\(\{y,x,p\}\)/,
   'An available non-king target must not be discarded by an overstrict safety filter');
