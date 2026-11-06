@@ -32,5 +32,5 @@ for(let stage=0;stage<4;stage++){
 }
 assert.match(script,/else\{compactIncidentEffect=\{kind,side,reserve:true\}/,'Card has a real fallback when nobody has died');
 assert.match(script,/figure\.className="story-reinforcement-runner"/,'Reinforcement runner exists');
-assert.match(script,/if\(voice&&!voice\.paused&&!voice\.ended/,'Banner waits for spoken line to finish');
+assert.match(script,/voice&&!voice\.paused&&!voice\.ended\)\|\|battleVoiceActive/,'Banner waits for both HTML and Web Audio voices');
 console.log('PASS: reinforcement increases hand with both reserve and revival in four chapters; banners await voices');
