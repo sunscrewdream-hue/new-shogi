@@ -198,7 +198,7 @@ function compactCardStart(side){
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
  compactSound("banner");
  setTimeout(()=>{if(game!==epoch||compactIncident!==incident||incident.revealed)return;
-  stage.classList.add("hidden");overlay.classList.remove("hidden");face.style.animation="none";void face.offsetWidth;face.style.animation="";sfx("card");
+  stage.classList.add("hidden");overlay.classList.remove("hidden");sfx("card");compactCardReveal();
  },1300);
 }
 function compactCardReveal(){
@@ -924,7 +924,7 @@ function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
  const holesBefore=compactMode()?[...g.holes]:[];
  let moveVoiceDone=Promise.resolve();
- const announce=(kind,player=compactSound)=>{moveVoiceDone=new Promise(resolve=>player(kind,resolve))};
+ const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const willKill=compactMode()&&!m.drop&&!!g.board[m.Y][m.X]&&before>=3;
  let justAwakened=false;
@@ -941,8 +941,8 @@ function makeMove(m,prom){
  const gaveCheck=g.check(g.board,1-actor);
  if(captured){
   if(!willKill){
+   if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
    if(gaveCheck)announce("check");
-   else if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
@@ -1019,7 +1019,7 @@ function weaponCard(kind,ownerSide=1,debug=false){
  stageLayer.classList.remove("hidden");const id=epoch;
  const banner=$("compactIncidentBanner");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
  compactSound("banner");setTimeout(()=>{if(id!==epoch||!pendingWeaponDisplay||pendingWeaponDisplay.kind!==kind)return;
-  stageLayer.classList.add("hidden");overlay.classList.remove("hidden");face.style.animation="none";void face.offsetWidth;face.style.animation="";sfx("card");
+  stageLayer.classList.add("hidden");overlay.classList.remove("hidden");sfx("card");face.click();
  },1300);
 }
 async function fire(kind,ownerSide=1){
