@@ -349,7 +349,7 @@
 .compact-incident-title{width:min(80vw,490px);max-height:17dvh;object-fit:contain;opacity:0;transition:opacity .3s}
 .compact-incident-title.show{opacity:1;animation:compactCardBoom 1.2s ease-out}
 @keyframes compactCardBoom{from{transform:scale(1.8);opacity:0}45%{transform:scale(.95);opacity:1}to{transform:scale(1);opacity:1}}
-.compact-card-face{width:min(73vw,330px);aspect-ratio:2/3;border:3px solid #b68d5c;background:#4a241e url("card-back-shinsengumi-1024x1536.webp") center/cover;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px;padding:16px;color:#ffeac0;text-align:center;box-shadow:0 12px 40px #000d,0 0 23px #c99b4b44}
+.compact-card-face{width:min(73vw,330px);aspect-ratio:2/3;border:3px solid #b68d5c;background:#171318;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px;padding:16px;color:#ffeac0;text-align:center;box-shadow:0 12px 40px #000d,0 0 23px #c99b4b44}
 .compact-card-face span{text-shadow:0 2px 8px #000,0 0 9px #000;background:#1a1318ad;padding:8px;border-radius:4px}
 .compact-card-face #compactCardHeading{font-size:clamp(23px,7vw,36px);font-weight:900}
 .compact-card-face #compactCardText{font-size:clamp(14px,3.8vw,18px);line-height:1.6}
@@ -1016,20 +1016,12 @@ body.game-effect-scroll-locked{touch-action:none}
 .compact-card-artwork{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;z-index:0;pointer-events:none}
 .compact-card-face #compactCardHeading,.compact-card-face #compactCardText{position:relative;z-index:1}
 .compact-card-face.revealed #compactCardText{position:absolute;z-index:2}
-/* One physical card turns over: the back is exchanged for the front only
-   while its edge faces the viewer. No second image remains underneath. */
+/* Incident illustrations are front-only, including enemy and weapon cards. */
 .compact-card-overlay{perspective:1100px}
-.compact-card-face{transform-style:preserve-3d;transition:transform .46s cubic-bezier(.2,.7,.25,1)!important;animation:none!important;overflow:visible!important;background:none!important}
+.compact-card-face{transition:none!important;animation:none!important;overflow:hidden!important;background:#171318!important}
 .compact-card-face.revealed{animation:none!important;transform:none}
 .compact-card-face.revealed{animation:storyPageReveal .46s ease-out both!important}
 @keyframes storyPageReveal{from{transform:rotateY(-85deg)}to{transform:rotateY(0deg)}}
-.compact-card-back,.compact-card-front{position:absolute!important;inset:0;display:block;width:100%;height:100%;border-radius:inherit;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;pointer-events:none}
-.compact-card-back{background:center / 100% 100% no-repeat url("card-back-shinsengumi-1024x1536.webp");transform:rotateY(0deg)}
-.compact-card-back{display:none!important}
-.compact-card-face[data-side="1"] .compact-card-back{background-image:url("card-back-saccho-1024x1536.webp")}
-.compact-card-front{transform:none;background:#171318}
-.compact-card-front #compactCardArtwork{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
-.compact-card-face.revealed .compact-card-front #compactCardText{position:absolute;z-index:2}
 @media(prefers-reduced-motion:reduce){.compact-card-face{transition-duration:.01ms!important}}
 
 /* Every turn announcement follows the actual board center, including later turns. */
