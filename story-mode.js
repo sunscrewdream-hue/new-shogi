@@ -9,6 +9,35 @@ const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
 const fxLevel=()=>Math.min(.5,storyVolume/100*2.1);
 const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
+// Enemy moves run from timers, outside a touch gesture. A gesture-unlocked
+// Web Audio voice channel keeps capture and check shouts playable on iOS.
+let battleVoiceContext=null,battleVoiceActive=null;
+const battleVoiceBuffers=new Map(),battleVoiceLoading=new Map();
+function unlockBattleVoice(){
+ if(!battleVoiceContext){const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return null;battleVoiceContext=new AudioContextClass()}
+ if(battleVoiceContext.state==="suspended")battleVoiceContext.resume().catch(()=>{});
+ return battleVoiceContext;
+}
+document.addEventListener("pointerdown",unlockBattleVoice,{passive:true});
+document.addEventListener("touchstart",unlockBattleVoice,{passive:true});
+function playBattleShout(path,onDone){
+ if(!voiceEnabled||document.hidden){onDone?.();return}
+ const context=unlockBattleVoice();if(!context){playStoryClip(path,"voice",onDone);return}
+ let loading=battleVoiceBuffers.get(path);
+ if(!loading){
+  loading=battleVoiceLoading.get(path);
+  if(!loading){loading=fetch(path).then(response=>{if(!response.ok)throw Error("voice HTTP "+response.status);return response.arrayBuffer()}).then(bytes=>context.decodeAudioData(bytes)).then(buffer=>{battleVoiceBuffers.set(path,buffer);return buffer});battleVoiceLoading.set(path,loading)}
+ }
+ let settled=false;const finish=()=>{if(settled)return;settled=true;onDone?.()};
+ Promise.resolve(loading).then(buffer=>{
+  if(!voiceEnabled||document.hidden){finish();return}
+  stopStoryClip("voice");
+  if(battleVoiceActive){try{battleVoiceActive.stop()}catch(e){}battleVoiceActive=null}
+  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=voiceLevel();source.connect(gain).connect(context.destination);
+  battleVoiceActive=source;source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;finish()};
+  context.resume().then(()=>source.start()).catch(()=>{playStoryClip(path,"voice",finish)});
+ }).catch(()=>playStoryClip(path,"voice",finish));
+}
 // Cannon impact needs its own channel: shot, hit cry and other FX must not
 // interrupt the explosion halfway through.
 const cannonImpactAudio=new Audio("assets/story/audio/master_explosion.mp3");
@@ -24,7 +53,13 @@ storyQuakeBattle.preload="auto";storyQuakeBattle.playsInline=true;
 function stopStoryQuakeBattle(){storyQuakeBattle.pause();storyQuakeBattle.currentTime=0;quakeBattleRuns=0}
 storyQuakeBattle.addEventListener("ended",()=>{if(quakeBattleRuns!==1||!fxEnabled||document.hidden)return;quakeBattleRuns=2;storyQuakeBattle.currentTime=0;storyQuakeBattle.play().catch(()=>{})});
 function playStoryQuakeBattle(){if(!fxEnabled||document.hidden)return;stopStoryQuakeBattle();quakeBattleRuns=1;storyQuakeBattle.volume=Math.min(.5,storyVolume/100*2.4);storyQuakeBattle.play().catch(()=>{})}
-function stopStoryClip(channel){const a=channel==="voice"?activeStoryVoice:activeStoryFx;if(a){a.pause();a.currentTime=0}if(channel==="voice")activeStoryVoice=null;else activeStoryFx=null}
+function stopStoryClip(channel){
+ const a=channel==="voice"?activeStoryVoice:activeStoryFx;if(a){a.pause();a.currentTime=0}
+ if(channel==="voice"){
+  activeStoryVoice=null;
+  if(battleVoiceActive){try{battleVoiceActive.stop()}catch(e){}battleVoiceActive=null}
+ }else activeStoryFx=null;
+}
 function playStoryClip(path,channel="fx",onDone=null){
  if(!path){onDone?.();return null}
  if(channel==="voice"?!voiceEnabled:!fxEnabled){onDone?.();return null}
@@ -59,7 +94,7 @@ function sfx(t,onDone=null){
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
  const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/story/audio/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
- if(files[t]){playStoryClip(files[t],["capture","win","loss"].includes(t)?"voice":"fx",onDone);return}
+ if(files[t]){if(t==="capture")playBattleShout(files[t],onDone);else playStoryClip(files[t],["win","loss"].includes(t)?"voice":"fx",onDone);return}
  onDone?.();
  // No legacy synthesized fallback: only approved recorded assets are played.
 }
@@ -103,7 +138,8 @@ function compactSound(kind,onDone=null){
  if(kind==="slash")kind=["slash1","slash2","slash3"][Math.floor(Math.random()*3)];
  const src=compactAudio[kind]||({slash1:"assets/audio/sfx/sword_slash_1.mp3",slash2:"assets/audio/sfx/sword_slash_2.mp3",slash3:"assets/audio/sfx/sword_slash_3.mp3"})[kind];if(!src){onDone?.();return}
  const isVoice=["move0","move1","kondo","hijikata","check","sacchoCapture","sacchoLoss","saigo","kido","sacchoCheck","sacchoPromote","sacchoChesto","sacchoUryaa"].includes(kind);
- playStoryClip(src,isVoice?"voice":"fx",onDone);
+ if(kind==="sacchoCapture"||kind==="check")playBattleShout(src,onDone);
+ else playStoryClip(src,isVoice?"voice":"fx",onDone);
 }
 async function compactFadeExpiredHoles(game){
  if(!compactClosingHoles.length)return;
@@ -590,7 +626,7 @@ function banner(s,p,hold=false){
   const closeAfterVoice=()=>{
    if(currentEpoch!==epoch)return;
    const voice=activeStoryVoice;
-   if(voice&&!voice.paused&&!voice.ended&&Date.now()-start<15000){storyBannerTimers[s]=setTimeout(closeAfterVoice,160);return}
+   if(((voice&&!voice.paused&&!voice.ended)||battleVoiceActive)&&Date.now()-start<15000){storyBannerTimers[s]=setTimeout(closeAfterVoice,160);return}
    panel.classList.remove("show-character");
   };
   storyBannerTimers[s]=setTimeout(closeAfterVoice,2300);
