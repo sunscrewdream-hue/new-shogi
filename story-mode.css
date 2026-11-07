@@ -405,9 +405,10 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  font-size:clamp(28px,7.5vw,34px);line-height:1.4;font-weight:900;color:#ffefb7;letter-spacing:.04em;-webkit-text-stroke:.8px #382313;
  text-shadow:0 3px 3px #060a0f,2px 2px 1px #120909,0 0 10px #0009;pointer-events:none}
 .compact-card-face #compactCardText{display:none}
-.compact-card-face.revealed{animation:none;background-size:contain;border:0;background-color:transparent}
+.compact-card-face.revealed{animation:storyCardTurn .46s ease-out both;background-size:contain;border:0;background-color:transparent}
+@keyframes storyCardTurn{from{transform:rotateY(-85deg)}to{transform:rotateY(0deg)}}
 .compact-card-face.revealed #compactCardHeading{display:none}
-.compact-card-face.revealed #compactCardText{display:flex;position:absolute;z-index:7;bottom:2.5%;left:5%;right:5%;width:auto;box-sizing:border-box;
+.compact-card-face.revealed.card-text-ready #compactCardText{display:flex;position:absolute;z-index:7;bottom:2.5%;left:5%;right:5%;width:auto;box-sizing:border-box;
  max-height:44%;overflow-y:auto;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 9px;
  border:1px solid rgba(245,210,142,.76);border-radius:9px;background:linear-gradient(135deg,rgba(21,25,32,.61),rgba(49,31,32,.58));
  box-shadow:0 3px 13px rgba(0,0,0,.56),inset 0 1px rgba(255,255,255,.13);color:#fff4de;text-align:center;pointer-events:none;
