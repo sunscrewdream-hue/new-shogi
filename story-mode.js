@@ -611,12 +611,12 @@ function person(p){
  const king=p.king;
  if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/story/kings/miyabe_banner.webp"};
  if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士",img:"assets/story/kings/ito_banner.webp"};
- if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=facefix-20261107b"};
- if(king==="saigo")return{name:"西郷隆盛",role:"新政府軍・薩摩藩",img:"assets/dialogue_banners/person_21.webp?v=facefix-20261107b"};
- if(king==="todo")return{name:"藤堂平助",role:"御陵衛士",img:"assets/dialogue_banners/person_08.webp?v=facefix-20261107b"};
+ if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=face-standard-20261107c"};
+ if(king==="saigo")return{name:"西郷隆盛",role:"新政府軍・薩摩藩",img:"assets/dialogue_banners/person_21.webp?v=face-standard-20261107c"};
+ if(king==="todo")return{name:"藤堂平助",role:"御陵衛士",img:"assets/dialogue_banners/person_08.webp?v=face-standard-20261107c"};
  if(p.cid!=null){
   const data=(p.origin===0?D.F:D.E)[p.cid];
-  if(data)return{name:data[0],role:data[1],img:"assets/dialogue_banners/person_"+String((p.origin===0?1:21)+p.cid).padStart(2,"0")+".webp?v=facefix-20261107b"};
+  if(data)return{name:data[0],role:data[1],img:"assets/dialogue_banners/person_"+String((p.origin===0?1:21)+p.cid).padStart(2,"0")+".webp?v=face-standard-20261107c"};
  }
  const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/story/mobs/"+m[2]};
 }
