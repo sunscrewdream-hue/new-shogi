@@ -627,7 +627,9 @@ function banner(s,p,hold=false){
  const awakened=compactMode()&&((compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));
  $(prefix+"StoryBanner").classList.toggle("compact-awakened",awakened);
  $(prefix+"StoryName").textContent=a.name;
- $(prefix+"StoryRole").textContent=a.role+" ／ "+label(p);
+ const caption=document.createElement('span');caption.className='story-role-caption';caption.textContent=a.role;
+ const piece=document.createElement('span');piece.className='story-role-piece';piece.textContent=label(p);
+ $(prefix+"StoryRole").replaceChildren(caption,piece);
  image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
  const panel=$(prefix+"StoryBanner"),currentEpoch=epoch;
  panel.classList.add("show-character");

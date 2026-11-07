@@ -469,6 +469,10 @@ body{margin:0 auto 7px;max-width:100%;user-select:none;-webkit-user-select:none;
 .dialogue-copy{position:absolute;z-index:2;inset:8% auto 8% 4%;width:48%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px;overflow:hidden;text-shadow:none}
 .dialogue-name{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:clamp(19px,6.2vw,34px);font-weight:900;line-height:1.07;color:#171512;letter-spacing:.02em;white-space:nowrap}
 .dialogue-role{font-family:system-ui,-apple-system,"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;font-size:clamp(11px,2.8vw,15px);font-weight:850;line-height:1.1;color:#202326;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dialogue-role{display:flex;align-items:center;gap:clamp(5px,1.2vw,10px);overflow:visible;text-overflow:clip}
+.dialogue-role .role-caption{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-width:0}
+.dialogue-role .role-caption::before,.dialogue-role .role-caption::after{content:"";display:inline-block;flex:0 0 clamp(9px,2vw,20px);border-top:1px solid #6a4d2b}
+.dialogue-role .role-piece{display:inline-block;padding:1px 6px;border:1px solid #9b7144;border-radius:3px;background:#ead3a8c4;color:#4a321e;white-space:nowrap}
 .dialogue-voice{font-size:10px;font-weight:850;color:#723426;height:0;overflow:hidden}
 .dialogue-panel.speaking .dialogue-voice{height:auto}
 .dialogue-panel.speaking{box-shadow:0 0 0 1px #e9c381,0 0 13px 2px #cf864eb0!important}
@@ -962,7 +966,10 @@ function updateDialogueBanner(side,p){
  img.src='assets/dialogue_banners/person_'+String(idx).padStart(2,'0')+'.webp';
  img.alt=data[0]+'・'+data[1]+'・'+(p.t||'玉');
  title.textContent=data[0];
- role.textContent=data[1]+' ／ '+(p.t||'玉');
+ const opponentClan=['薩摩藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','長州藩','長州藩','長州藩','長州藩','長州藩'];
+ const caption=document.createElement('span');caption.className='role-caption';caption.textContent=ownOrigin===1?opponentClan[cid]||data[1]:data[1];
+ const piece=document.createElement('span');piece.className='role-piece';piece.textContent=p.t||'玉';
+ role.replaceChildren(caption,piece);
  panel.classList.remove('art-includes-text');
 }
 function hideHijikataPortrait(){

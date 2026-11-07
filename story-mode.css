@@ -61,6 +61,10 @@
 #storyBoard .story-token,.story-hand-piece .story-token{text-shadow:0 1px 2px #061924}
 #storyBoard .sq:focus-visible{outline-offset:-4px;outline:3px solid #ffe27f}
 .person-banner{border:2px solid #96744d;box-shadow:0 2px 6px #0006}
+.person-banner .banner-role{display:flex;align-items:center;gap:clamp(4px,1.1vw,10px);overflow:visible;white-space:nowrap}
+.person-banner .story-role-caption{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.person-banner .story-role-caption::before,.person-banner .story-role-caption::after{content:"";display:inline-block;flex:0 0 clamp(8px,2vw,18px);border-top:1px solid #6d4d2b}
+.person-banner .story-role-piece{border:1px solid #9b7144;background:#ead3a8c4;color:#4a321e;padding:1px 6px;border-radius:3px;white-space:nowrap}
 #storyStatus{max-width:520px;margin:3px auto;padding:5px 9px}
 .battle-top{max-width:520px;margin:5px auto 2px}
 #battleTitle{margin:2px 0 5px}
