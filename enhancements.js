@@ -448,3 +448,71 @@
    }else{
     flight.style.transform=frames[0].transform;
     requestAnimationFrame(()=>{flight.style.transition=`transform ${duration}ms ease-in-out,opacity ${duration}ms ease-in-out`;flight.style.transform=frames[4].transform;flight.style.opacity='.16'});
+   }
+  }catch{flight.style.opacity='1'}
+  setTimeout(finish,duration+180);
+ }
+ const baseIncidentEffect=runIncidentEffect;
+ runIncidentEffect=function(){
+  if(incidentEffect?.kind!=='寝返り')return baseIncidentEffect();
+  const effect=incidentEffect;incidentEffect=null;
+  const p=b[effect.y]?.[effect.x];if(!p||p.s!==effect.owner||p.t==='玉'){queueTurnNotice(turn);return}
+  incidentRunning=true;busy=true;playerTurnReady=false;incidentTarget={y:effect.y,x:effect.x};
+  setCharacterBanner(effect.owner,p,'寝返り！',1800);playSampleSfx('gravel');render();
+  const ep=epoch;
+  const proceed=()=>{
+   if(ep!==epoch)return;
+   if(b[effect.y][effect.x]===p){
+    b[effect.y][effect.x]=null;h[effect.side][p.t]=(h[effect.side][p.t]||0)+1;
+    (handIdentities[effect.side][p.t]??=[]).push({cid:p.cid,originSide:p.originSide??p.s});
+   }
+   incidentTarget=null;incidentRunning=false;busy=false;
+   clearCharacterBanner(effect.owner);setCharacterBanner(effect.side,p,'寝返りとして合流！',2000);
+   render();if(!ended){
+    // Defection's distinct 「御免！」 is the only retained part of the old voice.
+    const clip=playBattleVoice('gomen',()=>{if(ep===epoch&&!ended)queueTurnNotice(turn)});
+    if(!clip)queueTurnNotice(turn);
+   }
+  };
+  setTimeout(()=>{if(ep===epoch)previewReinforcementPortrait({y:effect.y,x:effect.x,p},effect.side,proceed)},240);
+ };
+ const baseResolveCard=resolveCard;
+ const calmWind=new Audio('assets/audio/sfx/wind_calm_short.mp3');calmWind.preload='auto';calmWind.playsInline=true;
+ resolveCard=function(s){
+  baseResolveCard(s);
+  if(incidentEffect?.kind==='寝返り')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する');
+  if(lastIncidentKind==='何事もなし'&&sampleSfxEnabled&&!document.hidden){
+   calmWind.pause();calmWind.currentTime=0;
+   calmWind.volume=Math.min(.32,Math.max(0,Number($('volume').value)/100*1.1));
+   const playing=calmWind.play();if(playing?.catch)playing.catch(()=>{});
+  }
+ };
+
+ /* One illustrated result scene: towering victor and kneeling defeated officer. */
+ const baseVictory=showVictory;
+ const endStage=$('endPanel');
+ const verdict=document.createElement('img');verdict.id='endVerdictGraphic';verdict.className='end-result-calligraphy';verdict.src='assets/visuals/verdict_shobu_attah.webp';verdict.alt='勝負あった！';
+ const winGraphic=document.createElement('img');winGraphic.id='endVictoryGraphic';winGraphic.className='end-result-calligraphy';winGraphic.src='assets/visuals/verdict_victory.webp';winGraphic.alt='勝利';
+ const lossGraphic=document.createElement('img');lossGraphic.id='endDefeatGraphic';lossGraphic.className='end-result-calligraphy';lossGraphic.src='assets/visuals/verdict_defeat.webp';lossGraphic.alt='敗北';
+ endStage.insertBefore(verdict,$('endActions'));endStage.insertBefore(winGraphic,$('endActions'));endStage.insertBefore(lossGraphic,$('endActions'));
+ const portraitSource=document.createElement('source');portraitSource.media='(orientation: portrait)';
+ const portraitPicture=document.createElement('picture');portraitPicture.id='endResponsiveScene';
+ const winnerImage=$('endWinnerImage');winnerImage.parentNode.insertBefore(portraitPicture,winnerImage);
+ portraitPicture.append(portraitSource,winnerImage);
+ showVictory=function(winner,reason='詰み'){
+  baseVictory(winner,reason);
+  if($('endOverlay').classList.contains('show')){
+   $('endWinnerImage').src=winner===0?'assets/visuals/victory_shinsengumi_scene.webp':'assets/visuals/victory_saccho_scene.webp';
+   portraitSource.srcset=winner===0?'assets/visuals/victory_shinsengumi_mobile.webp':'assets/visuals/victory_saccho_mobile.webp';
+   $('endPanel').classList.remove('result-draw');
+   $('endWinnerImage').alt=(winner===0?'新選組':'薩長同盟')+'勝利、敗軍は膝をつく';
+   $('endLoserImage').style.display='none';
+   $('endText').textContent='勝負あった！';
+   $('endPanel').setAttribute('data-winning-side',winner===0?'shinsengumi':'saccho');
+  }
+ };
+ const baseDraw=showRepetitionDraw;
+ showRepetitionDraw=function(){baseDraw();endStage.classList.add('result-draw')};
+
+ syncTitleVolume();updateContinueButton();render();
+})();
