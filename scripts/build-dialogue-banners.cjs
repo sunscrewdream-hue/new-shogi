@@ -7,6 +7,8 @@ const root=path.resolve(__dirname,'..');
 const input=path.join(root,'assets/collection');
 const output=path.join(root,'assets/dialogue_banners');
 const background=path.join(root,'assets/dialogue_banners/banner-background.webp');
+// Optional staging directory for visual QA before replacing live assets.
+const stagingDir=process.env.BANNER_OUTPUT_DIR;
 // person_01.webp (approved Kondo Isami) is the immutable master.
 // Hand-reviewed landmarks (face left/right edges, eye-line Y) measured on
 // the 256x173 top section of each approved 768x1152 collection portrait.
@@ -29,7 +31,20 @@ const MASTER_EYE_Y=61;
 const MASTER_FACE_CENTER_X=648;
 const REFERENCE_WIDTH=256;
 const WORKING_SOURCE_WIDTH=510;
-fs.mkdirSync(output,{recursive:true});
+// Second-pass art-direction corrections, relative to the measured face bounds.
+// [isotropic scale factor, vertical shift (px), horizontal shift (px)].
+// Positive Y moves the entire portrait down. No stretch or face retouching.
+const corrections={
+  11:[1,2,0],12:[1,2,0],13:[1,1,0],
+  15:[0.96,-3,0],17:[0.90,5,0],19:[0.97,0,0],
+  21:[1.13,-3,0],22:[0.91,-4,0],23:[1.08,-6,0],
+  25:[0.93,-4,0],27:[0.96,-4,0],28:[0.86,-3,0],
+  29:[0.97,-3,0],30:[1.08,-10,0],
+  32:[1.10,-10,0],33:[1.07,-8,0],34:[0.92,-2,0],
+  35:[0.92,0,0],36:[1.13,-4,0],39:[1,0,12]
+};
+const finalOutput=stagingDir||output;
+fs.mkdirSync(finalOutput,{recursive:true});
 
 (async()=>{
  const W=880,H=174;
@@ -38,7 +53,7 @@ fs.mkdirSync(output,{recursive:true});
  const border=Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="870" height="164" fill="none" stroke="#866a44" stroke-width="2" opacity=".85"/><path d="M12 169H868" stroke="#f1dfb2" stroke-width="2" opacity=".8"/></svg>`);
  for(let i=1;i<=40;i++){
   const id=String(i).padStart(2,'0');
-  const dest=path.join(output,`person_${id}.webp`);
+  const dest=path.join(finalOutput,`person_${id}.webp`);
   if(i===1){continue}
   const source=path.join(input,`${id}.webp`);
   const marks=landmarks[i];
@@ -47,12 +62,13 @@ fs.mkdirSync(output,{recursive:true});
   const unscaledFaceWidth=(faceRight-faceLeft)*WORKING_SOURCE_WIDTH/REFERENCE_WIDTH;
   // Angled and profile portraits may have a narrower projected cheek width.
   // A modest clamp protects these face shapes from unnatural over-magnification.
-  const scale=Math.max(1.0,Math.min(1.5,MASTER_FACE_WIDTH/unscaledFaceWidth));
+  const [scaleAdjust,verticalShift,horizontalShift]=corrections[i]||[1,0,0];
+  const scale=Math.max(1.0,Math.min(1.5,MASTER_FACE_WIDTH/unscaledFaceWidth))*scaleAdjust;
   const scaledWidth=Math.round(WORKING_SOURCE_WIDTH*scale);
   const nativeToScaled=scaledWidth/REFERENCE_WIDTH;
   const center=(faceLeft+faceRight)/2;
-  const extractLeft=Math.round(center*nativeToScaled-(MASTER_FACE_CENTER_X-370));
-  const extractTop=Math.round(eyeY*nativeToScaled-MASTER_EYE_Y);
+  const extractLeft=Math.round(center*nativeToScaled-(MASTER_FACE_CENTER_X+horizontalShift-370));
+  const extractTop=Math.round(eyeY*nativeToScaled-(MASTER_EYE_Y+verticalShift));
   if(extractTop<0){
     throw Error(`Invalid portrait crop for ${id}: ${JSON.stringify({scale,extractLeft,extractTop,scaledWidth})}`);
   }
@@ -68,5 +84,5 @@ fs.mkdirSync(output,{recursive:true});
   const faded=await sharp(art).composite([{input:mask,blend:'dest-in'}]).png().toBuffer();
   await sharp(paper).composite([{input:faded,left:370,top:0},{input:border,left:0,top:0}]).webp({quality:86,effort:5}).toFile(dest);
  }
- console.log('Generated 40 banners to '+output);
+ console.log('Generated 39 derived banners (Kondo master unchanged) to '+finalOutput);
 })().catch(e=>{console.error(e);process.exitCode=1});
