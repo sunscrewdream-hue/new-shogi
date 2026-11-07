@@ -10,9 +10,9 @@ assert.match(js,/title\.src="assets\/cards\/incident-title\.png"/,'Reuse the exa
 assert.match(js,/title\.alt="動乱の刻"/,'Screen readers must announce the artwork');
 assert.match(js,/remaining\.textContent=cardCountdown\.remaining/,'The remaining turns stay as live text');
 assert.match(js,/turn:turnText,remaining:/,'Keep the current side and countdown in separate elements');
-assert.match(css,/\.story-banner-countdown img\{[^}]*width:clamp\(/,'Scale the calligraphy for narrow viewports');
+assert.match(css,/\.person-banner \.story-banner-countdown img\{[^}]*position:static;[^}]*width:clamp\(/,'Reset absolutely positioned officer art and scale the calligraphy');
 assert.match(css,/\.story-banner-status-line\{[^}]*flex-wrap:wrap/,'Allow graceful line wrapping');
-assert.match(html,/story-mode\.css\?v=countdown-art-20261107a/);
+assert.match(html,/story-mode\.css\?v=countdown-art-20261107b/);
 assert.match(html,/story-mode\.js\?v=countdown-art-20261107a/);
 assert.ok(fs.statSync(path.join(root,'assets/cards/incident-title.png')).size>100000);
 console.log('PASS: both story banners render the official incident title at responsive size');
