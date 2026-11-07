@@ -643,6 +643,7 @@ const battleVoiceUrls={
  sacchoCapture:'assets/audio/voice_capture_toraeta.mp3',
  sacchoLoss:'assets/story/audio/master_samurai_loss_v1.mp3',
  gomen:'assets/story/audio/master_battle_gomen_v1.mp3',
+ casualtyCry:'assets/story/audio/master_battle_gyah_v1.mp3',
  defection:'assets/story/audio/master_samurai_defection_v1.mp3',
  sacchoEncore:'assets/audio/saccho_voice_05_madamada.mp3',
  sacchoFinisher:'assets/audio/saccho_voice_06_korede_saigo.mp3'
@@ -1242,7 +1243,7 @@ let noticeQueue=0;function commit(m,prom=false){
  if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
  apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});
  lastMove={y:m.Y,x:m.X};
- if(forcedKill){captureCounts[capturerKey]=capturePlan.next;playFx('purge');animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！')}
+ if(forcedKill)captureCounts[capturerKey]=capturePlan.next;
  else{if(!captured)sound(false);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=capturePlan.next;if(capturePlan.awakened)flashHitokiri('人斬り覚醒');}}
  const gaveCheck=check(b,1-speakerSide);
  const actor=originSide===0
@@ -1258,7 +1259,7 @@ let noticeQueue=0;function commit(m,prom=false){
  if(quakeHoles.length){const oldCount=quakeHoles.length;quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(quakeHoles.length<oldCount){playFx('cliffcollapse');if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}}
  if(speakerSide===1){aiMoveSpot={y:m.Y,x:m.X};const e=epoch;setTimeout(()=>{if(e===epoch){aiMoveSpot=null;render()}},1400)}
  render();
- let voiceCompleted=false,animationCompleted=!captured||forcedKill||rulePreset==='traditional';
+ let voiceCompleted=false,animationCompleted=!captured||rulePreset==='traditional';
  const thisEpoch=epoch;
  const resume=()=>{
   if(!voiceCompleted||!animationCompleted||thisEpoch!==epoch||ended||!el('titleScreen').classList.contains('hidden'))return;
@@ -1275,6 +1276,23 @@ let noticeQueue=0;function commit(m,prom=false){
  if(captured&&!forcedKill&&rulePreset!=='traditional'){
   const e=epoch;
   setTimeout(()=>{if(e!==epoch)return;animateCaptureEscort(speakerSide,m.Y,m.X,capturedPiece,()=>{animationCompleted=true;resume()})},160);
+ }
+ if(forcedKill&&rulePreset!=='traditional'){
+  window.ShinsengumiBattleRules.runOrderedEffect({
+   valid:()=>thisEpoch===epoch&&!ended,
+   attack:()=>{animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！')},
+   impact:()=>new Promise(resolve=>{
+    const clip=sampleSfx.purge;let finished=false;
+    const finish=()=>{if(finished)return;finished=true;clip?.removeEventListener('ended',finish);clip?.removeEventListener('pause',finish);resolve()};
+    clip?.addEventListener('ended',finish);clip?.addEventListener('pause',finish);
+    if(!playSampleSfx('purge'))finish();else setTimeout(finish,1800);
+   }),
+   cry:()=>new Promise(resolve=>{
+    if(!playBattleVoice('casualtyCry',resolve))resolve();
+    else setTimeout(resolve,3600);
+   }),
+   result:()=>new Promise(resolve=>setTimeout(resolve,450))
+  }).then(()=>{if(thisEpoch!==epoch)return;animationCompleted=true;resume()});
  }
  const voiceStart=()=>{if(thisEpoch!==epoch||ended)return;
   const queue=[...voiceKeys];const next=()=>{if(thisEpoch!==epoch||ended)return;
@@ -1412,17 +1430,13 @@ function revealCard(){
  if(!clip)release();else setTimeout(release,15000);
  // Reveal the FONT and caption panel only after the card has finished turning.
  // Audio deliberately starts immediately and is not affected by this delay.
- let textShown=false;
  const showCardText=()=>{
-  if(textShown||e!==epoch||pendingCardSide!==currentSide||!cardRevealed)return;
-  textShown=true;
   el('cardEffectText').textContent=incidentDescription;
   face.classList.add('card-text-ready');
  };
- face.addEventListener('animationend',event=>{
-  if(event.target===face&&event.animationName==='finishedPageReveal')showCardText();
- },{once:true});
- setTimeout(showCardText,650);
+ window.ShinsengumiBattleRules.revealAfterTurn(face,'finishedPageReveal',showCardText,{
+  valid:()=>e===epoch&&pendingCardSide===currentSide&&cardRevealed
+ });
 }
 function finishCardClose(){
  if(pendingCardSide===null)return;
@@ -1552,7 +1566,24 @@ function runIncidentEffect(){
   }
   incidentTarget=null;render();
   if(!didRemove){finish();return}
-  if(effect.kind==='粛清'){playFx('purge');markBlood(effect.y,effect.x)}
+  if(effect.kind==='粛清'){
+   window.ShinsengumiBattleRules.runOrderedEffect({
+    valid:()=>e===epoch&&!ended,
+    attack:()=>markBlood(effect.y,effect.x),
+    impact:()=>new Promise(resolve=>{
+     const clip=sampleSfx.purge;let done=false;
+     const complete=()=>{if(done)return;done=true;clip?.removeEventListener('ended',complete);resolve()};
+     clip?.addEventListener('ended',complete);
+     if(!playSampleSfx('purge'))complete();else setTimeout(complete,1800);
+    }),
+    cry:()=>new Promise(resolve=>{
+     if(!playBattleVoice(effect.owner===1?'sacchoLoss':'loss',resolve))resolve();
+     else setTimeout(resolve,3800);
+    }),
+    result:finish
+   });
+   return;
+  }
   if(effect.kind==='寝返り'){animateCaptureEscort(effect.side,effect.y,effect.x,p,()=>{});incidentSfx()}
   if(effect.kind==='脱走'){incidentSfx();finish();return}
   const voice=effect.kind==='寝返り'?'gomen'
