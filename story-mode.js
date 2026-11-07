@@ -250,7 +250,7 @@ function compactPlanQuake(){
 function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed");$("compactCardArtwork").removeAttribute("src");
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");$("compactCardArtwork").removeAttribute("src");
  $("compactCardHeading").textContent="";$("compactCardText").textContent="";$("compactCardPrompt").textContent="";
  const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
@@ -283,8 +283,12 @@ function compactCardReveal(){
  }
  const face=$("compactCardFace");face.style.backgroundImage="none";
  // The paper-flip sound accompanies the illustrated front entering the screen.
- $("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
- $("compactCardHeading").textContent=kind;$("compactCardText").textContent=detail;
+ face.classList.remove("card-text-ready");$("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
+ $("compactCardHeading").textContent=kind;$("compactCardText").textContent="";
+ let textReady=false;
+ const revealText=()=>{if(textReady||compactIncident!==state)return;textReady=true;$("compactCardText").textContent=detail;face.classList.add("card-text-ready")};
+ face.addEventListener("animationend",e=>{if(e.target===face&&e.animationName==="storyCardTurn")revealText()},{once:true});
+ setTimeout(revealText,650);
  $("compactCardPrompt").textContent="";
  state.voiceDone=false;
  sfx("flip");
@@ -298,7 +302,7 @@ function compactCardReveal(){
 }
 function compactCardClose(){
  const state=compactIncident;if(!state||!state.revealed)return;
- if(!state.voiceDone){state.closeRequested=true;$("compactCardPrompt").textContent="セリフ再生後に進みます…";return}
+ if(!$("compactCardFace").classList.contains("card-text-ready"))return;
  compactIncident=null;$("compactCardOverlay").classList.add("hidden");compactApplyIncident(compactIncidentEffect);compactIncidentEffect=null;
 }
 $("compactCardFace").onclick=()=>{
