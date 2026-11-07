@@ -873,7 +873,8 @@ function setCharacterBanner(side,p,caption='',duration=2500){
  // A zero-duration portrait used to have no dismissal at all. Quiet moves
  // often have no voice cue, leaving both character banners up indefinitely.
  // Keep the portrait visible during speech; always dismiss quiet moves.
- const displayMs=duration>0?duration:3200;
+ // Keep the regular match's quiet-move timing in step with story mode (2.3s).
+ const displayMs=duration>0?duration:2300;
  bannerTimers[side]=setTimeout(()=>{
   if(epoch===ep&&bannerSerials[side]===serial&&!panel.classList.contains('speaking'))clearCharacterBanner(side);
  },displayMs);
