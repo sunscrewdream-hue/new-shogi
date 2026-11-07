@@ -28,7 +28,7 @@ function scenario(storyVisible){
  return scrolls;
 }
 assert.equal(scenario(true),0,'Story turn overlays must not alter the scroll offset');
-assert.ok(scenario(false)>0,'Completed match retains its historical viewport centering');
+assert.equal(scenario(false),0,'Normal match effects must not move the viewport during or after presentation');
 assert.match(css,/html\{scrollbar-gutter:stable\}/,'Desktop scrollbar width must stay stable');
 assert.match(css,/#storyBattle\{overflow-anchor:none\}/,'DOM rerenders must not cause browser scroll anchoring');
 assert.match(html,/game-effect-scroll-lock\.js\?v=stable-scroll-20261107b/);
