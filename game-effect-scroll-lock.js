@@ -13,6 +13,10 @@
  ];
  let locked=false,scrollY=0,previous=null;
  const active=()=>selectors.some(q=>!!document.querySelector(q));
+ const inStoryBattle=()=>{
+  const battle=document.getElementById("storyBattle");
+  return !!battle&&!battle.classList.contains("hidden");
+ };
  const blockTouch=e=>{if(locked&&e.cancelable)e.preventDefault()};
  const centerStoryBoard=()=>{
   const battle=document.getElementById("storyBattle");
@@ -32,8 +36,11 @@
  };
  const sync=()=>{
   const next=active();if(next===locked)return;
+  const storyVisible=inStoryBattle();
   if(next){
-   // Snap the board into view before freezing any story effect.\n   centerStoryBoard();\n   scrollY=window.scrollY||document.documentElement.scrollTop||0;
+   scrollY=window.scrollY||document.documentElement.scrollTop||0;
+   // Story opening already anchors the board. Never re-centre it on each
+   // turn banner or card: that causes a visible jump after every move.
    previous={htmlOverflow:document.documentElement.style.overflow,bodyOverflow:document.body.style.overflow,htmlOverscroll:document.documentElement.style.overscrollBehavior,bodyOverscroll:document.body.style.overscrollBehavior};
    document.documentElement.style.overflow="hidden";
    document.body.style.overflow="hidden";
@@ -42,7 +49,7 @@
    document.documentElement.classList.add("game-effect-scroll-locked");
    document.body.classList.add("game-effect-scroll-locked");
    locked=true;
-   requestAnimationFrame(centerStoryBoard);
+   if(!storyVisible)requestAnimationFrame(centerStoryBoard);
   }else{
    document.documentElement.style.overflow=previous?.htmlOverflow??"";
    document.body.style.overflow=previous?.bodyOverflow??"";
@@ -51,10 +58,9 @@
    document.documentElement.classList.remove("game-effect-scroll-locked");
    document.body.classList.remove("game-effect-scroll-locked");
    locked=false;
-   // Never jump back to an obsolete story-page scroll offset after battle begins.
-   const battle=document.getElementById("storyBattle");
-   const battleVisible=!!battle&&!battle.classList.contains("hidden");
-   if(!centerStoryBoard())window.scrollTo(0,scrollY);
+   // Story players retain their own viewport position throughout a match.
+   // Keep normal completed-match centering unchanged.
+   if(!storyVisible&&!centerStoryBoard())window.scrollTo(0,scrollY);
   }
  };
  const start=()=>{
