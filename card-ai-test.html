@@ -529,6 +529,7 @@ body.local-match #enemyOfficerPanel .dialogue-status{transform:none}
  font:900 clamp(29px,9vw,57px) "Yu Mincho","Noto Serif JP",serif;color:#ffe1c8;letter-spacing:.13em;
  -webkit-text-stroke:1px #42060c;text-shadow:0 3px 1px #27050a,0 0 20px #df1028;opacity:0;transition:opacity .25s,transform .25s}
 #hitokiriNotice.show{opacity:1;transform:translate(-50%,0) rotate(-5deg)}
+#hitokiriNotice img{display:block;width:min(64vw,310px);max-height:28dvh;height:auto;object-fit:contain;filter:drop-shadow(0 5px 10px #190709)}
 #board .sq.blood-mark{position:relative}
 #board .sq.blood-mark:after{content:"";position:absolute;inset:-6%;z-index:18;pointer-events:none;
  background:url("assets/visuals/blood_splatter.webp") center/100% 100% no-repeat;animation:bloodFade 2.3s ease-out forwards}
@@ -890,7 +891,11 @@ function clearCharacterBanner(side){
 function setBannerStatus(side,text){el(side?'enemyBannerStatus':'playerBannerStatus').textContent=text}
 function flashHitokiri(text){
  const n=el('hitokiriNotice'),serial=++noticeSerialHitokiri,ep=epoch;
- n.textContent=text;n.classList.add('show');
+ n.replaceChildren();
+ if(text.includes('斬殺')){
+  const art=document.createElement('img');art.src='assets/visuals/hitokiri_kill_calligraphy.webp';art.alt='斬殺！';n.append(art);
+ }else n.textContent=text;
+ n.classList.add('show');
  setTimeout(()=>{if(ep===epoch&&noticeSerialHitokiri===serial)n.classList.remove('show')},1550);
 }
 function markBlood(y,x){
@@ -1237,7 +1242,7 @@ let noticeQueue=0;function commit(m,prom=false){
  if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
  apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});
  lastMove={y:m.Y,x:m.X};
- if(forcedKill){captureCounts[capturerKey]=capturePlan.next;playFx('slash');animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('人斬り・斬殺！')}
+ if(forcedKill){captureCounts[capturerKey]=capturePlan.next;playFx('purge');animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！')}
  else{if(!captured)sound(false);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=capturePlan.next;if(capturePlan.awakened)flashHitokiri('人斬り覚醒');}}
  const gaveCheck=check(b,1-speakerSide);
  const actor=originSide===0
