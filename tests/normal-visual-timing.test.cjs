@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../card-ai-test.html'),'utf8');
+const part=(a,b)=>source.slice(source.indexOf(a),source.indexOf(b,source.indexOf(a)+a.length));
+const next=part('function queueTurnNotice(side){','let noticeQueue=0;');
+assert.match(next,/classList\.contains\('has-portrait'\)/);
+assert.match(next,/setTimeout\(revealWhenReady,120\)/);
+assert.ok(next.indexOf("classList.contains('has-portrait')")<next.lastIndexOf('showTurnNotice(side);'));
+const card=part('function revealCard(){','function finishCardClose(){');
+assert.match(card,/el\('cardEffectText'\)\.textContent='';/);
+assert.match(card,/setTimeout\(\(\)=>\{/);
+assert.match(card,/},490\);/);
+assert.ok(card.indexOf("el('cardEffectText').textContent=incidentDescription")<card.indexOf('playIncidentVoice('));
+const render=part('function render(){','/* 3〜5月=春');
+assert.doesNotMatch(render,/classList\.add\('incident-dim'\)/);
+console.log('PASS: normal-mode portraits, card reveal, and purge effect timing');
