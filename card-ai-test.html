@@ -1433,6 +1433,7 @@ function revealCard(){
  const showCardText=()=>{
   el('cardEffectText').textContent=incidentDescription;
   face.classList.add('card-text-ready');
+  if(cardCloseRequested&&cardVoiceDone)finishCardClose();
  };
  window.ShinsengumiBattleRules.revealAfterTurn(face,'finishedPageReveal',showCardText,{
   valid:()=>e===epoch&&pendingCardSide===currentSide&&cardRevealed
@@ -1446,9 +1447,10 @@ function finishCardClose(){
 function flipCard(){
  if(pendingCardSide===null)return;
  if(!cardRevealed){revealCard();return}
- // Do not trap the player for the length of a long or stalled voice clip.
- // Narration continues on its own channel after the card is dismissed.
+ // The artwork must fully turn before it can close, and the spoken incident
+ // must finish before its effect starts. Queue an early tap without overlap.
  if(!el('cardFace').classList.contains('card-text-ready'))return;
+ if(!cardVoiceDone){cardCloseRequested=true;el('cardCloseHint').textContent='読み上げ終了後に進みます…';return}
  finishCardClose();
 }
 function incidentSfx(){/* Legacy synthesized cue removed; each incident already plays a recorded effect. */}
