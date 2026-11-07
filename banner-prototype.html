@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>キャラクターバナー試作｜新選組将棋</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101c27;color:#eee1c6;font:15px/1.7 system-ui,'Yu Gothic',sans-serif}
+main{width:min(960px,calc(100% - 28px));margin:30px auto 70px}h1{font:700 clamp(23px,5vw,32px) serif;color:#f1d297;margin:0 0 8px}p{color:#b9c6c6;margin:0 0 22px}
+.stage{padding:clamp(10px,3vw,24px);border:1px solid #8a744f;background:radial-gradient(circle at 50% 0%,#2f4c53,#192b36 70%);box-shadow:0 8px 30px #0005;border-radius:10px}
+.banner{position:relative;width:100%;aspect-ratio:880/174;isolation:isolate;overflow:hidden;border:1px solid #a78552;background:#dfc9a7;box-shadow:0 5px 15px #0008}
+.banner>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+.copy{position:absolute;left:5%;top:8%;height:84%;width:54%;display:flex;flex-direction:column;justify-content:center;z-index:1;color:#172d37;text-shadow:0 1px 0 #fff7e8a8}
+.name{font:900 clamp(22px,5vw,43px)/1.12 'Yu Mincho','Hiragino Mincho ProN',serif;letter-spacing:.06em;white-space:nowrap}
+.meta{display:flex;align-items:center;gap:clamp(6px,1.6vw,16px);margin-top:clamp(2px,.9vw,8px);font:800 clamp(11px,2.4vw,19px)/1.3 'Yu Mincho',serif}
+.piece{display:inline-block;border:1px solid #9e6a45;background:#e8d5ac9c;padding:1px 9px;color:#50341f;border-radius:3px}
+.small-note{font-size:12px;color:#aebfc4;margin-top:12px}
+fieldset{margin:24px 0;padding:18px;border:1px solid #84734e;border-radius:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}legend{font-weight:800;color:#e9ce96;padding:0 8px}label{font-size:13px;color:#d9caac}input{display:block;width:100%;padding:9px;margin-top:5px;border:1px solid #a78f65;background:#f6ead2;color:#251d16;font:700 18px serif;border-radius:4px}a{color:#92d5e1}footer{font-size:12px;color:#aebbc0;margin-top:22px}
+@media(max-width:600px){main{margin-top:18px}.stage{padding:6px}.copy{left:4%;width:56%}.name{font-size:clamp(17px,5vw,27px)}.meta{font-size:clamp(9px,2.6vw,14px);gap:4px}.piece{padding:0 4px}fieldset{grid-template-columns:1fr;gap:8px}}
+</style>
+</head>
+<body><main>
+<h1>キャラクターバナー試作 — 近藤勇</h1>
+<p>コレクションカードの肖像を再利用し、文字を画像から分離した横長バナーです。</p>
+<div class="stage">
+  <div class="banner" role="img" aria-label="近藤勇のゲーム用人物バナー">
+   <img src="assets/dialogue_banners/prototype_kondo.webp" alt="">
+   <div class="copy"><div class="name" id="bannerName">近藤勇</div><div class="meta"><span id="bannerRole">局長</span><span class="piece" id="bannerPiece">玉</span></div></div>
+  </div>
+</div>
+<div class="small-note">ゲーム内表示サイズと同じ縦横比です。文字の位置・大きさは端末幅に応じて変わります。</div>
+<fieldset><legend>テキストデータ差し替えテスト</legend>
+ <label>志士の名前<input id="editName" value="近藤勇" maxlength="12"></label>
+ <label>役職・所属藩<input id="editRole" value="局長" maxlength="20"></label>
+ <label>駒名<input id="editPiece" value="玉" maxlength="8"></label>
+</fieldset>
+<footer>試作専用画面です。既存の対局・ストーリーモードのバナーはまだ変更していません。<a href="card-ai-test.html">ゲームに戻る</a></footer>
+</main>
+<script>
+const characterBanner={name:'近藤勇',role:'局長',piece:'玉',art:'assets/dialogue_banners/prototype_kondo.webp'};
+const fields={name:['editName','bannerName'],role:['editRole','bannerRole'],piece:['editPiece','bannerPiece']};
+function renderBanner(data){for(const [key,[input,target]] of Object.entries(fields)){document.getElementById(target).textContent=data[key]||'　'}document.querySelector('.banner').setAttribute('aria-label',data.name+'のゲーム用人物バナー')}
+for(const [key,[input]] of Object.entries(fields)){document.getElementById(input).addEventListener('input',e=>{characterBanner[key]=e.target.value;renderBanner(characterBanner)})}
+renderBanner(characterBanner);
+</script></body></html>
