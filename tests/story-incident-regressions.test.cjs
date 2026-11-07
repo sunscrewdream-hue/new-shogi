@@ -14,8 +14,8 @@ assert.match(source,/if\(!hold\)\{/,
  'An awakened officer must not leave the portrait displayed forever');
 assert.match(source,/setTimeout\(\(\)=>\{if\(game!==epoch\|\|completed\)return;escortDone=true;voiceDone=true;resume\(\)\},4500\)/,
  'Defection must recover if Safari loses the animation/audio completion');
-assert.match(source,/const verifiedPortraitsAvailable=false/,
- 'Do not render truncated PNG character cutouts');
+assert.match(source,/const verifiedPortraitsAvailable=Boolean\(winnerArt&&loserArt\)/,
+ 'Do not render truncated PNG cutouts; require two recovered portraits');
 assert.doesNotMatch(complete,/shinsengumi\.src='assets\/story\/shutsujin_shinsengumi_seven\.png/,
  'Do not load the damaged seven-person PNG into the intro');
 

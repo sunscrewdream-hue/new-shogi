@@ -25,7 +25,10 @@ for(const file of files){
  }catch(error){broken.push(file)}
 }
 if(broken.length){
- assert.match(source,/const verifiedPortraitsAvailable=false/);
+ assert.match(source,/const verifiedPortraitsAvailable=Boolean\(winnerArt&&loserArt\)/);
+ assert.match(source,/miyabe_winner_drive\.webp/);
+ assert.match(source,/kondo_loser_drive\.webp/);
+ assert.doesNotMatch(source,/const winnerArt="assets\/story\/victory\/"\+winnerId\+"_winner\.png"/);
  assert.doesNotMatch(intro,/shinsengumi\.src='assets\/story\/shutsujin_shinsengumi_seven\.png/);
  console.warn(`KNOWN DAMAGED ASSETS (safely disabled): ${broken.length}/${files.length}`);
 }else{

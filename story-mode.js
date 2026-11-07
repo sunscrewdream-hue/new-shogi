@@ -1153,8 +1153,14 @@ function finish(winner,reason){
  // remains the fallback until BOTH chapter-specific portraits are supplied.
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
- const winnerArt="assets/story/victory/"+winnerId+"_winner.png";
- const loserArt="assets/story/victory/"+loserId+"_loser.png";
+ // Only use portraits recovered in full from the approved Google Drive files.
+ // Other pairings retain the finished legacy scene until BOTH originals exist.
+ const recoveredPortraits={
+  miyabe_winner:"assets/story/victory/miyabe_winner_drive.webp",
+  kondo_loser:"assets/story/victory/kondo_loser_drive.webp"
+ };
+ const winnerArt=recoveredPortraits[winnerId+"_winner"];
+ const loserArt=recoveredPortraits[loserId+"_loser"];
  const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
  const portraitSource=$("storyEndPortraitSource");
  const artworkToken=String(Date.now());
@@ -1163,10 +1169,8 @@ function finish(winner,reason){
  loserEl.style.display="none";
  winnerEl.alt=(win?"近藤勇":ch.boss)+"の勝利";
  loserEl.alt=(win?ch.boss:"近藤勇")+"の敗北";
- // The initial GitHub uploads of all ten PNGs were truncated (PNG IDAT errors).
- // Keep the intact approved scene until the original full-length cutouts can
- // be recovered. An <img> load event is not an integrity check on Safari.
- const verifiedPortraitsAvailable=false;
+ // The original GitHub PNG uploads were truncated. Never reference those files.
+ const verifiedPortraitsAvailable=Boolean(winnerArt&&loserArt);
  if(verifiedPortraitsAvailable)Promise.all([winnerArt,loserArt].map(url=>new Promise((resolve,reject)=>{
   const img=new Image();img.onload=()=>resolve(url);img.onerror=reject;img.src=url;
  }))).then(()=>{
