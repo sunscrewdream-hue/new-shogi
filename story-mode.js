@@ -184,7 +184,14 @@ function compactPickCard(side){
  // Artillery belongs to the Toba-Fushimi deck, never to a turn-count timer.
  // Each army can draw each weapon at most once; other chapters are unchanged.
  const base=stage===3?compactCardWeights.map(([name,weight])=>[name,weight*.8]):compactCardWeights;
- const deck=[...base];
+ // Do not draw a card that cannot affect the current legal position.
+ // A silent no-op was especially confusing for defection on small boards.
+ const deck=base.filter(([kind])=>{
+  if(kind==="寝返り")return compactEligible(1-side).length>0;
+  if(kind==="脱走")return compactEligible(side).length>0;
+  if(kind==="粛清")return compactEligible(side,["歩","香","桂","銀"]).length>0;
+  return true;
+ });
  if(stage===3){
   if(!weapons.includes(side+":cannon"))deck.push(["大砲",10]);
   if(!weapons.includes(side+":rifle"))deck.push(["鉄砲",10]);
@@ -285,7 +292,9 @@ function compactCardReveal(){
  let settled=false;
  const done=()=>{if(settled)return;settled=true;if(compactIncident!==state)return;state.voiceDone=true;if(state.closeRequested)compactCardClose()};
  // The flip SFX and incident voice have separate channels as in the finished game.
- playStoryClip(compactCardVoices[kind],"voice",done);setTimeout(done,15000);
+ // Card arrival is timer-driven; on iOS an HTMLAudioElement may be denied
+ // autoplay even after the initial tap. Use the touch-unlocked audio channel.
+ playGestureAudio(compactCardVoices[kind],done,"voice");setTimeout(done,15000);
 }
 function compactCardClose(){
  const state=compactIncident;if(!state||!state.revealed)return;
@@ -483,10 +492,13 @@ function compactApplyIncident(effect){
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
    // Use only 「御免！」 cut from the older approved recording;
    // never play its unrelated 「助太刀致す」 second half.
-   let escortDone=false,voiceDone=false;
-   const resume=()=>{if(escortDone&&voiceDone)finish()};
-   playStoryClip("assets/story/audio/master_battle_gomen_v1.mp3","voice",()=>{voiceDone=true;resume()});
+   let escortDone=false,voiceDone=false,completed=false;
+   const resume=()=>{if(completed)return;if(escortDone&&voiceDone){completed=true;finish()}};
+   playGestureAudio("assets/story/audio/master_battle_gomen_v1.mp3",()=>{voiceDone=true;resume()},"voice");
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
+   // Safari can discard animation.finished or audio ended when the page scrolls.
+   // The board/hand mutation above is already complete; always unlock the turn.
+   setTimeout(()=>{if(game!==epoch||completed)return;escortDone=true;voiceDone=true;resume()},4500);
   }else if(kind==="粛清"){
    compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
    render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");
@@ -635,7 +647,7 @@ function banner(s,p,hold=false){
  panel.classList.add("show-character");
  clearTimeout(storyBannerTimers[s]);
  // The stamp belongs to this officer's visible portrait, not the message board.
- if(!hold&&!awakened){
+ if(!hold){
   const start=Date.now();
   const closeAfterVoice=()=>{
    if(currentEpoch!==epoch)return;
@@ -1151,8 +1163,11 @@ function finish(winner,reason){
  loserEl.style.display="none";
  winnerEl.alt=(win?"近藤勇":ch.boss)+"の勝利";
  loserEl.alt=(win?ch.boss:"近藤勇")+"の敗北";
- // Verify both assets before switching. Never show a half-composed victory.
- Promise.all([winnerArt,loserArt].map(url=>new Promise((resolve,reject)=>{
+ // The initial GitHub uploads of all ten PNGs were truncated (PNG IDAT errors).
+ // Keep the intact approved scene until the original full-length cutouts can
+ // be recovered. An <img> load event is not an integrity check on Safari.
+ const verifiedPortraitsAvailable=false;
+ if(verifiedPortraitsAvailable)Promise.all([winnerArt,loserArt].map(url=>new Promise((resolve,reject)=>{
   const img=new Image();img.onload=()=>resolve(url);img.onerror=reject;img.src=url;
  }))).then(()=>{
   if(overlay.dataset.artworkToken!==artworkToken||overlay.classList.contains("hidden"))return;

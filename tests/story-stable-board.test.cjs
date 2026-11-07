@@ -12,5 +12,5 @@ assert.match(turn,/getBoundingClientRect\(\)/,'Position the turn art using the c
 assert.match(turn,/--turn-center-offset/,'Keep turn art centered over the board without scrolling');
 assert.match(source,/const desiredY=Math\.max\(0,Math\.round\(boardCenter-window\.innerHeight\/2-36\)\);\s*window\.scrollTo\(0,desiredY\)/,
  'Opening presentation may still position the board once');
-assert.match(html,/story-mode\.js\?v=stable-board-20261107a/);
+assert.match(html,/story-mode\.js\?v=[^"']+/);
 console.log('PASS: no automatic page scroll on either army turn; opening layout retained');

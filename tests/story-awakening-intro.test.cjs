@@ -18,7 +18,7 @@ assert.notEqual(key({origin:0,cid:1}),key({origin:0,cid:2}));
 assert.notEqual(key({uid:'0:歩:0'}),key({uid:'0:歩:1'}));
 assert.match(completed,/syncHitokiriSeal\(side\)/);
 assert.match(js,/capturePlan\.awakened/);
-assert.match(js,/if\(!hold&&!awakened\)/);
+assert.match(js,/if\(!hold\)/,'Awakening must not leave the officer portrait open indefinitely');
 const seal=fs.readFileSync(path.join(root,'enhancements.css'),'utf8');
 for(const dimension of ['left:18%','bottom:2%','width:48%','height:43%']){
  assert.ok(seal.includes(dimension),`Main game's approved ${dimension}`);

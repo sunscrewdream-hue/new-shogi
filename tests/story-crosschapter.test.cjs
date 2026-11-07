@@ -13,12 +13,12 @@ const deckEnd=source.indexOf('\nfunction compactCardInterval()',deckStart);
 assert.ok(deckStart>=0&&deckEnd>deckStart);
 const draw=vm.runInNewContext(source.slice(deckStart,deckEnd)+'\ncompactPickCard',{
  stage:3,compactCardWeights:[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]],
- weapons:[],Math:{random:()=>.85}
+ weapons:[],compactEligible:()=>[{p:{t:'歩'}}],Math:{random:()=>.85}
 });
 assert.equal(draw(0),'大砲','Cannon can only be drawn from the Toba incident deck');
 const drawRifle=vm.runInNewContext(source.slice(deckStart,deckEnd)+'\ncompactPickCard',{
  stage:3,compactCardWeights:[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]],
- weapons:[],Math:{random:()=>.95}
+ weapons:[],compactEligible:()=>[{p:{t:'歩'}}],Math:{random:()=>.95}
 });
 assert.equal(drawRifle(1),'鉄砲','Rifle can only be drawn from the Toba incident deck');
 const storyHtml=fs.readFileSync(path.join(root,'story-mode.html'),'utf8');
