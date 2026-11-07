@@ -14,17 +14,33 @@
  cards.forEach((card,i)=>{
   card.dataset.characterIndex=String(i);
   const portrait=card.querySelector('.portrait');portrait.textContent='';
-  const img=document.createElement('img');img.loading='lazy';img.alt='';img.src='assets/portraits/'+String(i+1).padStart(2,'0')+'.webp';
+  const img=document.createElement('img');img.loading='lazy';img.alt='';img.width=768;img.height=1152;img.src='assets/collection/'+String(i+1).padStart(2,'0')+'.webp';
   portrait.append(img);
+  const view=document.createElement('button');view.type='button';view.className='view-collection-card';view.textContent='カードを大きく見る';
+  view.addEventListener('click',()=>showCard(i));
+  card.querySelector('.profile').prepend(view);
  });
+ const viewer=document.createElement('dialog');viewer.className='collection-viewer';
+ viewer.innerHTML='<button type="button" class="viewer-close" aria-label="閉じる">×</button><img alt=""><p class="viewer-name"></p>';
+ document.body.append(viewer);
+ viewer.querySelector('.viewer-close').addEventListener('click',()=>viewer.close());
+ viewer.addEventListener('click',e=>{if(e.target===viewer)viewer.close()});
+ function showCard(i){
+  if(!read().has(i))return;
+  viewer.querySelector('img').src='assets/collection/'+String(i+1).padStart(2,'0')+'.webp';
+  viewer.querySelector('img').alt=names[i]+'のコレクションカード';
+  viewer.querySelector('.viewer-name').textContent=names[i];
+  viewer.showModal();
+ }
  const refresh=()=>{
   const owned=read();
   cards.forEach((card,i)=>{
    const unlocked=owned.has(i);card.classList.toggle('unlocked',unlocked);card.classList.toggle('locked',!unlocked);
    const heading=card.querySelector('summary h3');heading.textContent=unlocked?names[i]:'未収録';
    const portrait=card.querySelector('.portrait');portrait.style.removeProperty('color');
-   if(!unlocked){card.open=false;portrait.querySelector('img').style.display='none';portrait.textContent='？'}
-   else{if(!portrait.querySelector('img')){portrait.textContent='';const img=document.createElement('img');img.src='assets/portraits/'+String(i+1).padStart(2,'0')+'.webp';img.loading='lazy';img.alt='';portrait.append(img)};portrait.querySelector('img').style.display='block'}
+   const img=portrait.querySelector('img');
+   if(!unlocked){card.open=false;img.hidden=true;portrait.dataset.locked='？'}
+   else{img.hidden=false;delete portrait.dataset.locked}
   });
   document.getElementById('collectionTotal').textContent=owned.size+' / 40';
   document.getElementById('collectionFill').style.width=(owned.size/40*100)+'%';

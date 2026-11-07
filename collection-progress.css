@@ -13,3 +13,18 @@
 .card .portrait img{width:100%;height:100%;object-fit:cover;display:block}
 .card.unlocked{border-color:#b48a45;box-shadow:0 3px 10px #a57c4228}
 .card.unlocked .open-hint{color:#84531f}
+.card summary .portrait{display:block;float:none;width:100%;aspect-ratio:2 / 3;margin:0 0 13px;border:1px solid #a78551;box-shadow:0 5px 18px #0007;background:#151f28;text-align:center}
+.card summary{padding:12px 12px 18px}
+.card summary h3{margin:7px 8px 4px;font-size:20px}
+.card summary .tag,.card summary .role,.card summary .open-hint{margin-left:8px;margin-right:8px}
+.card .portrait img{width:100%;height:100%;object-fit:cover}
+.card .portrait img[hidden]{display:none}
+.card.locked .portrait{display:grid;place-items:center;background:linear-gradient(145deg,#243d4c,#0c1720 60%,#2c2631);border-color:#5b6062}
+.card.locked .portrait:after{content:'？';display:block;font:900 90px serif;color:#c5b18a;text-shadow:0 4px 12px #000b}
+.card[data-side="1"].locked .portrait{background:linear-gradient(145deg,#502b2b,#1c1218 60%,#342526)}
+.view-collection-card{display:block;margin:15px 0;color:#f4e3c2;border-color:#b79862;background:#2b4146;font-weight:700}
+.collection-viewer{position:fixed;max-width:min(92vw,670px);max-height:94vh;overflow:auto;padding:12px 12px 8px;border:2px solid #ba955a;border-radius:8px;background:#101b25;color:#f6e3c6;box-shadow:0 16px 60px #000b}
+.collection-viewer::backdrop{background:#02060bdc}
+.collection-viewer img{display:block;width:min(100%,570px);height:auto;max-height:80vh;object-fit:contain;margin:auto}
+.collection-viewer .viewer-name{text-align:center;margin:6px 0 0;font:700 19px serif}
+.collection-viewer .viewer-close{position:sticky;top:0;float:right;z-index:1;font-size:22px;line-height:1;padding:5px 11px;margin-bottom:-38px;background:#122e3ce8;border-color:#caad76;color:white}
