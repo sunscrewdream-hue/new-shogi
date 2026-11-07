@@ -845,6 +845,9 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
  transition:opacity .2s;pointer-events:none;
 }
 .person-banner.show-character .story-banner-status{opacity:0}
+.story-banner-status-line{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1vw,8px);flex-wrap:wrap;max-width:100%;line-height:1.35}
+.story-banner-countdown{display:inline-flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap;font-size:.9em}
+.story-banner-countdown img{display:block;width:clamp(70px,18vw,90px);height:auto;flex:none;filter:drop-shadow(0 1px 2px #0008)}
 /* A person-specific seal is invisible on the neutral status/message board. */
 /* The card countdown now shares the character banner instead of adding a row above the board. */
 #compactCardCountdown{display:none!important}
