@@ -12,6 +12,8 @@ main{width:min(960px,calc(100% - 28px));margin:30px auto 70px}h1{font:700 clamp(
 .copy{position:absolute;left:5%;top:8%;height:84%;width:54%;display:flex;flex-direction:column;justify-content:center;z-index:1;color:#172d37;text-shadow:0 1px 0 #fff7e8a8}
 .name{font:900 clamp(22px,5vw,43px)/1.12 'Yu Mincho','Hiragino Mincho ProN',serif;letter-spacing:.06em;white-space:nowrap}
 .meta{display:flex;align-items:center;gap:clamp(6px,1.6vw,16px);margin-top:clamp(2px,.9vw,8px);font:800 clamp(11px,2.4vw,19px)/1.3 'Yu Mincho',serif}
+.role-framed{display:inline-flex;align-items:center;gap:clamp(4px,1vw,9px);white-space:nowrap}
+.role-framed .rule{display:block;width:clamp(11px,2.1vw,22px);border-top:1.5px solid #70512d;opacity:.8;flex:none}
 .piece{display:inline-block;border:1px solid #9e6a45;background:#e8d5ac9c;padding:1px 9px;color:#50341f;border-radius:3px}
 .small-note{font-size:12px;color:#aebfc4;margin-top:12px}
 fieldset{margin:24px 0;padding:18px;border:1px solid #84734e;border-radius:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}legend{font-weight:800;color:#e9ce96;padding:0 8px}label{font-size:13px;color:#d9caac}input{display:block;width:100%;padding:9px;margin-top:5px;border:1px solid #a78f65;background:#f6ead2;color:#251d16;font:700 18px serif;border-radius:4px}a{color:#92d5e1}footer{font-size:12px;color:#aebbc0;margin-top:22px}
@@ -24,7 +26,7 @@ fieldset{margin:24px 0;padding:18px;border:1px solid #84734e;border-radius:8px;d
 <div class="stage">
   <div class="banner" role="img" aria-label="近藤勇のゲーム用人物バナー">
    <img src="assets/dialogue_banners/prototype_kondo.webp" alt="">
-   <div class="copy"><div class="name" id="bannerName">近藤勇</div><div class="meta"><span id="bannerRole">局長</span><span class="piece" id="bannerPiece">玉</span></div></div>
+   <div class="copy"><div class="name" id="bannerName">近藤勇</div><div class="meta"><span class="role-framed"><span class="rule" aria-hidden="true"></span><span id="bannerRole">局長</span><span class="rule" aria-hidden="true"></span></span><span class="piece" id="bannerPiece">玉</span></div></div>
   </div>
 </div>
 <div class="small-note">ゲーム内表示サイズと同じ縦横比です。文字の位置・大きさは端末幅に応じて変わります。</div>
