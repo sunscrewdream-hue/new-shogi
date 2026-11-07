@@ -684,7 +684,7 @@ function storyBannerMessage(message,side=g?.side??0,cardCountdown=null){
   const line=document.createElement("span");line.className="story-banner-status-line";
   const turn=document.createElement("span");turn.textContent=cardCountdown.turn;
   const count=document.createElement("span");count.className="story-banner-countdown";
-  const title=document.createElement("img");title.src="assets/cards/incident-title.png";title.alt="動乱の刻";title.width=1774;title.height=887;title.decoding="async";
+  const title=document.createElement("img");title.src="assets/cards/incident-title-outline-v3.webp";title.alt="動乱の刻";title.width=1774;title.height=887;title.decoding="async";
   const remaining=document.createElement("span");remaining.textContent=cardCountdown.remaining;
   count.append(title,remaining);line.append(turn,count);target.append(line);
  }
