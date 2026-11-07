@@ -649,10 +649,20 @@ function banner(s,p,hold=false){
 }
 // As in the completed match, turn/status notices live inside the character banners.
 // Keep one screen-reader announcement; do not insert a third board between the enemy hand and field.
-function storyBannerMessage(message,side=g?.side??0){
+function storyBannerMessage(message,side=g?.side??0,cardCountdown=null){
  $("storyStatus").textContent=message;
  $("playerBannerStatus").textContent=side===0?message:"新選組、待機中";
  $("enemyBannerStatus").textContent=side===1?message:"薩長同盟、布陣中";
+ if(cardCountdown!==null){
+  const target=$(side===0?"playerBannerStatus":"enemyBannerStatus");
+  target.replaceChildren();
+  const line=document.createElement("span");line.className="story-banner-status-line";
+  const turn=document.createElement("span");turn.textContent=cardCountdown.turn;
+  const count=document.createElement("span");count.className="story-banner-countdown";
+  const title=document.createElement("img");title.src="assets/cards/incident-title.png";title.alt="動乱の刻";title.width=1774;title.height=887;title.decoding="async";
+  const remaining=document.createElement("span");remaining.textContent=cardCountdown.remaining;
+  count.append(title,remaining);line.append(turn,count);target.append(line);
+ }
 }
 // Main-game parity: pointer hover reveals the character without selecting or moving.
 let storyHoverSide=null,storyHoverBase=[null,null];
@@ -934,7 +944,8 @@ function render(){
  }
  const countdown=compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
  const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 防ぐか、覚悟して主君を見捨てる":"");
- storyBannerMessage(turnText+(countdown&&!busy?"　"+countdown:""));
+ const showCountdown=countdown&&!busy;
+ storyBannerMessage(turnText+(showCountdown?"　"+countdown:""),g.side,showCountdown?{turn:turnText,remaining:compactIncident?"・事件札を確認中":`まで${compactCardRemaining()}手`}:null);
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
