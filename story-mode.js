@@ -1153,14 +1153,11 @@ function finish(winner,reason){
  // remains the fallback until BOTH chapter-specific portraits are supplied.
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
- // Only use portraits recovered in full from the approved Google Drive files.
- // Other pairings retain the finished legacy scene until BOTH originals exist.
- const recoveredPortraits={
-  miyabe_winner:"assets/story/victory/miyabe_winner_drive.webp",
-  kondo_loser:"assets/story/victory/kondo_loser_drive.webp"
- };
- const winnerArt=recoveredPortraits[winnerId+"_winner"];
- const loserArt=recoveredPortraits[loserId+"_loser"];
+ // All five approved king pairs were recovered from the ten image share pages
+ // saved together in the project Drive. These are validated complete cutouts.
+ const completeKings=["miyabe","kondo","kusaka","ito","saigo"];
+ const winnerArt=completeKings.includes(winnerId)?"assets/story/victory/"+winnerId+"_winner.webp":null;
+ const loserArt=completeKings.includes(loserId)?"assets/story/victory/"+loserId+"_loser.webp":null;
  const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
  const portraitSource=$("storyEndPortraitSource");
  const artworkToken=String(Date.now());

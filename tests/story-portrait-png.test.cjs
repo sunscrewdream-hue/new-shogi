@@ -8,6 +8,13 @@ const source=fs.readFileSync(path.join(root,'story-mode.js'),'utf8');
 const intro=fs.readFileSync(path.join(root,'card-ai-test.html'),'utf8');
 const files=[...fs.readdirSync(path.join(root,'assets/story/victory')).filter(n=>n.endsWith('.png')).map(n=>'assets/story/victory/'+n),
  'assets/story/shutsujin_shinsengumi_seven.png'];
+for(const name of ['miyabe','kondo','kusaka','ito','saigo'])for(const result of ['winner','loser']){
+ const file=path.join(root,'assets/story/victory',name+'_'+result+'.webp');
+ const bytes=fs.readFileSync(file);
+ assert.ok(bytes.length>10000,`${name} ${result} is too small`);
+ assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');
+ assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
+}
 const broken=[];
 for(const file of files){
  const bytes=fs.readFileSync(path.join(root,file));
@@ -26,8 +33,7 @@ for(const file of files){
 }
 if(broken.length){
  assert.match(source,/const verifiedPortraitsAvailable=Boolean\(winnerArt&&loserArt\)/);
- assert.match(source,/miyabe_winner_drive\.webp/);
- assert.match(source,/kondo_loser_drive\.webp/);
+ assert.match(source,/const completeKings=\["miyabe","kondo","kusaka","ito","saigo"\]/);
  assert.doesNotMatch(source,/const winnerArt="assets\/story\/victory\/"\+winnerId\+"_winner\.png"/);
  assert.doesNotMatch(intro,/shinsengumi\.src='assets\/story\/shutsujin_shinsengumi_seven\.png/);
  console.warn(`KNOWN DAMAGED ASSETS (safely disabled): ${broken.length}/${files.length}`);
