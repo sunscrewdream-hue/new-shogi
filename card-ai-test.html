@@ -657,6 +657,38 @@ const incidentVoiceByKind={
 const battleVoices=Object.fromEntries(Object.entries(battleVoiceUrls).map(([key,url])=>{
  const clip=new Audio(url);clip.preload='auto';clip.playsInline=true;return [key,clip];
 }));
+// An incident card can reveal after a timer rather than a direct tap. Safari
+// restricts HTMLAudio playback then, so unlock a Web Audio channel on touch.
+let incidentAudioContext=null,incidentAudioActive=null;
+const incidentAudioBuffers=new Map();
+function unlockIncidentAudio(){
+ const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+ if(!incidentAudioContext)incidentAudioContext=new C();
+ if(incidentAudioContext.state==='suspended')incidentAudioContext.resume().catch(()=>{});
+ return incidentAudioContext;
+}
+document.addEventListener('pointerdown',unlockIncidentAudio,{passive:true});
+document.addEventListener('touchstart',unlockIncidentAudio,{passive:true});
+function playIncidentVoice(kind,onFinished){
+ const fallback=()=>playBattleVoice(kind,onFinished);
+ if(!voiceEnabled||document.hidden||!battleVoiceUrls[kind]){onFinished?.();return null}
+ const context=unlockIncidentAudio();if(!context)return fallback();
+ let done=false;
+ const finish=()=>{if(done)return;done=true;clearTimeout(watchdog);onFinished?.()};
+ const watchdog=setTimeout(finish,9000);
+ let loading=incidentAudioBuffers.get(kind);
+ if(!loading){loading=fetch(battleVoiceUrls[kind]).then(r=>{if(!r.ok)throw Error('voice '+r.status);return r.arrayBuffer()}).then(b=>context.decodeAudioData(b));incidentAudioBuffers.set(kind,loading)}
+ Promise.resolve(loading).then(buffer=>{
+  if(done||!voiceEnabled||document.hidden){finish();return}
+  if(incidentAudioActive){try{incidentAudioActive.stop()}catch(e){}}
+  const source=context.createBufferSource(),gain=context.createGain();
+  source.buffer=buffer;gain.gain.value=Math.min(.75,Math.max(0,Number(el('volume').value)/100*4.3));
+  source.connect(gain).connect(context.destination);incidentAudioActive=source;
+  source.onended=()=>{if(incidentAudioActive===source)incidentAudioActive=null;finish()};
+  context.resume().then(()=>source.start()).catch(()=>{finish()});
+ }).catch(()=>{if(!done)fallback()});
+ return {incidentVoice:true};
+}
 function stopBattleVoice(){
  if(voicePreviewTimer!==null){clearTimeout(voicePreviewTimer);voicePreviewTimer=null}
  if(activeVoice){activeVoice.pause();activeVoice.currentTime=0;activeVoice=null}
@@ -1342,7 +1374,7 @@ function revealCard(){
  cardVoiceDone=false;
  const e=epoch;
  const release=()=>{if(e!==epoch)return;cardVoiceDone=true;if(cardCloseRequested)finishCardClose()};
- const clip=playBattleVoice(incidentVoiceByKind[lastIncidentKind],release);
+ const clip=playIncidentVoice(incidentVoiceByKind[lastIncidentKind],release);
  if(!clip)release();else setTimeout(release,15000);
 }
 function finishCardClose(){
