@@ -285,10 +285,9 @@ function compactCardReveal(){
  // The paper-flip sound accompanies the illustrated front entering the screen.
  face.classList.remove("card-text-ready");$("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent="";
- let textReady=false;
- const revealText=()=>{if(textReady||compactIncident!==state)return;textReady=true;$("compactCardText").textContent=detail;face.classList.add("card-text-ready")};
- face.addEventListener("animationend",e=>{if(e.target===face&&e.animationName==="storyCardTurn")revealText()},{once:true});
- setTimeout(revealText,650);
+ window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
+  $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
+ },{valid:()=>compactIncident===state});
  $("compactCardPrompt").textContent="";
  state.voiceDone=false;
  sfx("flip");
@@ -310,11 +309,14 @@ $("compactCardFace").onclick=()=>{
   const item=pendingWeaponDisplay;
   if(!item.revealed){
    item.revealed=true;item.voiceDone=false;item.closeRequested=false;
- const face=$("compactCardFace");face.style.backgroundImage="none";sfx("flip");
+ const face=$("compactCardFace");face.style.backgroundImage="none";face.classList.remove("card-text-ready");sfx("flip");
    const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
-   $("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent=detail;
+   $("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent="";
+   window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
+    $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
+   },{valid:()=>pendingWeaponDisplay===item});
    $("compactCardPrompt").textContent="";
    // Name the revealed weapon card first, then speak 「撃て！」 once at launch.
    playKabukiVoice(item.kind).then(()=>{
@@ -323,11 +325,13 @@ $("compactCardFace").onclick=()=>{
    if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
    });return;
   }
-  if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="セリフ終了後に砲撃を開始します…";return}
+  if(!faceIsWeaponReady())return;
+  if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="号令が終わると砲撃を開始します…";return}
   pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
  }
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
 };
+function faceIsWeaponReady(){return $("compactCardFace").classList.contains("card-text-ready")}
 function compactResumeTurn(){
  if(ended)return;busy=false;compactTurnLocked=true;render();const game=epoch;
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
@@ -504,12 +508,16 @@ function compactApplyIncident(effect){
    // The board/hand mutation above is already complete; always unlock the turn.
    setTimeout(()=>{if(game!==epoch||completed)return;escortDone=true;voiceDone=true;resume()},4500);
   }else if(kind==="粛清"){
-   compactSound("kill");const square=board.children[y*g.w+x];square?.classList.add("compact-blood");
-   render();const marked=board.children[y*g.w+x];marked?.classList.add("compact-blood");
-   // The purged officer's own faction voices their loss, after the blade cue.
-   setTimeout(()=>{if(game!==epoch)return;
-    if(p.s===0)sfx("loss",finish);else compactSound("sacchoLoss",finish);
-   },900);
+   window.ShinsengumiBattleRules.runOrderedEffect({
+    valid:()=>game===epoch&&!ended,
+    attack:()=>{render();board.children[y*g.w+x]?.classList.add("compact-blood")},
+    impact:()=>new Promise(resolve=>{compactSound("kill",resolve);setTimeout(resolve,1800)}),
+    cry:()=>new Promise(resolve=>{
+     if(p.s===0)sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
+     setTimeout(resolve,3800);
+    }),
+    result:finish
+   });
   }else{render();setTimeout(finish,650)}
  };
  if(kind==="脱走"){
@@ -1060,15 +1068,17 @@ function makeMove(m,prom){
   });
   if(captured&&!willKill)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
   else if(willKill){
-   // Lethal capture: impact/blood first, then the casualty cries out.
+   // The shared contract enforces attack -> impact -> casualty cry -> result.
    (async()=>{
     const square=m.Y+":"+m.X;
     try{
-     compactCalligraphy(true);
-     compactBloodMarks.push(square);render();
-     await playBloodImpact();if(id!==epoch||ended)return;
-     await playCasualtyCry();if(id!==epoch||ended)return;
-     await later(850);
+     await window.ShinsengumiBattleRules.runOrderedEffect({
+      valid:()=>id===epoch&&!ended,
+      attack:()=>{compactCalligraphy(true);compactBloodMarks.push(square);render()},
+      impact:playBloodImpact,
+      cry:playCasualtyCry,
+      result:()=>later(850)
+     });
     }catch(error){console.error("斬殺演出の復旧処理",error)}
     finally{
      compactBloodMarks=compactBloodMarks.filter(v=>v!==square);
@@ -1094,7 +1104,7 @@ function weaponCard(kind,ownerSide=1,debug=false){
  if(!debug)weapons.push(ownerSide+":"+kind);busy=true;compactTurnLocked=true;pendingWeaponDisplay={kind,ownerSide,revealed:false};render();
  // Weapon cards share the same front-only reveal used by ordinary incidents.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
- overlay.classList.add("hidden");face.classList.remove("revealed");
+ overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");
  $("compactCardArtwork").removeAttribute("src");
  $("compactCardHeading").textContent="";$("compactCardText").textContent="";
  $("compactCardPrompt").textContent="";
