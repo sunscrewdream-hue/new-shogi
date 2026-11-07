@@ -609,7 +609,7 @@ function collect(p){
 function person(p){
  if(!p)return{name:"",role:"",img:""};
  const king=p.king;
- if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/story/kings/miyabe_banner.webp"};
+ if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/story/kings/miyabe_banner.webp?v=miyabe-approved-20261107"};
  if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士",img:"assets/story/kings/ito_banner.webp"};
  if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=face-final-20261107"};
  if(king==="saigo")return{name:"西郷隆盛",role:"新政府軍・薩摩藩",img:"assets/dialogue_banners/person_21.webp?v=face-final-20261107"};
