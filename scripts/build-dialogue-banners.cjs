@@ -37,15 +37,22 @@ const WORKING_SOURCE_WIDTH=510;
 const corrections={
   // Hijikata: pull back from the oversized close-up and align toward Kondo.
   2:[0.86,0,24],
+  // Review pass: Okita slightly smaller/right, Inoue and Nagakura left,
+  // Yamanami noticeably smaller/right against the unchanged Kondo master.
+  3:[0.93,0,18],4:[1,0,-3],5:[0.85,0,37],6:[1,0,28],
+  // Saito is slightly too close compared with the neighboring commanders.
+  7:[0.92,0,15],
   // Mobile gallery review: keep these faces away from the left-side copy.
-  8:[1,0,25],9:[1,0,23],10:[1,0,23],
+  // Match Saito's pulled-back framing and move the three faces right.
+  8:[0.88,0,70],9:[0.88,0,68],10:[0.91,0,68],
   11:[1,2,0],12:[1,2,0],13:[1,1,0],
   15:[0.96,-3,0],17:[0.90,5,0],19:[0.97,0,0],
-  21:[1.13,-3,0],22:[0.91,-4,0],23:[0.96,-6,21],
-  25:[0.93,-4,0],27:[0.96,-4,0],28:[0.86,-3,0],
+  // Saccho review: give Kido, Okubo, Oyama and Yamagata Saigo-like breathing room.
+  21:[1.13,-3,0],22:[0.82,-4,20],23:[0.84,-6,41],24:[0.87,0,20],
+  25:[0.82,-4,20],27:[0.96,-4,0],28:[0.86,-3,0],
   29:[0.97,-3,0],30:[0.96,-10,21],
-  32:[1.10,-10,0],33:[1.07,-8,0],34:[0.92,-2,0],
-  35:[0.92,0,0],36:[1.13,-4,0],39:[1,0,12]
+  32:[1.10,-10,0],33:[0.90,-8,25],34:[0.85,-2,25],
+  35:[0.92,0,25],36:[1.13,-4,0],39:[1,0,30]
 };
 const finalOutput=stagingDir||output;
 fs.mkdirSync(finalOutput,{recursive:true});
