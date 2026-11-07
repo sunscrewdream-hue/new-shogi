@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../card-ai-test.html'),'utf8');
+const setBanner=source.slice(source.indexOf('function setCharacterBanner('),source.indexOf('function clearCharacterBanner('));
+assert.match(setBanner,/const displayMs=duration>0\?duration:2300/);
+assert.match(setBanner,/bannerTimers\[side\]=setTimeout/);
+assert.match(setBanner,/clearCharacterBanner\(side\)/);
+assert.match(source,/if\(rulePreset!=='traditional'\)setCharacterBanner\(speakerSide,speaker,'',0\)/);
+console.log('PASS: quiet moves dismiss normal-match character banners');
