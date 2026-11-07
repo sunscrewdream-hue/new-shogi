@@ -44,7 +44,7 @@ assert.match(source, /const afterFx=\(\)=>moveVoiceDone\.then\(/,
   'Do not start the next turn while the moving officer is speaking');
 assert.match(source, /desert:"assets\/story\/audio\/master_gravel_run_v2\.mp3"/,
   'Desertion and reinforcement footsteps must use the louder mastered sample');
-assert.match(source, /if\(p\.s===0\)sfx\("loss",finish\);else compactSound\("sacchoLoss",finish\)/,
+assert.match(source, /if\(p\.s===0\)sfx\("loss",resolve\);else compactSound\("sacchoLoss",resolve\)/,
   'Purging an enemy officer must play the enemy loss voice');
 assert.match(source, /if\(stage===3\)\{[\s\S]*?deck\.push\(\["大砲",10\]\)/,
   'Toba-Fushimi must add cannon to the actual card deck');
