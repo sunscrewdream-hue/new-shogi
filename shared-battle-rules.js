@@ -19,5 +19,23 @@
   if(gaveCheck&&!lethal)cues.push("check");
   return cues;
  }
- root.ShinsengumiBattleRules=Object.freeze({fighterKey,captureResult,voiceCues});
+ // The presentation contract is shared across 9x9 and every story chapter.
+ // Board mutations and sprites remain view-specific; their ORDER never does.
+ async function runOrderedEffect({attack,impact,cry,result,valid=()=>true}){
+  for(const [name,step] of [["attack",attack],["impact",impact],["cry",cry],["result",result]]){
+   if(!valid())return false;
+   if(typeof step==="function")await step();
+  }
+  return valid();
+ }
+ function revealAfterTurn(face,animationName,display,{fallbackMs=650,valid=()=>true}={}){
+  let done=false;
+  const finish=()=>{if(done||!valid())return;done=true;display()};
+  const onAnimationEnd=event=>{
+   if(event.target===face&&event.animationName===animationName){face.removeEventListener("animationend",onAnimationEnd);finish()}
+  };
+  face.addEventListener("animationend",onAnimationEnd);
+  setTimeout(()=>{face.removeEventListener("animationend",onAnimationEnd);finish()},fallbackMs);
+ }
+ root.ShinsengumiBattleRules=Object.freeze({fighterKey,captureResult,voiceCues,runOrderedEffect,revealAfterTurn});
 })(typeof window!=="undefined"?window:globalThis);
