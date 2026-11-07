@@ -35,11 +35,13 @@ const WORKING_SOURCE_WIDTH=510;
 // [isotropic scale factor, vertical shift (px), horizontal shift (px)].
 // Positive Y moves the entire portrait down. No stretch or face retouching.
 const corrections={
+  // Mobile gallery review: keep these faces away from the left-side copy.
+  8:[1,0,25],9:[1,0,23],10:[1,0,23],
   11:[1,2,0],12:[1,2,0],13:[1,1,0],
   15:[0.96,-3,0],17:[0.90,5,0],19:[0.97,0,0],
-  21:[1.13,-3,0],22:[0.91,-4,0],23:[1.08,-6,0],
+  21:[1.13,-3,0],22:[0.91,-4,0],23:[0.96,-6,21],
   25:[0.93,-4,0],27:[0.96,-4,0],28:[0.86,-3,0],
-  29:[0.97,-3,0],30:[1.08,-10,0],
+  29:[0.97,-3,0],30:[0.96,-10,21],
   32:[1.10,-10,0],33:[1.07,-8,0],34:[0.92,-2,0],
   35:[0.92,0,0],36:[1.13,-4,0],39:[1,0,12]
 };
