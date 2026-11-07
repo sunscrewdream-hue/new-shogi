@@ -301,7 +301,7 @@ body.quake-world::before{animation:kyotoWorldQuake 1.65s ease-out both;will-chan
 #cardFace.revealed #cardTitle,
 #cardFace.revealed #cardDetail{display:none!important}
 #cardEffectPanel{display:none}
-#cardFace.revealed #cardEffectPanel{
+#cardFace.revealed.card-text-ready #cardEffectPanel{
  display:flex;position:absolute;z-index:7;top:auto;bottom:2.5%;
  left:5%;right:5%;width:auto;box-sizing:border-box;
  max-height:44%;overflow-y:auto;overscroll-behavior:contain;
@@ -1359,7 +1359,7 @@ function startIncident(s,queued=false){
 function draw(s){
  pendingCardSide=s;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;lastIncidentKind='何事もなし';
  const face=el('cardFace');
- face.classList.remove('revealed','ai-card');
+ face.classList.remove('revealed','ai-card','card-text-ready');
  face.style.backgroundImage='';
  el('cardEffectText').textContent='';
  face.setAttribute('aria-label',(s===1?'薩長同盟':'新選組')+'の事件札をめくる');
@@ -1378,6 +1378,7 @@ function revealCard(){
  playFx('flip');
  resolveCard(pendingCardSide);
  const face=el('cardFace');
+ face.classList.remove('card-text-ready');
  face.style.setProperty('background-image','url("'+incidentCardFaces[lastIncidentKind]+'")','important');
  face.classList.add('revealed');
  face.setAttribute('aria-label',lastIncidentKind+'。もう一度タップして閉じる');
@@ -1392,11 +1393,19 @@ function revealCard(){
  // Narration starts on the card reveal, as originally approved.
  const clip=playIncidentVoice(incidentVoiceByKind[lastIncidentKind],release);
  if(!clip)release();else setTimeout(release,15000);
- // Only the on-card FONT waits until the .46s page-turn is complete.
- setTimeout(()=>{
-  if(e!==epoch||pendingCardSide!==currentSide||!cardRevealed)return;
+ // Reveal the FONT and caption panel only after the card has finished turning.
+ // Audio deliberately starts immediately and is not affected by this delay.
+ let textShown=false;
+ const showCardText=()=>{
+  if(textShown||e!==epoch||pendingCardSide!==currentSide||!cardRevealed)return;
+  textShown=true;
   el('cardEffectText').textContent=incidentDescription;
- },490);
+  face.classList.add('card-text-ready');
+ };
+ face.addEventListener('animationend',event=>{
+  if(event.target===face&&event.animationName==='finishedPageReveal')showCardText();
+ },{once:true});
+ setTimeout(showCardText,650);
 }
 function finishCardClose(){
  if(pendingCardSide===null)return;
