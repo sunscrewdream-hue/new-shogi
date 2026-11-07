@@ -1,0 +1,13 @@
+# Generated and local-only artifacts are never game deliverables.
+.DS_Store
+Thumbs.db
+node_modules/
+.playwright-tmp/
+playwright-report/
+test-results/
+*.log
+*.tmp
+*.bak
+*.orig
+*~
+
