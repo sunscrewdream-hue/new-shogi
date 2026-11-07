@@ -86,7 +86,6 @@ for (const file of [
   'assets/visuals/hitokiri_kill_calligraphy.webp',
   'assets/cards/events/calm.webp',
   'assets/cards/events/reinforcement.webp',
-  'assets/cards/events/defection-v1.webp',
   'assets/cards/events/defection-v2.webp',
   'assets/cards/events/desertion.webp',
   'assets/cards/events/purge.webp',
