@@ -26,12 +26,9 @@
   const rect=board.getBoundingClientRect();
   if(!rect.height)return false;
   const viewport=window.visualViewport?.height||window.innerHeight;
-  const target=Math.max(0,Math.round(window.scrollY+rect.top+rect.height/2-viewport/2));
-  window.scrollTo({top:target,left:0,behavior:"instant"});
-  if(!storyVisible)board.scrollIntoView({block:"center",inline:"nearest",behavior:"instant"});
-  const updated=board.getBoundingClientRect();
-  document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(updated.top+updated.height/2-viewport/2)+"px");
-  requestAnimationFrame(()=>{const b=board.getBoundingClientRect();document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(b.top+b.height/2-(window.visualViewport?.height||window.innerHeight)/2)+"px")});
+  // Never scroll to center an effect: that visibly jerks the normal match
+  // when a figure enters or leaves the board. Offset overlays in place.
+  document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(rect.top+rect.height/2-viewport/2)+"px");
   return true;
  };
  const sync=()=>{
@@ -60,7 +57,7 @@
    locked=false;
    // Story players retain their own viewport position throughout a match.
    // Keep normal completed-match centering unchanged.
-   if(!storyVisible&&!centerStoryBoard())window.scrollTo(0,scrollY);
+   if(!storyVisible)centerStoryBoard();
   }
  };
  const start=()=>{
