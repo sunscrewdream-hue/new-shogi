@@ -1388,13 +1388,13 @@ function revealCard(){
  cardVoiceDone=false;
  const e=epoch,currentSide=pendingCardSide;
  const release=()=>{if(e!==epoch)return;cardVoiceDone=true;if(cardCloseRequested)finishCardClose()};
- // The page-turn animation lasts .46s: reveal the effect and its narration
- // only after the illustrated card has finished opening.
+ // Narration starts on the card reveal, as originally approved.
+ const clip=playIncidentVoice(incidentVoiceByKind[lastIncidentKind],release);
+ if(!clip)release();else setTimeout(release,15000);
+ // Only the on-card FONT waits until the .46s page-turn is complete.
  setTimeout(()=>{
   if(e!==epoch||pendingCardSide!==currentSide||!cardRevealed)return;
   el('cardEffectText').textContent=incidentDescription;
-  const clip=playIncidentVoice(incidentVoiceByKind[lastIncidentKind],release);
-  if(!clip)release();else setTimeout(release,15000);
  },490);
 }
 function finishCardClose(){
