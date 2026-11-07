@@ -6,7 +6,7 @@ const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 const js=read('story-mode.js'),css=read('story-mode.css'),html=read('story-mode.html');
 assert.match(js,/function storyBannerMessage\(message,side=g\?\.side\?\?0,cardCountdown=null\)/);
 assert.match(js,/side===0\?"playerBannerStatus":"enemyBannerStatus"/,'The art must appear for either army');
-assert.match(js,/title\.src="assets\/cards\/incident-title\.png"/,'Reuse the exact incident title artwork');
+assert.match(js,/title\.src="assets\/cards\/incident-title-outline-v3\.webp"/,'Reuse the exact incident title artwork');
 assert.match(js,/title\.alt="動乱の刻"/,'Screen readers must announce the artwork');
 assert.match(js,/remaining\.textContent=cardCountdown\.remaining/,'The remaining turns stay as live text');
 assert.match(js,/turn:turnText,remaining:/,'Keep the current side and countdown in separate elements');
@@ -14,5 +14,5 @@ assert.match(css,/\.person-banner \.story-banner-countdown img\{[^}]*position:st
 assert.match(css,/\.story-banner-status-line\{[^}]*flex-wrap:wrap/,'Allow graceful line wrapping');
 assert.match(html,/story-mode\.css\?v=stable-scroll-20261107b/);
 assert.match(html,/story-mode\.js\?v=[^"']+/);
-assert.ok(fs.statSync(path.join(root,'assets/cards/incident-title.png')).size>100000);
+assert.ok(fs.statSync(path.join(root,'assets/cards/incident-title-outline-v3.webp')).size>100000);
 console.log('PASS: both story banners render the official incident title at responsive size');
