@@ -998,6 +998,8 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
 .compact-incident-stage{background:transparent!important}
 .compact-incident-stage .compact-incident-title{width:min(90vw,640px);max-height:60dvh;object-fit:contain}
 html.game-effect-scroll-locked,html.game-effect-scroll-locked body{overscroll-behavior:none}
+html{scrollbar-gutter:stable}
+#storyBattle{overflow-anchor:none}
 body.game-effect-scroll-locked{touch-action:none}
  
 /* Mobile-only: enlarge the awakened seal without changing desktop banners. */
