@@ -1141,8 +1141,8 @@ function finish(winner,reason){
  // remains the fallback until BOTH chapter-specific portraits are supplied.
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
- const winnerArt="assets/story/victory/"+winnerId+"_winner.webp";
- const loserArt="assets/story/victory/"+loserId+"_loser.webp";
+ const winnerArt="assets/story/victory/"+winnerId+"_winner.png";
+ const loserArt="assets/story/victory/"+loserId+"_loser.png";
  const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
  const portraitSource=$("storyEndPortraitSource");
  const artworkToken=String(Date.now());
