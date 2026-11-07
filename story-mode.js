@@ -1064,6 +1064,7 @@ function makeMove(m,prom){
    (async()=>{
     const square=m.Y+":"+m.X;
     try{
+     compactCalligraphy(true);
      compactBloodMarks.push(square);render();
      await playBloodImpact();if(id!==epoch||ended)return;
      await playCasualtyCry();if(id!==epoch||ended)return;
