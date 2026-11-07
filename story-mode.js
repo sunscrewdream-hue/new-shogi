@@ -287,6 +287,7 @@ function compactCardReveal(){
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent="";
  window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
   $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
+  if(state.closeRequested&&state.voiceDone)compactCardClose();
  },{valid:()=>compactIncident===state});
  $("compactCardPrompt").textContent="";
  state.voiceDone=false;
@@ -302,6 +303,7 @@ function compactCardReveal(){
 function compactCardClose(){
  const state=compactIncident;if(!state||!state.revealed)return;
  if(!$("compactCardFace").classList.contains("card-text-ready"))return;
+ if(!state.voiceDone){state.closeRequested=true;$("compactCardPrompt").textContent="読み上げ終了後に進みます…";return}
  compactIncident=null;$("compactCardOverlay").classList.add("hidden");compactApplyIncident(compactIncidentEffect);compactIncidentEffect=null;
 }
 $("compactCardFace").onclick=()=>{
