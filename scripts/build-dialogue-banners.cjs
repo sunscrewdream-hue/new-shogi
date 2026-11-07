@@ -35,6 +35,8 @@ const WORKING_SOURCE_WIDTH=510;
 // [isotropic scale factor, vertical shift (px), horizontal shift (px)].
 // Positive Y moves the entire portrait down. No stretch or face retouching.
 const corrections={
+  // Hijikata: pull back from the oversized close-up and align toward Kondo.
+  2:[0.86,0,24],
   // Mobile gallery review: keep these faces away from the left-side copy.
   8:[1,0,25],9:[1,0,23],10:[1,0,23],
   11:[1,2,0],12:[1,2,0],13:[1,1,0],
