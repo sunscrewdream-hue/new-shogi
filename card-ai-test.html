@@ -963,7 +963,7 @@ function updateDialogueBanner(side,p){
  const data=(ownOrigin===0?officerData:enemyOfficerData)[cid]||['名もなき隊士','隊士'];
  const prefix=side===0?'player':'enemy', panel=el(side===0?'officerPanel':'enemyOfficerPanel');
  const img=el(prefix+'BannerArt'),title=el(prefix+'BannerName'),role=el(prefix+'BannerRole');
- img.src='assets/dialogue_banners/person_'+String(idx).padStart(2,'0')+'.webp?v=banner40-20261107';
+ img.src='assets/dialogue_banners/person_'+String(idx).padStart(2,'0')+'.webp?v=facefix-20261107b';
  img.alt=data[0]+'・'+data[1]+'・'+(p.t||'玉');
  title.textContent=data[0];
  const opponentClan=['薩摩藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','長州藩','長州藩','長州藩','長州藩','長州藩'];
