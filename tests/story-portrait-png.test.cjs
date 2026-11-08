@@ -6,8 +6,7 @@ const zlib=require('node:zlib');
 const root=path.resolve(__dirname,'..');
 const source=fs.readFileSync(path.join(root,'story-mode.js'),'utf8');
 const intro=fs.readFileSync(path.join(root,'card-ai-test.html'),'utf8');
-const files=[...fs.readdirSync(path.join(root,'assets/story/victory')).filter(n=>n.endsWith('.png')).map(n=>'assets/story/victory/'+n),
- 'assets/story/shutsujin_shinsengumi_seven.png'];
+const files=fs.readdirSync(path.join(root,'assets/story/victory')).filter(n=>n.endsWith('.png')).map(n=>'assets/story/victory/'+n);
 for(const name of ['miyabe','kondo','kusaka','ito','saigo'])for(const result of ['winner','loser']){
  const file=path.join(root,'assets/story/victory',name+'_'+result+'.webp');
  const bytes=fs.readFileSync(file);
