@@ -784,6 +784,12 @@ function popup(title,text,options,img){
 }
 function collect(p){
  if(devPreview||debugModified||!p)return;
+ if(Number.isInteger(p.tobaId)){
+  const profile=D.tobaRoster?.[p.tobaId];if(!profile)return;
+  try{const key="shinsengumi-story-toba-historical-cards-v1",owned=JSON.parse(localStorage.getItem(key)||"[]");
+   if(Array.isArray(owned)&&!owned.includes(p.tobaId)){owned.push(p.tobaId);localStorage.setItem(key,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+profile.name,0)}
+  }catch(e){}return;
+ }
  for(const [field,side,list] of [["oilDefenderId","shinsengumi",D.oilDefenders],["oilRaiderId","goryo-eji",D.oilRaiders]]){
   if(Number.isInteger(p[field])){
    const profile=list?.[p[field]];if(!profile)return;
@@ -819,6 +825,9 @@ function collect(p){
 }
 function person(p){
  if(!p)return{name:"",role:"",img:""};
+ if(Number.isInteger(p.tobaId)){
+  const record=D.tobaRoster?.[p.tobaId];if(record)return{name:record.name,role:record.role,img:record.art};
+ }
  for(const [field,list] of [["oilDefenderId",D.oilDefenders],["oilRaiderId",D.oilRaiders]]){
   if(Number.isInteger(p[field])){const record=list?.[p[field]];if(record)return{name:record.name,role:record.role,img:record.art};}
  }
