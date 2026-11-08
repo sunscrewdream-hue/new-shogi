@@ -20,7 +20,7 @@ function unlockBattleVoice(){
 }
 document.addEventListener("pointerdown",unlockBattleVoice,{passive:true});
 document.addEventListener("touchstart",unlockBattleVoice,{passive:true});
-function playGestureAudio(path,onDone,channel="voice",gainBoost=1){
+function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=null){
  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden){onDone?.();return}
  const context=unlockBattleVoice();if(!context){playStoryClip(path,channel,onDone);return}
  let loading=battleVoiceBuffers.get(path);
@@ -31,14 +31,14 @@ function playGestureAudio(path,onDone,channel="voice",gainBoost=1){
  let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},9000);
  const finish=()=>{if(settled)return;settled=true;clearTimeout(watchdog);onDone?.()};
  Promise.resolve(loading).then(buffer=>{
-  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden){finish();return}
+  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden||(isStillValid&&!isStillValid())){finish();return}
   stopStoryClip(channel);
   const previous=channel==="voice"?battleVoiceActive:battleImpactActive;
   if(previous){try{previous.stop()}catch(e){}}
   const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=Math.min(1,(channel==="voice"?voiceLevel():fxLevel())*gainBoost);source.connect(gain).connect(context.destination);
   if(channel==="voice")battleVoiceActive=source;else battleImpactActive=source;
   source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;if(battleImpactActive===source)battleImpactActive=null;finish()};
-  context.resume().then(()=>source.start()).catch(()=>{playStoryClip(path,channel,finish)});
+  context.resume().then(()=>{if(isStillValid&&!isStillValid()){finish();return}source.start()}).catch(()=>{if(isStillValid&&!isStillValid()){finish();return}playStoryClip(path,channel,finish)});
  }).catch(()=>playStoryClip(path,channel,finish));
 }
 function playBattleShout(path,onDone){playGestureAudio(path,onDone,"voice")}
@@ -1061,8 +1061,10 @@ async function oilAmbushReveal(){
   });
   layer.append(runner);
   // Two distinct footfalls per arriving piece; unlocked Web Audio also works on iOS.
-  playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5);
-  const secondStep=setTimeout(()=>{if(game===epoch&&!ended)playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5)},390);
+  let runningFootsteps=true;
+  const footstep=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,()=>runningFootsteps&&game===epoch&&!ended);
+  footstep();
+  const secondStep=setTimeout(()=>{if(runningFootsteps&&game===epoch&&!ended)footstep()},390);
   const startY=-Math.max(160,Math.min(340,rect.top+100));
   if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
    const animation=runner.animate([
@@ -1073,7 +1075,8 @@ async function oilAmbushReveal(){
    await Promise.race([animation.finished.catch(()=>{}),later(1050)]);
    animation.cancel();
   }else await later(820);
-  clearTimeout(secondStep);
+  // Arrival is the exact sound cutoff, even for the final runner.
+  runningFootsteps=false;clearTimeout(secondStep);stopStoryClip("fx");
   runner.remove();token.style.opacity="";
   if(game!==epoch||ended){layer.replaceChildren();return}
   if(casualties.has(i)){
