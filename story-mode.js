@@ -202,6 +202,7 @@ function compactPickCard(side){
 }
 function compactCardInterval(){return stage===3?3:4}
 function compactCardDue(actor){
+ if(stage===2&&g?.oilPhase===1)return false;
  if(stage===3)return g.ply>=5&&(g.ply-5)%3===0; // Alternate sides; avoid back-to-back incidents.
  const cycle=compactCardInterval()*2;return g.ply%cycle===(actor===0?cycle-1:0);
 }
@@ -967,10 +968,10 @@ function render(){
    if(s===0&&defendingDrops?.has(t))b.classList.add("check-defender");
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{if(b.disabled)return;selected={drop:true,t};render()};hand.append(b)}
  }
- const countdown=compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
+ const countdown=stage===2&&g?.oilPhase===1?"伊東甲子太郎を討て！":compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
  const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 防ぐか、覚悟して主君を見捨てる":"");
  const showCountdown=countdown&&!busy;
- storyBannerMessage(turnText+(showCountdown?"　"+countdown:""),g.side,showCountdown?{turn:turnText,remaining:compactIncident?"・事件札を確認中":`まで${compactCardRemaining()}手`}:null);
+ storyBannerMessage(turnText+(showCountdown?"　"+countdown:""),g.side,showCountdown?{turn:turnText,remaining:g?.oilPhase===1?"・伊東を討て！":compactIncident?"・事件札を確認中":`まで${compactCardRemaining()}手`}:null);
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
