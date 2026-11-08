@@ -95,5 +95,5 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden)ctx.suspend().catch(()=>{});
  else if(!muted&&wanted)ctx.resume().catch(()=>{});
 });
-window.StoryBgm={play,unlock,setMuted,setVolume,duck,stop:()=>play(null)};
+window.StoryBgm={play,unlock,setMuted,setVolume,duck,restart:name=>{current=null;return play(name)},stop:()=>play(null)};
 })();

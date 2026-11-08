@@ -1009,10 +1009,11 @@ function square(y,x){
 }
 async function oilAmbushReveal(){
  const game=epoch,board=$("storyBoard");
- // Close Ito\u0027s last pit after the killing blow and before reinforcements.
- if(g.holes.length){
+ // Even a pit that expired on the fatal move closes AFTER the slash.
+ if(g.holes.length||compactClosingHoles.length){
   busy=true;compactTurnLocked=true;
-  compactClosingHoles=g.holes.map(({y,x})=>({y,x}));g.holes=[];render();
+  const closing=new Map([...compactClosingHoles,...g.holes].map(({y,x})=>[y+":"+x,{y,x}]));
+  compactClosingHoles=[...closing.values()];g.holes=[];render();
   await compactFadeExpiredHoles(game);
   if(game!==epoch||ended)return;
  }
@@ -1111,6 +1112,8 @@ async function oilAmbushReveal(){
  });
  if(game!==epoch||ended)return;
  $("storyPopup").classList.add("hidden");
+ // Restore the chapter soundtrack after the long voice/footstep sequence.
+ window.StoryBgm?.unlock();window.StoryBgm?.restart?.("battle01");
  busy=false;compactTurnLocked=false;g.side=0;render();
 }
 function makeMove(m,prom){
@@ -1167,7 +1170,7 @@ function makeMove(m,prom){
     await playKabukiVoice("awakening");
     if(id!==epoch||ended)return;
    }
-   await compactFadeExpiredHoles(id);
+   if(!oilFirstActVictory)await compactFadeExpiredHoles(id);
    if(id!==epoch||ended)return;
    compactArrival=null;
    if(oilFirstActVictory){
