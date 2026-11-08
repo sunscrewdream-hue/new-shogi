@@ -623,7 +623,14 @@ function popup(title,text,options,img){
  modal.classList.remove("hidden");
 }
 function collect(p){
- if(devPreview||debugModified||!p||p.cid==null)return;
+ if(devPreview||debugModified||!p)return;
+ if(p.featuredId){
+  const ids={ishikawa:40,yoshida:41,kitazoe:42,mochizuki:43,matsuda:44,otaka:45,hirooka:46,sugiyama:47,fukuoka:48};
+  const id=ids[p.featuredId];if(id==null)return;
+  try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+person(p).name,0)}}catch(e){}
+  return;
+ }
+ if(p.cid==null)return;
  const id=(p.origin===0?0:20)+p.cid;
  if(id<0||id>=40)return;
  try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+person(p).name,0)}}catch(e){}
@@ -633,8 +640,8 @@ function person(p){
  const king=p.king;
  if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/dialogue_banners/miyabe_banner.webp?v=miyabe-framing-20261107b"};
  if(p.featuredId){
-  const featured={yoshida:["吉田稔麿","長州藩士"],kitazoe:["北添佶摩","土佐出身の尊攘派志士"],otaka:["大高又次郎","播磨林田藩出身の志士"],sugiyama:["杉山松助","長州藩士"]}[p.featuredId];
-  if(featured){const mob=D.mobs[(p.mob||0)%8];return{name:featured[0],role:featured[1],img:"assets/characters/mobs/"+mob[2]}}
+  const featured={ishikawa:["石川潤次郎","土佐藩士"],yoshida:["吉田稔麿","長州藩士"],kitazoe:["北添佶摩","土佐出身の尊攘派志士"],mochizuki:["望月亀弥太","土佐藩士"],matsuda:["松田重助","肥後藩士"],otaka:["大高又次郎","播磨林田藩出身の志士"],hirooka:["広岡浪秀","長州系の尊攘派志士"],sugiyama:["杉山松助","長州藩士"],fukuoka:["福岡祐次郎","伊予松山出身の志士"]}[p.featuredId];
+  if(featured)return{name:featured[0],role:featured[1],img:"assets/cards/back/card-back-saccho-1024x1536.webp"};
  }
  if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士・盟主",img:"assets/dialogue_banners/ito_kashitaro_banner.webp"};
  if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=face-final-20261107"};
