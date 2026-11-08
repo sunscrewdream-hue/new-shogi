@@ -1242,7 +1242,8 @@ function makeMove(m,prom){
 }
 function computer(){
  if(ended||!g||g.side!==1)return;
- const pit=g.oilItoDig?.();
+ // When truly cornered, the one-time rifle takes priority over digging.
+ const pit=g.legal(1).length?g.oilItoDig?.():null;
  if(pit){
   const game=epoch;busy=true;compactTurnLocked=true;
   // Digging and filling use the same approved earth-collapse sound.
@@ -1266,6 +1267,31 @@ function computer(){
  }
  const move=g.ai();busy=false;
  if(!move){
+  if(stage===2&&g.oilPhase===1&&!g.oilItoGunUsed&&g.king(1)){
+   const shot=g.oilItoGunTarget?.();
+   if(shot){
+    g.oilItoGunUsed=true;
+    const game=epoch;busy=true;compactTurnLocked=true;selected=null;render();
+    storyBannerMessage("伊東甲子太郎、鉄砲で応戦！",1);
+    (async()=>{
+     try{
+      await window.StoryWeapons.fire(g,"rifle",()=>game===epoch&&!ended,sfx,async(result,hit)=>{
+       if(game!==epoch||!hit)return;
+       const mark=result.y+":"+result.x;compactBloodMarks.push(mark);render();
+       await playBloodImpact();
+       if(game!==epoch)return;
+       await playCasualtyCry();
+       compactBloodMarks=compactBloodMarks.filter(v=>v!==mark);
+       if(game===epoch)render();
+      },1,shot);
+     }catch(error){console.error("伊東の鉄砲演出",error)}
+     if(game!==epoch||ended)return;
+     g.side=0;g.ply++;g.last=null;
+     render();compactResumeTurn();
+    })();
+    return;
+   }
+  }
   if(stage===2&&g.oilPhase===1&&g.king(1)){
    // Ito remains alive: announce his helplessness before passing the turn.
    const game=epoch;
@@ -1436,7 +1462,6 @@ function storyLoadMatch(){
  g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
  g.oilPhase=state.oilPhase??(data.stage===2?2:null);g.oilEnemyReserve=state.oilEnemyReserve||null;
  g.oilItoGunUsed=!!state.oilItoGunUsed;
- if(data.stage===2&&g.oilPhase===1)g.holes=[]; // Legacy pit saves use the new rifle rule.
  enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
  weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
  // Invalidate timers started by the chapter opening before restoring play.
