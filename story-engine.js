@@ -43,7 +43,7 @@ class StoryEngine{
   const casualties=[];
   for(const slot of slots){
    const p=this.board[slot.y][slot.x];
-   if(p?.s===0){casualties.push({y:slot.y,x:slot.x,cid:p.cid});this.destroy(slot.y,slot.x)}
+   if(p?.s===0){casualties.push({y:slot.y,x:slot.x,cid:p.cid});this.board[slot.y][slot.x]=null}
    this.board[slot.y][slot.x]={...enemy[slot.y][slot.x]};
   }
   this.oilPhase=2;this.oilEnemyReserve=null;this.side=0;this.last=null;

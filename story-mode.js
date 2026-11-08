@@ -202,11 +202,12 @@ function compactPickCard(side){
 }
 function compactCardInterval(){return stage===3?3:4}
 function compactCardDue(actor){
- if(stage===2&&g?.oilPhase===1)return false;
+ if(stage===2)return g?.oilPhase===2&&g.ply>0&&g.ply%4===0;
  if(stage===3)return g.ply>=5&&(g.ply-5)%3===0; // Alternate sides; avoid back-to-back incidents.
  const cycle=compactCardInterval()*2;return g.ply%cycle===(actor===0?cycle-1:0);
 }
 function compactCardRemaining(){
+ if(stage===2&&g?.oilPhase===2)return 2-Math.floor((g.ply%4)/2);
  if(stage===3)return Math.max(1,Math.ceil(((g.ply<5?5:5+Math.ceil((g.ply-4)/3)*3)-g.ply)/2));
  const cycle=compactCardInterval()*2;return compactCardInterval()-Math.floor((g.ply%cycle)/2);
 }
@@ -1010,12 +1011,14 @@ function square(y,x){
 }
 function oilAmbushReveal(){
  const event=g.triggerOilAmbush();
+ // The ambush begins a new battle phase: incident-card turns count anew.
+ if(event){g.ply=0;compactCaptures={};}
  if(!event){busy=false;render();popup("布陣を整えられません","近藤勇の退路が確保できません。再挑戦してください。",[["再挑戦",()=>battle(2)]]);return}
  const casualties=event.casualties.length;
  compactBloodMarks=event.casualties.map(p=>p.y+":"+p.x);
  busy=true;compactTurnLocked=true;selected=null;render();
  if(casualties)compactSound("slash");
- const message="伊東甲子太郎、討死！\n御陵衛士、伏兵出現！\n"+(casualties?"新選組の"+casualties+"枚が討死。\n":"")+(event.retreat?"近藤勇は後方へ退却！\n":"")+"藤堂平助率いる御陵衛士と決着をつけよ。";
+ const message="伊東甲子太郎、討死！\n御陵衛士、伏兵出現！\n"+(casualties?"新選組の"+casualties+"枚が討死。\n":"")+(event.retreat?"近藤勇は後方へ退却！\n":"")+"藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
  popup("御陵衛士、伏兵出現！",message,[["応戦する",()=>{compactBloodMarks=[];busy=false;compactTurnLocked=false;g.side=0;render()}]]);
 }
 function makeMove(m,prom){
