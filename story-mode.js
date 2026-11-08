@@ -417,7 +417,7 @@ async function ikedayaReinforcementArrival(){
 }
 function compactResumeTurn(){
  if(ended)return;
- if(stage===0&&g?.ply===4&&g.side===0&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
+ if(stage===0&&g?.ply>=3&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -1266,7 +1266,7 @@ function makeMove(m,prom){
  const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
  // Being cornered without legal moves is not Ito's death.
  const rawResult=g.state();
- const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(stage===0&&g.ply===4&&g.side===0&&g.king(0)&&g.king(1)&&rawResult?.winner===1&&rawResult.why!=="主君討死")?null:rawResult;
+ const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(stage===0&&g.ply>=3&&!g.ikedayaReinforced&&g.king(0)&&g.king(1)&&rawResult&&rawResult.why!=="主君討死")?null:rawResult;
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
