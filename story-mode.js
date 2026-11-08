@@ -630,7 +630,7 @@ function person(p){
  if(!p)return{name:"",role:"",img:""};
  const king=p.king;
  if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/dialogue_banners/miyabe_banner.webp?v=miyabe-framing-20261107b"};
- if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士・盟主",img:"assets/dialogue_banners/ito_banner.webp?v=ito-native-ratio-20261108"};
+ if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士・盟主",img:"assets/dialogue_banners/ito_banner.webp?v=ito-seamless-20261108"};
  if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=face-final-20261107"};
  if(king==="saigo")return{name:"西郷隆盛",role:"新政府軍・薩摩藩",img:"assets/dialogue_banners/person_21.webp?v=face-final-20261107"};
  if(king==="todo")return{name:"藤堂平助",role:"御陵衛士",img:"assets/dialogue_banners/person_08.webp?v=face-final-20261107"};
