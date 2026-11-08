@@ -56,7 +56,7 @@
 .story-header .story-header-logo{display:block;width:clamp(112px,30vw,195px);height:auto;max-height:57px;object-fit:contain;filter:drop-shadow(0 2px 4px #0008)}
 /* The sumi-ink title stays readable over a restrained washi-colored backing. */
 .story-header .story-header-logo{padding:3px 6px;background:#e9d9b8;border:1px solid #bc9e6d;border-radius:3px;filter:none}
-.hand-container{max-width:520px;margin:3px auto;padding:5px 8px;border:1px solid #806b4c8a;border-radius:6px;background:linear-gradient(#162c3885,#10151aa8),url("assets/visuals/edo_jail.png") center/cover;color:#f4e5c4;text-shadow:0 1px 2px #000}
+.hand-container{max-width:520px;margin:3px auto;padding:5px 8px;border:1px solid #806b4c8a;border-radius:6px;color:#f4e5c4;text-shadow:0 1px 2px #000}
 .story-hand{min-height:33px;align-items:center}
 #storyBoard .story-token,.story-hand-piece .story-token{text-shadow:0 1px 2px #061924}
 #storyBoard .sq:focus-visible{outline-offset:-4px;outline:3px solid #ffe27f}
@@ -262,7 +262,6 @@
 #storyDialogue .scene-art .scene-overlay h2{color:#1c1713;font-weight:900;font-size:clamp(34px,8.7vw,49px);text-shadow:0 1px 2px #faecd7,0 0 8px #f1dfc5a9}
 #storyBoard .sq{background-color:transparent}
 #storyBattle .person-banner{background-color:#e6d3ad}
-#storyBattle .hand-container{background-image:linear-gradient(#162c3855,#10151a78),url("assets/visuals/edo_jail.png")}
 
 /* Compact chapter boards: keep two portrait banners and both hands usable.
    5x6 scales with available viewport HEIGHT as well as width. 9x9 unchanged. */
