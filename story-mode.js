@@ -339,7 +339,7 @@ function faceIsWeaponReady(){return $("compactCardFace").classList.contains("car
 async function ikedayaReinforcementArrival(){
  const game=epoch;ikedayaReinforcing=true;busy=true;compactTurnLocked=true;selected=null;
  const arrivals=g.deployIkedayaReinforcements();
- if(!arrivals){ikedayaReinforcing=false;compactResumeTurn();return}
+ if(!arrivals){ikedayaReinforcing=false;busy=false;compactTurnLocked=false;render();popup("援軍の配置に失敗","盤上に4騎分の空きマスがありません。対局を再開してください。",[["再挑戦",()=>battle(0)]]);return}
  ikedayaPendingPositions=new Set(arrivals.filter(p=>!p.hand).map(p=>p.y+":"+p.x));
  render();
  const layer=$("compactActionLayer");layer.replaceChildren();
@@ -351,13 +351,13 @@ async function ikedayaReinforcementArrival(){
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
    const board=$("storyBoard");
-   const cell=entry.hand?null:board.children[entry.y*g.w+entry.x];
+   const cell=board.children[entry.y*g.w+entry.x];
    const token=cell?.querySelector(".story-token");
    const boardWidth=board.clientWidth,boardHeight=board.clientHeight;
    const cellWidth=boardWidth/g.w,cellHeight=boardHeight/g.h;
    const width=Math.max(22,Math.min(cellWidth*.78,cellHeight*.78));
    let runner=null;
-   if(!entry.hand&&cell&&token){
+   if(cell&&token){
     // Board-local coordinates stay aligned when Safari scrolls or resizes.
     runner=document.createElement("div");
     runner.textContent=label(entry.piece);
@@ -391,7 +391,7 @@ async function ikedayaReinforcementArrival(){
    feet=false;clearTimeout(second);stopStoryClip("fx");
    runner?.remove();
    if(game!==epoch||ended)return;
-   if(!entry.hand)ikedayaPendingPositions.delete(entry.y+":"+entry.x);
+   ikedayaPendingPositions.delete(entry.y+":"+entry.x);
    render();
    banner(0,entry.piece,true);
    await later(260);
@@ -401,6 +401,7 @@ async function ikedayaReinforcementArrival(){
   if(game===epoch&&!ended){
    ikedayaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
    render();
+   storyBannerMessage("援軍四騎、盤上に到着！",0);
    if(g.check(g.board,0))compactSound("check");
    else if(g.check(g.board,1))compactSound("check");
    compactResumeTurn();
