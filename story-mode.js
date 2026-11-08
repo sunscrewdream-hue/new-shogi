@@ -20,7 +20,7 @@ function unlockBattleVoice(){
 }
 document.addEventListener("pointerdown",unlockBattleVoice,{passive:true});
 document.addEventListener("touchstart",unlockBattleVoice,{passive:true});
-function playGestureAudio(path,onDone,channel="voice"){
+function playGestureAudio(path,onDone,channel="voice",gainBoost=1){
  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden){onDone?.();return}
  const context=unlockBattleVoice();if(!context){playStoryClip(path,channel,onDone);return}
  let loading=battleVoiceBuffers.get(path);
@@ -31,11 +31,11 @@ function playGestureAudio(path,onDone,channel="voice"){
  let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},9000);
  const finish=()=>{if(settled)return;settled=true;clearTimeout(watchdog);onDone?.()};
  Promise.resolve(loading).then(buffer=>{
-  if(!voiceEnabled||document.hidden){finish();return}
+  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden){finish();return}
   stopStoryClip(channel);
   const previous=channel==="voice"?battleVoiceActive:battleImpactActive;
   if(previous){try{previous.stop()}catch(e){}}
-  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=channel==="voice"?voiceLevel():fxLevel();source.connect(gain).connect(context.destination);
+  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=Math.min(1,(channel==="voice"?voiceLevel():fxLevel())*gainBoost);source.connect(gain).connect(context.destination);
   if(channel==="voice")battleVoiceActive=source;else battleImpactActive=source;
   source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;if(battleImpactActive===source)battleImpactActive=null;finish()};
   context.resume().then(()=>source.start()).catch(()=>{playStoryClip(path,channel,finish)});
@@ -1060,7 +1060,9 @@ async function oilAmbushReveal(){
    filter:"drop-shadow(0 4px 6px #000b)"
   });
   layer.append(runner);
-  compactSound("desert");
+  // Two distinct footfalls per arriving piece; unlocked Web Audio also works on iOS.
+  playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5);
+  const secondStep=setTimeout(()=>{if(game===epoch&&!ended)playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5)},390);
   const startY=-Math.max(160,Math.min(340,rect.top+100));
   if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
    const animation=runner.animate([
@@ -1071,6 +1073,7 @@ async function oilAmbushReveal(){
    await Promise.race([animation.finished.catch(()=>{}),later(1050)]);
    animation.cancel();
   }else await later(820);
+  clearTimeout(secondStep);
   runner.remove();token.style.opacity="";
   if(game!==epoch||ended){layer.replaceChildren();return}
   if(casualties.has(i)){
@@ -1195,8 +1198,12 @@ function computer(){
  const move=g.ai();busy=false;
  if(!move){
   if(stage===2&&g.oilPhase===1&&g.king(1)){
-   // Ito is cornered, but remains alive. Pass his turn until he is captured.
-   g.side=0;g.ply++;busy=false;compactResumeTurn();return;
+   // Ito remains alive: announce his helplessness before passing the turn.
+   const game=epoch;
+   busy=true;compactTurnLocked=true;render();
+   storyBannerMessage("伊東甲子太郎「無念！」 指す手なし、パス",1);
+   sfx("loss",()=>{if(game!==epoch||ended)return;g.side=0;g.ply++;compactResumeTurn()});
+   return;
   }
   finish(0,"敵軍に指す手なし");return;
  }
