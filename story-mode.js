@@ -1229,14 +1229,14 @@ function computer(){
   const active=()=>game===epoch&&!ended&&g?.oilPhase===1;
   const dig=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,active);
   dig();
-  setTimeout(()=>{if(active())dig()},320);
+  setTimeout(()=>{if(active())dig()},280);
+  setTimeout(()=>{if(active())dig()},560);
   setTimeout(()=>{
    if(!active())return;
-   stopStoryClip("fx");
+   // Opening uses only dry soil strokes; collapse audio is reserved for filling.
    g.holes.push(pit);compactQuakeCracks=[];render();
-   playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx");
-  },650);
-  setTimeout(()=>{if(active())computer()},1450);
+  },810);
+  setTimeout(()=>{if(!active())return;stopStoryClip("fx");computer()},1160);
   return;
  }
  const move=g.ai();busy=false;
