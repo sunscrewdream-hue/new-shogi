@@ -1222,7 +1222,7 @@ function makeMove(m,prom){
     try{
      await window.ShinsengumiBattleRules.runOrderedEffect({
       valid:()=>id===epoch&&!ended,
-      attack:()=>{compactCalligraphy(true);compactBloodMarks.push(square);render()},
+      attack:()=>{if(!oilFirstActVictory)compactCalligraphy(true);compactBloodMarks.push(square);render()},
       impact:playBloodImpact,
       cry:playCasualtyCry,
       result:()=>later(850)
