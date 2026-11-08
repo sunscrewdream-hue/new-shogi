@@ -1,0 +1,24 @@
+/* The collection opens as a compact roster. Full cards open on explicit request. */
+.grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr));gap:11px;margin:18px 0 16px}
+.card{min-width:0}
+.card summary{display:grid;grid-template-columns:60px minmax(0,1fr);grid-template-rows:auto auto auto 1fr;column-gap:10px;align-items:start;padding:10px;min-height:106px}
+.card summary .portrait{grid-column:1;grid-row:1 / span 4;width:60px;height:86px;aspect-ratio:auto;margin:0;box-shadow:0 2px 8px #0006}
+.card summary .tag,.card summary h3,.card summary .role,.card summary .open-hint{grid-column:2;margin:0;min-width:0}
+.card summary .tag{grid-row:1;font-size:10px;line-height:1.4}
+.card summary h3{grid-row:2;font-size:17px;line-height:1.35;margin-top:4px;overflow-wrap:anywhere}
+.card summary .role{grid-row:3;font-size:11px;line-height:1.35;min-height:0;margin-top:3px}
+.card summary .open-hint{grid-row:4;font-size:11px;line-height:1.35;margin-top:5px}
+.card.locked .portrait:after{font-size:42px}
+.card .profile{padding:0 12px 14px}
+.collection-show-more{display:block;width:min(100%,380px);margin:12px auto 35px;padding:13px 20px;border:1px solid #bda36c;border-radius:7px;color:#f5e1b8;background:#263f46;font-size:15px;font-weight:800;cursor:pointer}
+.collection-show-more[hidden]{display:none}
+@media(max-width:650px){
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .card summary{grid-template-columns:46px minmax(0,1fr);column-gap:7px;min-height:84px;padding:7px}
+ .card summary .portrait{width:46px;height:68px}
+ .card summary .tag{font-size:9px;letter-spacing:0}
+ .card summary h3{font-size:14px;margin-top:2px}
+ .card summary .role{font-size:10px;margin-top:1px}
+ .card summary .open-hint{font-size:10px;margin-top:3px}
+ .card.locked .portrait:after{font-size:33px}
+}
