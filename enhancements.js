@@ -482,25 +482,21 @@
   }
  };
 
- /* One illustrated result scene: towering victor and kneeling defeated officer. */
+ /* Both modes share the same transparent victory portrait compositor. */
  const baseVictory=showVictory;
  const endStage=$('endPanel');
  const verdict=document.createElement('img');verdict.id='endVerdictGraphic';verdict.className='end-result-calligraphy';verdict.src='assets/visuals/verdict_shobu_attah.webp';verdict.alt='勝負あった！';
  const winGraphic=document.createElement('img');winGraphic.id='endVictoryGraphic';winGraphic.className='end-result-calligraphy';winGraphic.src='assets/visuals/verdict_victory.webp';winGraphic.alt='勝利';
  const lossGraphic=document.createElement('img');lossGraphic.id='endDefeatGraphic';lossGraphic.className='end-result-calligraphy';lossGraphic.src='assets/visuals/verdict_defeat.webp';lossGraphic.alt='敗北';
  endStage.insertBefore(verdict,$('endActions'));endStage.insertBefore(winGraphic,$('endActions'));endStage.insertBefore(lossGraphic,$('endActions'));
- const portraitSource=document.createElement('source');portraitSource.media='(orientation: portrait)';
- const portraitPicture=document.createElement('picture');portraitPicture.id='endResponsiveScene';
- const winnerImage=$('endWinnerImage');winnerImage.parentNode.insertBefore(portraitPicture,winnerImage);
- portraitPicture.append(portraitSource,winnerImage);
  showVictory=function(winner,reason='詰み'){
   baseVictory(winner,reason);
   if($('endOverlay').classList.contains('show')){
-   $('endWinnerImage').src=winner===0?'assets/visuals/victory_shinsengumi_scene.webp':'assets/visuals/victory_saccho_scene.webp';
-   portraitSource.srcset=winner===0?'assets/visuals/victory_shinsengumi_mobile.webp':'assets/visuals/victory_saccho_mobile.webp';
    $('endPanel').classList.remove('result-draw');
-   $('endWinnerImage').alt=(winner===0?'新選組':'薩長同盟')+'勝利、敗軍は膝をつく';
-   $('endLoserImage').style.display='none';
+   $('endWinnerImage').style.display='';$('endLoserImage').style.display='';
+   window.SharedVictory.show({overlay:$('endOverlay'),winnerElement:$('endWinnerImage'),loserElement:$('endLoserImage'),
+    winnerId:winner===0?'kondo':'saigo',loserId:winner===0?'saigo':'kondo',
+    winnerName:winner===0?'近藤勇':'西郷隆盛',loserName:winner===0?'西郷隆盛':'近藤勇'});
    $('endText').textContent='勝負あった！';
    $('endPanel').setAttribute('data-winning-side',winner===0?'shinsengumi':'saccho');
   }

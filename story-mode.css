@@ -954,7 +954,6 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
    Mirror the final override, not the obsolete card-ai-test inline fallback. */
 #storyEndOverlay{background:radial-gradient(ellipse at 50% 50%,#241d21,#090b13 76%)!important;padding:0!important;overflow:hidden}
 #storyEndPanel{width:100vw!important;max-width:none!important;max-height:100dvh!important;height:100dvh!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;position:relative;padding:0!important;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;isolation:isolate}
-#storyEndResponsiveScene{display:contents}
 #storyEndPanel .story-end-illustration#storyEndWinner{position:absolute!important;top:0!important;left:50%!important;right:auto!important;width:100vw!important;max-width:1500px!important;height:92dvh!important;max-height:none!important;object-fit:contain!important;object-position:center bottom!important;margin:0!important;z-index:0!important;filter:drop-shadow(0 5px 12px #0009)!important;animation:storyVictorySceneIn .8s cubic-bezier(.18,.86,.2,1.04) both!important}
 #storyEndLoser{display:none!important}
 #storyEndPanel #storyEndText{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;padding:0!important;margin:-1px!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;opacity:0!important}
@@ -1040,45 +1039,4 @@ body.game-effect-scroll-locked{touch-action:none}
 html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
 
 
-/* Independent chapter-specific character victory art; legacy scene remains fallback. */
-#storyEndOverlay.composite-victory #storyEndResponsiveScene{display:contents}
-#storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
-#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
- position:absolute!important;top:auto!important;bottom:12%!important;
- height:75dvh!important;max-height:75dvh!important;width:55vw!important;
- max-width:650px!important;object-fit:contain!important;
- object-position:center bottom!important;display:block!important;
- z-index:1!important;margin:0!important;
- filter:drop-shadow(0 6px 10px #0008)!important;
-}
-#storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{
- left:1%!important;right:auto!important;
- animation:storyCompositeWinner .85s cubic-bezier(.18,.85,.25,1) both!important;
-}
-#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
- right:1%!important;left:auto!important;
- animation:storyCompositeLoser 1s cubic-bezier(.18,.85,.25,1) both!important;
-}
-@keyframes storyCompositeWinner{
- from{opacity:0;transform:translateY(-80dvh)}
- to{opacity:1;transform:translateY(0)}
-}
-@keyframes storyCompositeLoser{
- from{opacity:0;transform:translateY(75dvh)}
- to{opacity:1;transform:translateY(0)}
-}
-@media(orientation:portrait){
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
-  bottom:16%!important;width:76vw!important;height:65dvh!important;
-  max-height:65dvh!important;
- }
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{left:-15%!important}
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{right:-15%!important}
-}
-@media(prefers-reduced-motion:reduce){
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
-  animation:none!important;transform:none!important;
- }
-}
+/* Winner/loser positions and animation live exclusively in shared-victory.css. */

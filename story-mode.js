@@ -1148,35 +1148,10 @@ function finish(winner,reason){
 
  // Same presentation contract as the finished game's showVictory().
  const overlay=$("storyEndOverlay");
- $("storyEndWinner").src=win?"assets/visuals/victory_shinsengumi_scene.webp":"assets/visuals/victory_saccho_scene.webp";
- $("storyEndPortraitSource").srcset=win?"assets/visuals/victory_shinsengumi_mobile.webp":"assets/visuals/victory_saccho_mobile.webp";
- // Independently illustrated, transparent character assets. Existing approved scene
- // remains the fallback until BOTH chapter-specific portraits are supplied.
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
- // All five approved king pairs were recovered from the ten image share pages
- // saved together in the project Drive. These are validated complete cutouts.
- const completeKings=["miyabe","kondo","kusaka","ito","saigo"];
- const winnerArt=completeKings.includes(winnerId)?"assets/characters/victory/"+winnerId+"_winner.webp":null;
- const loserArt=completeKings.includes(loserId)?"assets/characters/victory/"+loserId+"_loser.webp":null;
- const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
- const portraitSource=$("storyEndPortraitSource");
- const artworkToken=String(Date.now());
- overlay.dataset.artworkToken=artworkToken;
- overlay.classList.remove("composite-victory");
- loserEl.style.display="none";
- winnerEl.alt=(win?"近藤勇":ch.boss)+"の勝利";
- loserEl.alt=(win?ch.boss:"近藤勇")+"の敗北";
- // The original GitHub PNG uploads were truncated. Never reference those files.
- const verifiedPortraitsAvailable=Boolean(winnerArt&&loserArt);
- if(verifiedPortraitsAvailable)Promise.all([winnerArt,loserArt].map(url=>new Promise((resolve,reject)=>{
-  const img=new Image();img.onload=()=>resolve(url);img.onerror=reject;img.src=url;
- }))).then(()=>{
-  if(overlay.dataset.artworkToken!==artworkToken||overlay.classList.contains("hidden"))return;
-  portraitSource.removeAttribute("srcset");
-  winnerEl.src=winnerArt;loserEl.src=loserArt;loserEl.style.display="block";
-  overlay.classList.add("composite-victory");
- }).catch(()=>{/* Existing scene artwork stays visible until both assets are approved. */});
+ window.SharedVictory.show({overlay,winnerElement:$("storyEndWinner"),loserElement:$("storyEndLoser"),
+  winnerId,loserId,winnerName:win?"近藤勇":ch.boss,loserName:win?ch.boss:"近藤勇"});
  $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
