@@ -102,13 +102,24 @@
   card.querySelector('.profile').prepend(button);
   card.addEventListener('toggle',()=>{if(card.classList.contains('locked')&&card.open)card.open=false});
  });
- let filterSide='all';const search=document.getElementById('search'),buttons=Array.from(document.querySelectorAll('[data-filter]'));
+ let filterSide='all',shownLimit=24;const pageSize=24,search=document.getElementById('search'),buttons=Array.from(document.querySelectorAll('[data-filter]'));
+ const more=document.createElement('button');more.type='button';more.className='collection-show-more';more.textContent='さらに24名を表示';
+ grid.after(more);
  const normalize=value=>value.normalize('NFKC').toLocaleLowerCase('ja').replace(/\s+/g,'');
- function filter(){const query=normalize(search.value);let shown=0;for(const row of rows){const card=row.element;const visible=(filterSide==='all'||row.side===filterSide)&&normalize(card.dataset.search).includes(query);card.hidden=!visible;if(visible)shown++}document.getElementById('count').textContent=shown+'名を表示 ／ 全104名';document.getElementById('empty').hidden=shown>0}
+ function filter(){
+  const query=normalize(search.value),matches=rows.filter(row=>(filterSide==='all'||row.side===filterSide)&&normalize(row.element.dataset.search).includes(query));
+  const visible=new Set(matches.slice(0,query?matches.length:shownLimit));
+  for(const row of rows)row.element.hidden=!visible.has(row);
+  document.getElementById('count').textContent=visible.size+'名を表示 ／ 該当'+matches.length+'名 ／ 全104名';
+  document.getElementById('empty').hidden=matches.length>0;
+  more.hidden=!!query||matches.length<=shownLimit;
+  if(!more.hidden)more.textContent='さらに'+Math.min(pageSize,matches.length-shownLimit)+'名を表示';
+ }
  function refresh(){const found=owned();for(const row of rows){const card=row.element,unlocked=found.has(row.name);card.classList.toggle('unlocked',unlocked);card.classList.toggle('locked',!unlocked);card.querySelector('summary h3').textContent=unlocked?row.name:'未収録';const portrait=card.querySelector('.portrait'),img=portrait.querySelector('img');if(!unlocked){card.open=false;img.hidden=true;portrait.dataset.locked='？'}else{img.hidden=false;delete portrait.dataset.locked}}const total=rows.filter(row=>found.has(row.name)).length;document.getElementById('collectionTotal').textContent=total+' / '+rows.length;document.getElementById('collectionFill').style.width=total/rows.length*100+'%';document.getElementById('collectionStatus').textContent=total===rows.length?'全人物を収集しました！':total===0?'まだ人物を収集していません。対局で駒を取りましょう。':(rows.length-total)+'名が未収録です。';filter()}
  const sides={0:rows.filter(x=>x.side==='0').length,1:rows.filter(x=>x.side==='1').length};
- for(const button of buttons){if(button.dataset.filter==='0')button.textContent='新選組・会津 '+sides[0]+'名';if(button.dataset.filter==='1')button.textContent='その他の人物 '+sides[1]+'名';button.onclick=()=>{filterSide=button.dataset.filter;for(const item of buttons)item.setAttribute('aria-pressed',String(item===button));filter()}}
- search.oninput=filter;
+ for(const button of buttons){if(button.dataset.filter==='0')button.textContent='新選組・会津 '+sides[0]+'名';if(button.dataset.filter==='1')button.textContent='その他の人物 '+sides[1]+'名';button.onclick=()=>{filterSide=button.dataset.filter;shownLimit=pageSize;for(const item of buttons)item.setAttribute('aria-pressed',String(item===button));filter()}}
+ more.onclick=()=>{shownLimit+=pageSize;filter()};
+ search.oninput=()=>{shownLimit=pageSize;filter()};
  document.getElementById('resetCollection').onclick=()=>{
   if(!confirm('人物カードの収集記録を消去しますか？ 対局のセーブデータとストーリー進行記録は残り、章クリア特典のカードは再表示されます。'))return;
   for(const key of keys)try{localStorage.removeItem(key)}catch{}
