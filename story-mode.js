@@ -1272,10 +1272,15 @@ function computer(){
    if(shot){
     g.oilItoGunUsed=true;
     const game=epoch;busy=true;compactTurnLocked=true;selected=null;render();
-    storyBannerMessage("伊東甲子太郎、鉄砲で応戦！",1);
+    storyBannerMessage("伊東甲子太郎「鉄砲！」",1);
     (async()=>{
+     const active=()=>game===epoch&&!ended;
      try{
-      const active=()=>game===epoch&&!ended;
+      // Name the weapon before its small projectile appears on the board.
+      await new Promise(resolve=>playBattleShout(kabukiVoice.rifle,resolve));
+      if(!active())return;
+      await later(180);
+      if(!active())return;
       await window.StoryWeapons.fire(g,"rifle",active,kind=>{
        if(kind==="rifle"){
         window.StoryBgm?.duck();
