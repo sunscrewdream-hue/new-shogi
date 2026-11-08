@@ -704,6 +704,14 @@ function popup(title,text,options,img){
 }
 function collect(p){
  if(devPreview||debugModified||!p)return;
+ if(Number.isInteger(p.kinmonId)){
+  // Preserve the original 40-person collection indexes; provisional Kinmon cards
+  // live in their own namespace until portrait art and the unified gallery ship.
+  const id=p.kinmonId,profile=D.kinmonRoster?.[id];if(!profile)return;
+  try{const key="shinsengumi-story-kinmon-cards-v1";const owned=JSON.parse(localStorage.getItem(key)||"[]");
+   if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(key,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+profile.name,0)}
+  }catch(e){}return;
+ }
  if(p.featuredId){
   const ids={ishikawa:40,yoshida:41,kitazoe:42,mochizuki:43,matsuda:44,otaka:45,hirooka:46,sugiyama:47,fukuoka:48};
   const id=ids[p.featuredId];if(id==null)return;
@@ -717,6 +725,10 @@ function collect(p){
 }
 function person(p){
  if(!p)return{name:"",role:"",img:""};
+ if(Number.isInteger(p.kinmonId)){
+  const record=D.kinmonRoster?.[p.kinmonId];
+  if(record)return{name:record.name,role:record.role,img:record.art};
+ }
  const king=p.king;
  if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/dialogue_banners/miyabe_banner.webp?v=miyabe-framing-20261107b"};
  if(p.featuredId){
