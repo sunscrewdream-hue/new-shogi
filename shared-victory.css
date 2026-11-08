@@ -43,7 +43,7 @@
 /* Compact theatrical lettering: both faces remain fully visible. */
 @media(orientation:portrait){
  #endOverlay.composite-victory #endVictoryGraphic,
- #storyEndOverlay.composite-victory #storyEndVictoryGraphic{left:8%!important;top:17%!important;width:35vw!important;max-height:23dvh!important}
+ #storyEndOverlay.composite-victory #storyEndVictoryGraphic{left:8%!important;top:28%!important;width:35vw!important;max-height:23dvh!important}
  #endOverlay.composite-victory #endDefeatGraphic,
  #storyEndOverlay.composite-victory #storyEndDefeatGraphic{right:3%!important;top:47%!important;width:32vw!important;max-height:20dvh!important}
  #endOverlay.composite-victory #endVerdictGraphic,
