@@ -94,6 +94,17 @@ class StoryEngine{
   }else{
    for(let x=0;x<9;x++){B[0][x]=make(BACK[x],1);B[2][x]=make("歩",1);B[6][x]=make("歩",0);B[8][x]=make(BACK[x],0)}
    B[1][1]=make("飛",1);B[1][7]=make("角",1);B[7][1]=make("角",0);B[7][7]=make("飛",0);
+   if(this.stage===3){
+    // Match the twenty Toba-Fushimi enemy pieces to named field commanders.
+    const enemies=[];
+    for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)if(B[y][x]?.s===1)enemies.push(B[y][x]);
+    const leader=enemies.find(p=>p.t==="玉");
+    if(enemies.length!==20||!leader)throw Error("Invalid Toba-Fushimi roster setup");
+    leader.tobaId=0;
+    let next=1;
+    for(const piece of enemies)if(piece!==leader)piece.tobaId=next++;
+    if(next!==20)throw Error("Incomplete Toba-Fushimi roster");
+   }
    if(this.stage===1){
     // Each of the 20 opposing pieces has one distinct historically attested identity.
     // Keep person identities independent from legacy cid indexes and temporary art.
