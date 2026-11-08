@@ -714,26 +714,16 @@ function restoreStoryHover(){
  $(prefix+"StoryName").textContent=saved.name;$(prefix+"StoryRole").textContent=saved.role;
  const art=$(prefix+"StoryArt");if(saved.src)art.src=saved.src;
 }
-function storyCellFromPointer(event){
- const root=$("storyBoard"),cell=event.target.closest?.(".sq");
- if(!cell||!root.contains(cell)||!g)return null;
- const i=Array.prototype.indexOf.call(root.children,cell),y=Math.floor(i/g.w),x=i%g.w;
- return {cell,y,x,p:g.board[y]?.[x]};
-}
-$("storyBoard").addEventListener("pointerover",event=>{
- if(event.pointerType!=="mouse")return;
- if(!canPreviewStoryHover()){restoreStoryHover();return}
- const unit=storyCellFromPointer(event);
- if(unit?.p)previewStoryUnit(unit.p);else restoreStoryHover();
+const storyPieceHover=window.ShinsengumiPieceHover.bind({
+ root:$("storyBoard"),
+ getPiece:index=>g?.board[Math.floor(index/g.w)]?.[index%g.w],
+ canPreview:canPreviewStoryHover,
+ onPreview:previewStoryUnit,
+ onClear:restoreStoryHover
 });
-$("storyBoard").addEventListener("pointerout",event=>{
- if(event.pointerType!=="mouse")return;
- const unit=storyCellFromPointer(event);
- if(unit&&!unit.cell.contains(event.relatedTarget))restoreStoryHover();
-});
-$("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
+ storyPieceHover.reset();
  stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};restoreStoryHover();window.StoryBgm?.stop();
@@ -894,7 +884,7 @@ function battle(i){
  }
 }
 function render(){
- restoreStoryHover();
+ storyPieceHover.reset();
  if(!g||$("storyBattle").classList.contains("hidden"))return;
  const root=$("storyBoard");
  const inputLocked=!canPreviewStoryHover();
