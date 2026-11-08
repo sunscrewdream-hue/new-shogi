@@ -87,7 +87,7 @@ function playCasualtyCry(){return new Promise(resolve=>{
  // Dedicated 「ぎゃあ！」 from the user's three-line 2026-11-05 recording.
  // Hold the sequence until this shout actually finishes.
  let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
- playStoryClip("assets/audio/story/master_battle_gyah_v1.mp3","voice",done);
+ playBattleShout("assets/audio/story/master_battle_gyah_v1.mp3",done);
  setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
@@ -1079,7 +1079,7 @@ async function oilAmbushReveal(){
   if(game!==epoch||ended){layer.replaceChildren();return}
   if(casualties.has(i)){
    cell.classList.add("compact-blood");
-   await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};compactSound("kill",finish);setTimeout(finish,1700)});
+   await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};playGestureAudio("assets/audio/sfx/purge_shukusei.mp3",finish,"fx",2);setTimeout(finish,1700)});
    if(game!==epoch||ended){layer.replaceChildren();return}
    await playCasualtyCry();
    if(game!==epoch||ended){layer.replaceChildren();return}
