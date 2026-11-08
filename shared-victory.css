@@ -53,11 +53,11 @@
 /* Figure entrances finish first. The opposing verdict marks then cross paths. */
 #endOverlay.composite-victory #endVictoryGraphic,
 #storyEndOverlay.composite-victory #storyEndVictoryGraphic{
- animation:sharedVictoryWordFromRight .9s cubic-bezier(.2,.78,.19,1) 1.2s both!important;
+ animation:sharedVictoryWordFromRight 1.15s cubic-bezier(.2,.78,.19,1) 1.2s both!important;
 }
 #endOverlay.composite-victory #endDefeatGraphic,
 #storyEndOverlay.composite-victory #storyEndDefeatGraphic{
- animation:sharedVictoryWordFromLeft .9s cubic-bezier(.2,.78,.19,1) 1.3s both!important;
+ animation:sharedVictoryWordFromLeft 1.15s cubic-bezier(.2,.78,.19,1) 1.3s both!important;
 }
 #endOverlay.composite-victory #endVerdictGraphic,
 #storyEndOverlay.composite-victory #storyEndVerdictGraphic{

@@ -24,7 +24,7 @@
    // Trigger at the first visible overlap, accounting for the eased entrance.
    if(typeof onCross==='function')setTimeout(()=>{
     if(overlay.dataset.victorySequence===token&&overlay.classList.contains('composite-victory')&&getComputedStyle(overlay).display!=='none')onCross();
-   },1480);
+   },1440);
    return true;
   }).catch(error=>{
    if(overlay.dataset.victorySequence===token)overlay.classList.add('victory-image-error');
