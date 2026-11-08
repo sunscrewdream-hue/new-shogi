@@ -1275,15 +1275,22 @@ function computer(){
     storyBannerMessage("伊東甲子太郎、鉄砲で応戦！",1);
     (async()=>{
      try{
-      await window.StoryWeapons.fire(g,"rifle",()=>game===epoch&&!ended,sfx,async(result,hit)=>{
-       if(game!==epoch||!hit)return;
+      const active=()=>game===epoch&&!ended;
+      await window.StoryWeapons.fire(g,"rifle",active,kind=>{
+       if(kind==="rifle"){
+        window.StoryBgm?.duck();
+        playGestureAudio("assets/audio/story/master_rifle.mp3",null,"fx",2.5,active);
+       }else sfx(kind);
+      },async(result,hit)=>{
+       if(!active()||!hit)return;
        const mark=result.y+":"+result.x;compactBloodMarks.push(mark);render();
-       await playBloodImpact();
-       if(game!==epoch)return;
        await playCasualtyCry();
        compactBloodMarks=compactBloodMarks.filter(v=>v!==mark);
-       if(game===epoch)render();
-      },1,shot);
+       if(active())render();
+      },1,shot,()=>new Promise(resolve=>{
+       // The projectile lands: purge slash first, then the casualty cries.
+       playGestureAudio("assets/audio/sfx/purge_shukusei.mp3",resolve,"fx",2.5,active);
+      }));
      }catch(error){console.error("伊東の鉄砲演出",error)}
      if(game!==epoch||ended)return;
      g.side=0;g.ply++;g.last=null;

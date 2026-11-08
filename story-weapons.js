@@ -39,7 +39,7 @@ async function impact(g,y,x,kind,isActive){
   if(shake){board()?.classList.remove("compact-quake");document.body.classList.remove("story-quake-active")}
  }
 }
-async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1,forcedShot=null){
+async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1,forcedShot=null,onContact=null){
  const root=board();if(!root)return null;
  const shots=[],used=new Set(),count=kind==="cannon"?2:1;
  for(let index=1;index<=count;index++){
@@ -59,7 +59,12 @@ async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1,forcedShot=null
   await wait(1250);if(!visible(isActive)){clear();return null}
   onSound?.(kind);await projectile(g,kind,shot,isActive);
   if(!visible(isActive)){clear();return null}
-  if(shot.y>=0){if(kind==="cannon")onSound?.("blast");await impact(g,shot.y,shot.x,kind,isActive)}
+  if(shot.y>=0){
+   if(kind==="cannon")onSound?.("blast");
+   const contactCue=onContact?Promise.resolve(onContact(shot)):Promise.resolve();
+   await impact(g,shot.y,shot.x,kind,isActive);
+   await contactCue;
+  }
   clear();if(!visible(isActive))return null;
   const hit=shot.y>=0?g.destroy(shot.y,shot.x):null;
   const outcome={hit,x:shot.x,y:shot.y,kind,index};shots.push(outcome);
