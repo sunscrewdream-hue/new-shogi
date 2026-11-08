@@ -858,12 +858,27 @@ function line(){
  $("dialogueNext").classList.toggle("story-sortie-button",sortie);
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
-function battle(i){
+function battle(i,oilFormation=null){
+ // Oil-koji formation choice happens before the battle and its opening animation.
+ // Only swap the friendly rook with one front-rank pawn; all other pieces stay fixed.
+ if(i===2&&oilFormation===null){
+  popup("油小路・布陣を選ぶ",
+   "王将は中央固定。駒の数と動きは変わりません。\n飛車と歩を入れ替え、左・中央・右の三陣形から選びます。",
+   [["左翼の布陣",()=>battle(i,1)],["中央の布陣（標準）",()=>battle(i,2)],["右翼の布陣",()=>battle(i,3)]]);
+  return;
+ }
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};reinforcementSerial=0;
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
+ if(i===2&&[1,3].includes(oilFormation)){
+  const front=g.board[4];
+  [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
+  // Revert on any future rule change that makes this starting setup invalid.
+  if(g.check(g.board,0)||g.check(g.board,1)||!g.legal(0).length||!g.legal(1).length)
+   [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
+ }
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
