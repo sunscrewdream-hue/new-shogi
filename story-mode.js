@@ -1149,12 +1149,13 @@ function makeMove(m,prom){
   justAwakened=capturePlan.awakened;
  }
  const gaveCheck=g.check(g.board,1-actor);
+ const delayedCheck=compactClosingHoles.length>0&&gaveCheck;
  const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck});
  if(captured){
   if(!willKill){
    for(const cue of moveCues){if(cue==="capture"){
     if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
-   }else announce("check")}
+   }else if(!delayedCheck)announce("check")}
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
@@ -1166,7 +1167,7 @@ function makeMove(m,prom){
   const nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
-  if(moveCues.includes("check"))announce("check");
+  if(moveCues.includes("check")&&!delayedCheck)announce("check");
   else if(dedicated)announce(dedicated);
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
@@ -1187,6 +1188,12 @@ function makeMove(m,prom){
    }
    if(!oilFirstActVictory)await compactFadeExpiredHoles(id);
    if(id!==epoch||ended)return;
+   if(delayedCheck){
+    render();
+    storyBannerMessage("王手！",actor);
+    await new Promise(resolve=>compactSound("check",resolve));
+    if(id!==epoch||ended)return;
+   }
    compactArrival=null;
    if(oilFirstActVictory){
     // An explicit final blow before the ambush replaces the routine victory.

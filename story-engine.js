@@ -178,7 +178,7 @@ class StoryEngine{
    if(this.board[y][x]||this.isHole(y,x)||kingEscape.has(y+":"+x))continue;
    const distance=Math.max(Math.abs(y-king.y),Math.abs(x-king.x));
    if(distance>2||distance===0)continue;
-   const hole={y,x,expiresPly:this.ply+3};this.holes.push(hole);
+   const hole={y,x,expiresPly:this.ply+6};this.holes.push(hole);
    const own=this.legal(1).length,opponent=this.legal(0);
    const block=oldThreat-opponent.filter(threat).length;
    const safe=own>0&&!this.check(this.board,1);
