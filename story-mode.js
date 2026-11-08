@@ -1009,6 +1009,24 @@ function square(y,x){
 }
 async function oilAmbushReveal(){
  const game=epoch,board=$("storyBoard");
+ let completed=false;
+ const complete=()=>{
+  if(completed||game!==epoch||ended)return;
+  completed=true;clearTimeout(recovery);
+  oilAmbushAnimating=false;compactTurnLocked=false;busy=false;selected=null;g.side=0;
+  $("storyPopup").classList.add("hidden");
+  $("compactTurnNotice").classList.remove("show");
+  $("compactAwakenNotice").classList.remove("show");
+  $("compactActionLayer").replaceChildren();
+  window.StoryBgm?.unlock();window.StoryBgm?.restart?.("battle01");
+  render();
+  // The check ray and warning belong to the completed formation, not arrivals.
+  if(g.check(g.board,0))compactSound("check");
+ };
+ const recovery=setTimeout(()=>{if(game===epoch&&!completed){
+  console.warn("油小路援軍イベントの操作ロックを復旧");
+  complete();
+ }},75000);
  // Even a pit that expired on the fatal move closes AFTER the slash.
  if(g.holes.length||compactClosingHoles.length){
   busy=true;compactTurnLocked=true;
@@ -1023,7 +1041,7 @@ async function oilAmbushReveal(){
  oilAmbushAnimating=true;
  const event=g.triggerOilAmbush();
  if(event){g.ply=0;compactCaptures={};}
- if(!event){oilAmbushAnimating=false;busy=false;render();popup("布陣を整えられません","近藤勇の退路が確保できません。再挑戦してください。",[["再挑戦",()=>battle(2)]]);return}
+ if(!event){completed=true;clearTimeout(recovery);oilAmbushAnimating=false;compactTurnLocked=false;busy=false;render();popup("布陣を整えられません","近藤勇の退路が確保できません。再挑戦してください。",[["再挑戦",()=>battle(2)]]);return}
  busy=true;compactTurnLocked=true;selected=null;render();
  const casualties=new Set(event.casualties.map(p=>p.y*g.w+p.x));
  const arrivals=[];
@@ -1111,10 +1129,7 @@ async function oilAmbushReveal(){
   modal.addEventListener("click",finish);
  });
  if(game!==epoch||ended)return;
- $("storyPopup").classList.add("hidden");
- // Restore the chapter soundtrack after the long voice/footstep sequence.
- window.StoryBgm?.unlock();window.StoryBgm?.restart?.("battle01");
- busy=false;compactTurnLocked=false;g.side=0;render();
+ complete();
 }
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
