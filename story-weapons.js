@@ -6,7 +6,7 @@ const cell=(g,y,x)=>board()?.children[y*g.w+x];
 const visible=cb=>typeof cb!=="function"||cb();
 async function projectile(g,kind,shot,isActive){
  const x=shot.x,y=shot.y,fromY=shot.fromY??0;
- const root=board(),from=cell(g,fromY,x),to=cell(g,y<0?(shot.side===0?0:g.h-1):y,x);
+ const root=board(),from=cell(g,fromY,shot.fromX??x),to=cell(g,y<0?(shot.side===0?0:g.h-1):y,x);
  if(!root||!from||!to||!visible(isActive))return;
  // Pure CSS projectile: no opaque black rectangular backing from legacy bitmaps.
  const flying=document.createElement("span");
@@ -39,12 +39,12 @@ async function impact(g,y,x,kind,isActive){
   if(shake){board()?.classList.remove("compact-quake");document.body.classList.remove("story-quake-active")}
  }
 }
-async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1){
+async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1,forcedShot=null){
  const root=board();if(!root)return null;
  const shots=[],used=new Set(),count=kind==="cannon"?2:1;
  for(let index=1;index<=count;index++){
   if(!visible(isActive))return null;
-  let shot=g.fire(kind,ownerSide),attempts=0;
+  let shot=forcedShot&&kind==="rifle"?forcedShot:g.fire(kind,ownerSide),attempts=0;
   while(kind==="cannon"&&used.has(shot.y+":"+shot.x)&&attempts++<100)shot=g.fire(kind,ownerSide);
   if(kind==="cannon"&&used.has(shot.y+":"+shot.x)){
    const free=[];for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if((ownerSide===1?y>=g.h-Math.floor(g.h/2):y<Math.floor(g.h/2))&&!used.has(y+":"+x))free.push({y,x});
@@ -53,6 +53,7 @@ async function fire(g,kind,isActive,onSound,onImpact,ownerSide=1){
   used.add(shot.y+":"+shot.x);
   const warnings=[];
   if(kind==="cannon"){const c=cell(g,shot.y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
+  else if(forcedShot){for(const pos of [[shot.fromY,shot.fromX??shot.x],[shot.y,shot.x]]){const c=cell(g,pos[0],pos[1]);if(c){c.classList.add("warn");warnings.push(c)}}}
   else for(let y=shot.fromY;y>=0&&y<g.h;y+=ownerSide===1?1:-1){const c=cell(g,y,shot.x);if(c){c.classList.add("warn");warnings.push(c)}}
   const clear=()=>warnings.forEach(c=>c.classList.remove("warn"));
   await wait(1250);if(!visible(isActive)){clear();return null}

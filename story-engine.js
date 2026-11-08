@@ -11,7 +11,7 @@ class StoryEngine{
   this.oilEnemyReserve=this.board.slice(0,2).map(row=>row.map(p=>p?{...p}:null));
   for(let y=0;y<2;y++)this.board[y].fill(null);
   this.board[1][0]={...this.oilEnemyReserve[0][2],king:"ito"};
-  this.oilPhase=1;this.oilVisitCounts=new Map([["1:0",1]]);
+  this.oilPhase=1;this.oilItoGunUsed=false;this.oilVisitCounts=new Map([["1:0",1]]);
  }
  triggerOilAmbush(){
   if(this.stage!==2||this.oilPhase!==1||!this.oilEnemyReserve)return null;
@@ -161,34 +161,22 @@ class StoryEngine{
   }
   return score;
  }
- oilItoDig(){
-  // Oil-koji first act only. One pit may exist at a time.
-  if(this.stage!==2||this.oilPhase!==1||this.side!==1||this.holes.length)return null;
-  let king=null;
-  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)if(this.board[y][x]?.king==="ito")king={y,x};
-  if(!king)return null;
-  const escapes=this.legal(1);
-  if(escapes.length>3&&!this.check(this.board,1))return null;
-  const kingEscape=new Set(escapes.map(m=>m.Y+":"+m.X));
-  const humanMoves=this.legal(0);
-  const threat=m=>Math.max(Math.abs(m.Y-king.y),Math.abs(m.X-king.x))<=2;
-  const oldThreat=humanMoves.filter(threat).length;
-  let best=null,bestScore=0;
+ oilItoGunTarget(){
+  if(this.stage!==2||this.oilPhase!==1||this.oilItoGunUsed)return null;
+  let ito=null;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)
+   if(this.board[y][x]?.king==="ito")ito={y,x};
+  if(!ito)return null;
+  let best=null,score=-Infinity;
   for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
-   if(this.board[y][x]||this.isHole(y,x)||kingEscape.has(y+":"+x))continue;
-   const distance=Math.max(Math.abs(y-king.y),Math.abs(x-king.x));
-   if(distance>2||distance===0)continue;
-   const hole={y,x,expiresPly:this.ply+6};this.holes.push(hole);
-   const own=this.legal(1).length,opponent=this.legal(0);
-   const block=oldThreat-opponent.filter(threat).length;
-   const safe=own>0&&!this.check(this.board,1);
-   this.holes.pop();
-   if(!safe)continue;
-   // A pit should block a real approach, not merely decorate an empty square.
-   const score=block*8+(humanMoves.some(m=>m.Y===y&&m.X===x)?4:0)-Math.max(0,escapes.length-own)*9-distance;
-   if(score>bestScore){bestScore=score;best=hole}
+   const victim=this.board[y][x];if(victim?.s!==0||victim.t==="玉")continue;
+   this.board[y][x]=null;
+   const exits=this.legal(1).length,stillChecked=this.check(this.board,1);
+   this.board[y][x]=victim;
+   const distance=Math.max(Math.abs(ito.y-y),Math.abs(ito.x-x));
+   const value=exits*50-(stillChecked?80:0)-distance*3;
+   if(value>score){score=value;best={x,y,fromX:ito.x,fromY:ito.y,side:1,hit:victim}}
   }
-  if(best)this.holes.push(best);
   return best;
  }
  oilItoAi(ms){

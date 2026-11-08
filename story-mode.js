@@ -1412,7 +1412,7 @@ function storySaveMatch(){
  if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
  try{
   const snapshot={version:1,stage,at:Date.now(),engine:{
-   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve
+   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed
   },enemyTurns,playerTurns,weapons,debugModified};
   localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
   alert("この章の対局を保存しました。");
@@ -1435,6 +1435,8 @@ function storyLoadMatch(){
  g.board=state.board;g.hands=state.hands;g.fallen=Array.isArray(state.fallen)?state.fallen:[[],[]];
  g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
  g.oilPhase=state.oilPhase??(data.stage===2?2:null);g.oilEnemyReserve=state.oilEnemyReserve||null;
+ g.oilItoGunUsed=!!state.oilItoGunUsed;
+ if(data.stage===2&&g.oilPhase===1)g.holes=[]; // Legacy pit saves use the new rifle rule.
  enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
  weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
  // Invalidate timers started by the chapter opening before restoring play.
