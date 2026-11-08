@@ -1,17 +1,27 @@
 # 新選組将棋 / Shinsengumi Shogi
 
-GitHub Pages で公開するブラウザ将棋ゲームです。**正式な通常対局は `card-ai-test.html`**、歴史章の対局は `story-mode.html` です。`index.html` は公開入口の転送用として維持してください。
+静的HTML・CSS・JavaScriptで動作するブラウザゲームの公開用パッケージです。このブランチは制作・テスト資料を除いた配布候補版です。
 
-- [通常対局](https://sunscrewdream-hue.github.io/new-shogi/card-ai-test.html)
-- [ストーリーモード](https://sunscrewdream-hue.github.io/new-shogi/story-mode.html)
-- [構成・変更時の注意事項](docs/REPOSITORY_MAP.md)
+## 起動
 
-## 開発上の重要事項
+index.html をWebサーバーの公開ディレクトリ直下に配置してください。ルートは通常対局に転送します。
 
-1. 完成済み9×9通常対局のルール・素材・演出を基準とし、作り直さない。
-2. ストーリーの5×6（池田屋・油小路）は既存機能を再利用する。事件札の導入は保留中。
-3. 現状のストーリー側は独立エンジンを持つため、通常対局と完全には共通化されていない。統合済みと誤認しない。
-4. GitHub Pages の URL、HTML の相対パス、JS/CSS 内の画像・音声参照を確認せずにファイルを移動・改名・削除しない。
-5. `assets/story/audio/*.part` はストーリーBGMの実データであり、不要ファイルではない。
+- 通常対局：card-ai-test.html（現行正式版。既存URLとの互換性維持のため当面この名前を使用）
+- ストーリーモード：story-mode.html
+- 人物図鑑：collection.html
+- 説明：manual.html、manual-en.html、rules.html、history.html
 
-変更後は通常対局と全ストーリー章をPC・スマホで確認してください。過去の仕様や作業状況はGoogleドライブの「新撰組将棋｜企画・決定事項」「新撰組将棋｜開発・修正履歴」を参照してください。
+ビルド処理やデータベースは不要です。HTTPS対応の静的Webサーバーに、このブランチのファイル階層をそのまま配置できます。相対パスを維持するため、階層ごとコピーしてください。
+
+## 配置構成
+
+- ルート直下のHTML：ページ入口
+- ルート直下のJS/CSS：ゲーム処理・表示
+- assets/：画像、音声、盤面、カード、演出素材
+- manifest.webmanifest：Webアプリ設定
+
+## 変更・検証のルール
+
+制作原本・過去版・テストコードはGoogleドライブおよび開発用の main で管理します。商品版への反映前に、通常対局9×9とストーリー全章、画像・音声、スマートフォン表示を検証してください。
+
+このブランチをGitHub Pagesで直接公開するには別途Pagesの公開元設定が必要です。現在の main の公開URLは変更していません。
