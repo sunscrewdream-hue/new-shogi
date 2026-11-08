@@ -1206,7 +1206,16 @@ function computer(){
    const game=epoch;
    busy=true;compactTurnLocked=true;render();
    storyBannerMessage("伊東甲子太郎「無念！」 指す手なし、パス",1);
-   playBattleShout("assets/audio/voice_loss_munen.mp3",()=>{if(game!==epoch||ended)return;g.side=0;g.ply++;compactResumeTurn()});
+   // Make Ito visibly waver as he says 「無念」, then pass his turn.
+   const itoIndex=g.board.flat().findIndex(p=>p?.king==="ito");
+   const itoToken=$("storyBoard").children[itoIndex]?.querySelector(".story-token");
+   const blink=itoToken?.animate?.([
+    {opacity:1,offset:0},{opacity:.12,offset:.16},{opacity:1,offset:.32},
+    {opacity:.12,offset:.49},{opacity:1,offset:.65},{opacity:.12,offset:.82},{opacity:1,offset:1}
+   ],{duration:1500,easing:"ease-in-out"});
+   const blinkDone=blink?Promise.race([blink.finished.catch(()=>{}),later(1800)]):later(1500);
+   const voiceDone=new Promise(resolve=>playBattleShout("assets/audio/voice_loss_munen.mp3",resolve));
+   Promise.all([voiceDone,blinkDone]).then(()=>{if(game!==epoch||ended)return;g.side=0;g.ply++;compactResumeTurn()});
    return;
   }
   finish(0,"敵軍に指す手なし");return;
