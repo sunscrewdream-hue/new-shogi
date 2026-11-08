@@ -11,7 +11,7 @@ class StoryEngine{
   this.oilEnemyReserve=this.board.slice(0,2).map(row=>row.map(p=>p?{...p}:null));
   for(let y=0;y<2;y++)this.board[y].fill(null);
   this.board[1][0]={...this.oilEnemyReserve[0][2],king:"ito"};
-  this.oilPhase=1;this.oilItoGunUsed=false;this.oilVisitCounts=new Map([["1:0",1]]);
+  this.oilPhase=1;this.oilItoGunUsed=false;this.oilDigCount=0;this.oilVisitCounts=new Map([["1:0",1]]);
  }
  triggerOilAmbush(){
   if(this.stage!==2||this.oilPhase!==1||!this.oilEnemyReserve)return null;
@@ -163,7 +163,7 @@ class StoryEngine{
  }
  oilItoDig(){
   // Oil-koji first act only. One pit may exist at a time.
-  if(this.stage!==2||this.oilPhase!==1||this.side!==1||this.holes.length)return null;
+  if(this.stage!==2||this.oilPhase!==1||this.side!==1||this.holes.length||(this.oilDigCount||0)>=3)return null;
   let king=null;
   for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)if(this.board[y][x]?.king==="ito")king={y,x};
   if(!king)return null;
@@ -188,7 +188,7 @@ class StoryEngine{
    const score=block*8+(humanMoves.some(m=>m.Y===y&&m.X===x)?4:0)-Math.max(0,escapes.length-own)*9-distance;
    if(score>bestScore){bestScore=score;best=hole}
   }
-  if(best)this.holes.push(best);
+  if(best){this.holes.push(best);this.oilDigCount=(this.oilDigCount||0)+1}
   return best;
  }
  oilItoGunTarget(){

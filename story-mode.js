@@ -1277,9 +1277,9 @@ function computer(){
      const active=()=>game===epoch&&!ended;
      try{
       // Name the weapon before its small projectile appears on the board.
-      await new Promise(resolve=>playBattleShout(kabukiVoice.rifle,resolve));
+      await new Promise(resolve=>playGestureAudio(kabukiVoice.rifle,resolve,"voice",3.5,active));
       if(!active())return;
-      await later(180);
+      await later(350);
       if(!active())return;
       await window.StoryWeapons.fire(g,"rifle",active,kind=>{
        if(kind==="rifle"){
@@ -1450,7 +1450,7 @@ function storySaveMatch(){
  if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
  try{
   const snapshot={version:1,stage,at:Date.now(),engine:{
-   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed
+   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed,oilDigCount:g.oilDigCount
   },enemyTurns,playerTurns,weapons,debugModified};
   localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
   alert("この章の対局を保存しました。");
@@ -1474,6 +1474,7 @@ function storyLoadMatch(){
  g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
  g.oilPhase=state.oilPhase??(data.stage===2?2:null);g.oilEnemyReserve=state.oilEnemyReserve||null;
  g.oilItoGunUsed=!!state.oilItoGunUsed;
+ g.oilDigCount=Math.max(0,Math.min(3,Number(state.oilDigCount)||0));
  enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
  weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
  // Invalidate timers started by the chapter opening before restoring play.
