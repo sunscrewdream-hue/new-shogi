@@ -1060,8 +1060,11 @@ function makeMove(m,prom){
   else if(dedicated)announce(dedicated);
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
- if(unit)banner(actor,unit);selected=null;render();const result=g.state();
- const oilFirstActVictory=stage===2&&g.oilPhase===1&&result?.winner===0;
+ if(unit)banner(actor,unit);selected=null;render();
+ const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
+ // Being cornered without legal moves is not Ito's death.
+ const rawResult=g.state();
+ const result=stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0?null:rawResult;
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
@@ -1114,7 +1117,13 @@ function makeMove(m,prom){
 function computer(){
  if(ended||!g||g.side!==1)return;
  const move=g.ai();busy=false;
- if(!move){if(stage===2&&g.oilPhase===1)oilAmbushReveal();else finish(0,"敵軍に指す手なし");return}
+ if(!move){
+  if(stage===2&&g.oilPhase===1&&g.king(1)){
+   // Ito is cornered, but remains alive. Pass his turn until he is captured.
+   g.side=0;g.ply++;busy=false;compactResumeTurn();return;
+  }
+  finish(0,"敵軍に指す手なし");return;
+ }
  const p=move.drop?null:g.board[move.y][move.x],prom=!!p&&g.promoted(p,move.y,move.Y);
  if(p)banner(1,p);
  makeMove(move,prom);
@@ -1253,6 +1262,12 @@ function storyLoadMatch(){
  if(!data||data.version!==1||!Number.isInteger(data.stage)||data.stage<0||data.stage>=D.chapters.length||!data.engine){alert("読み込める対局データがありません。");return}
  const cfg=D.chapters[data.stage],state=data.engine;
  if(!Array.isArray(state.board)||state.board.length!==cfg.h||!state.board.every(row=>Array.isArray(row)&&row.length===cfg.w)||!Array.isArray(state.hands)||state.hands.length!==2||![0,1].includes(state.side)){alert("保存データの形式が正しくありません。");return}
+ if(data.stage===2){
+  const enemies=state.board.flat().filter(p=>p?.s===1);
+  if(enemies.filter(p=>p.t==="玉").length!==1||(state.oilPhase===1&&enemies.length!==1)){
+   alert("旧版の油小路対局データには駒の重複があります。章選択から再開始してください。");return;
+  }
+ }
  if(g&&!ended&&!confirm("現在の対局を中断し、保存した対局に戻りますか？"))return;
  battle(data.stage,2);
  g.board=state.board;g.hands=state.hands;g.fallen=Array.isArray(state.fallen)?state.fallen:[[],[]];

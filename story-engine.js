@@ -15,6 +15,8 @@ class StoryEngine{
  }
  triggerOilAmbush(){
   if(this.stage!==2||this.oilPhase!==1||!this.oilEnemyReserve)return null;
+  // The ambush must never start while Ito is still on the board.
+  if(this.king(1))return null;
   const enemy=this.oilEnemyReserve.map(row=>row.map(p=>p?{...p}:null));
   enemy[0][2]={...enemy[0][1],t:"玉",king:"todo",p:false};
   enemy[0][1]={...enemy[0][3],uid:"1:銀:ambush",mob:1};
