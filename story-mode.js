@@ -784,6 +784,12 @@ function popup(title,text,options,img){
 }
 function collect(p){
  if(devPreview||debugModified||!p)return;
+ if(Number.isInteger(p.tobaAllyId)){
+  const profile=D.tobaAllies?.[p.tobaAllyId];if(!profile)return;
+  try{const key="shinsengumi-story-toba-aizu-cards-v1",owned=JSON.parse(localStorage.getItem(key)||"[]");
+   if(Array.isArray(owned)&&!owned.includes(p.tobaAllyId)){owned.push(p.tobaAllyId);localStorage.setItem(key,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+profile.name,0)}
+  }catch(e){}return;
+ }
  if(Number.isInteger(p.tobaId)){
   const profile=D.tobaRoster?.[p.tobaId];if(!profile)return;
   try{const key="shinsengumi-story-toba-historical-cards-v1",owned=JSON.parse(localStorage.getItem(key)||"[]");
@@ -825,6 +831,9 @@ function collect(p){
 }
 function person(p){
  if(!p)return{name:"",role:"",img:""};
+ if(Number.isInteger(p.tobaAllyId)){
+  const record=D.tobaAllies?.[p.tobaAllyId];if(record)return{name:record.name,role:record.role,img:record.art};
+ }
  if(Number.isInteger(p.tobaId)){
   const record=D.tobaRoster?.[p.tobaId];if(record)return{name:record.name,role:record.role,img:record.art};
  }
