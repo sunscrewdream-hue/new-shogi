@@ -21,10 +21,10 @@
    if(overlay.dataset.victorySequence!==token)return false;
    winnerElement.src=winnerUrl;loserElement.src=loserUrl;
    overlay.classList.add('composite-victory');
-   // Crossed calligraphy meets about halfway through its delayed entrance.
+   // Trigger at the first visible overlap, accounting for the eased entrance.
    if(typeof onCross==='function')setTimeout(()=>{
     if(overlay.dataset.victorySequence===token&&overlay.classList.contains('composite-victory')&&getComputedStyle(overlay).display!=='none')onCross();
-   },1650);
+   },1480);
    return true;
   }).catch(error=>{
    if(overlay.dataset.victorySequence===token)overlay.classList.add('victory-image-error');
