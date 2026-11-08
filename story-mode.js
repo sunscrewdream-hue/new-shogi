@@ -632,6 +632,10 @@ function person(p){
  if(!p)return{name:"",role:"",img:""};
  const king=p.king;
  if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/dialogue_banners/miyabe_banner.webp?v=miyabe-framing-20261107b"};
+ if(p.featuredId){
+  const featured={yoshida:["吉田稔麿","長州藩士"],kitazoe:["北添佶摩","土佐出身の尊攘派志士"],otaka:["大高又次郎","播磨林田藩出身の志士"],sugiyama:["杉山松助","長州藩士"]}[p.featuredId];
+  if(featured){const mob=D.mobs[(p.mob||0)%8];return{name:featured[0],role:featured[1],img:"assets/characters/mobs/"+mob[2]}}
+ }
  if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士・盟主",img:"assets/dialogue_banners/ito_kashitaro_banner.webp"};
  if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=face-final-20261107"};
  if(king==="saigo")return{name:"西郷隆盛",role:"新政府軍・薩摩藩",img:"assets/dialogue_banners/person_21.webp?v=face-final-20261107"};
