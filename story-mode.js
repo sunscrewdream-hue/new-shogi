@@ -346,6 +346,8 @@ async function ikedayaReinforcementArrival(){
  try{
   storyBannerMessage("新選組、援軍到着！",0);
   await new Promise(resolve=>{playGestureAudio(compactCardVoices["援軍"],resolve,"voice",2,()=>game===epoch&&!ended);setTimeout(resolve,5000)});
+  // The reinforcements answer the command with a single battle cry as the first officer runs in.
+  playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
    const target=entry.hand?$("storyHand0").closest(".hand-container"):$("storyBoard").children[entry.y*g.w+entry.x];
