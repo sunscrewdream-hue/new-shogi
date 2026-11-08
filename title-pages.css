@@ -1,0 +1,15 @@
+/* The character collection and history reuse the title-screen backdrop. */
+body{
+ background:radial-gradient(ellipse at 48% 35%,#257da0 0%,#125275 39%,#102f48 66%,#091728 100%) fixed;
+ min-height:100dvh;
+ isolation:isolate;
+}
+body::before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:url("assets/visuals/dandara_title_pattern.svg") center/cover no-repeat;
+ opacity:.67;
+}
+body::after{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse at center,#06172416,#02091477 90%);
+}
