@@ -766,7 +766,7 @@ function screenHome(){
  for(const p of profile){
   const card=document.createElement("button");card.className="story-king-card";const unlocked=owned.includes(p.id);
   card.setAttribute("aria-label",unlocked?p.name+"の人物情報":"未解放の人物カード");
-  const picture=document.createElement("img");picture.alt=unlocked&&p.temporaryArt?"別人物の仮画像":"";picture.loading="lazy";picture.src=unlocked?p.art:"card-back-saccho-1024x1536.webp";
+  const picture=document.createElement("img");picture.alt=unlocked&&p.temporaryArt?"別人物の仮画像":"";picture.loading="lazy";picture.src=unlocked?p.art:"assets/cards/back/card-back-saccho-1024x1536.webp";
   const heading=document.createElement("strong");heading.textContent=unlocked?p.name+(p.temporaryArt?"（仮画像）":""):"？？？";
   card.append(picture,heading);card.onclick=()=>unlocked&&popup(p.name,p.subtitle+"\n"+p.text+(p.temporaryArt?"\n※現在は別人物の仮画像を使用中。正式素材は後日制作。":""),[["閉じる",()=>{}]],p.art);cards.append(card);
  }
@@ -883,7 +883,7 @@ function battle(i){
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
- document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/backgrounds/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
+ document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/backgrounds/story/"+ch.scene+"-bg-v2.webp'),url('assets/backgrounds/seasons/kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  for(const side of [0,1]){clearTimeout(storyBannerTimers[side]);$(side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character","compact-awakened")}
  chooseView("storyBattle");render();
