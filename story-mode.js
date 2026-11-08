@@ -1078,7 +1078,16 @@ function makeMove(m,prom){
    await compactFadeExpiredHoles(id);
    if(id!==epoch||ended)return;
    compactArrival=null;
-   if(oilFirstActVictory){oilAmbushReveal();return}
+   if(oilFirstActVictory){
+    // An explicit final blow before the ambush replaces the routine victory.
+    compactCalligraphy(true);
+    storyBannerMessage("伊東甲子太郎、斬殺！",0);
+    await playKabukiVoice("kill");
+    if(id!==epoch||ended)return;
+    await later(700);
+    if(id!==epoch||ended)return;
+    oilAmbushReveal();return;
+   }
    if(result){finish(result.winner,result.why);return}
    busy=false;
    if(compactCardDue(actor)){
@@ -1110,7 +1119,7 @@ function makeMove(m,prom){
   }else setTimeout(afterFx,prom?800:850);
   return;
  }
- if(oilFirstActVictory){oilAmbushReveal();return}
+ if(oilFirstActVictory){storyBannerMessage("伊東甲子太郎、斬殺！",0);oilAmbushReveal();return}
  if(result){finish(result.winner,result.why);return}
  if(g.side===1){busy=true;render();const id=epoch;setTimeout(()=>{if(id===epoch)computer()},420)}
 }
