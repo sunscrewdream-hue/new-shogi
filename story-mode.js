@@ -340,7 +340,10 @@ async function ikedayaReinforcementArrival(){
  const game=epoch;ikedayaReinforcing=true;busy=true;compactTurnLocked=true;selected=null;
  const arrivals=g.deployIkedayaReinforcements();
  if(!arrivals){ikedayaReinforcing=false;busy=false;compactTurnLocked=false;render();popup("援軍の配置に失敗","盤上に4騎分の空きマスがありません。対局を再開してください。",[["再挑戦",()=>battle(0)]]);return}
- ikedayaPendingPositions=new Set(arrivals.filter(p=>!p.hand).map(p=>p.y+":"+p.x));
+ // Keep the four destinations empty until each runner actually lands.
+ // This avoids Safari retaining opacity:0 on pre-rendered, hidden pieces.
+ for(const entry of arrivals)g.board[entry.y][entry.x]=null;
+ ikedayaPendingPositions.clear();
  render();
  const layer=$("compactActionLayer");layer.replaceChildren();
  try{
@@ -352,12 +355,11 @@ async function ikedayaReinforcementArrival(){
    if(game!==epoch||ended)return;
    const board=$("storyBoard");
    const cell=board.children[entry.y*g.w+entry.x];
-   const token=cell?.querySelector(".story-token");
    const boardWidth=board.clientWidth,boardHeight=board.clientHeight;
    const cellWidth=boardWidth/g.w,cellHeight=boardHeight/g.h;
    const width=Math.max(22,Math.min(cellWidth*.78,cellHeight*.78));
    let runner=null;
-   if(cell&&token){
+   if(cell){
     // Board-local coordinates stay aligned when Safari scrolls or resizes.
     runner=document.createElement("div");
     runner.textContent=label(entry.piece);
@@ -391,13 +393,16 @@ async function ikedayaReinforcementArrival(){
    feet=false;clearTimeout(second);stopStoryClip("fx");
    runner?.remove();
    if(game!==epoch||ended)return;
-   ikedayaPendingPositions.delete(entry.y+":"+entry.x);
+   g.board[entry.y][entry.x]=entry.piece;
    render();
    banner(0,entry.piece,true);
    await later(260);
   }
  }finally{
   layer.replaceChildren();ikedayaPendingPositions.clear();
+  // Never leave an officer invisible or missing if mobile animation aborts.
+  if(game===epoch&&!ended)for(const entry of arrivals)
+   if(!g.board[entry.y][entry.x])g.board[entry.y][entry.x]=entry.piece;
   if(game===epoch&&!ended){
    ikedayaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
    render();
