@@ -976,8 +976,8 @@ function render(){
  $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
- for(const id of ["debugCard","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
-  $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3);
+ for(const id of ["debugCard","debugOilAmbush","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
+  $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3)||(id==="debugOilAmbush"&&(stage!==2||g.oilPhase!==1));
  }
 }
 function square(y,x){
@@ -1041,26 +1041,48 @@ async function oilAmbushReveal(){
  await new Promise(resolve=>playStoryClip(compactCardVoices["援軍"],"voice",resolve));
  if(game!==epoch||ended)return;
  const running=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,2700)});
+ const layer=$("compactActionLayer");
+ layer.replaceChildren();
  for(const i of arrivals){
-  if(game!==epoch||ended)return;
+  if(game!==epoch||ended){layer.replaceChildren();return}
   const cell=board.children[i],token=cell?.querySelector(".story-token.enemy");
   if(!token)continue;
-  token.style.opacity="";
-  if(token.animate){
-   const animation=token.animate([{opacity:0,transform:"translateY(-95px) scale(.7)"},{opacity:1,transform:"translateY(0) scale(1)"}],{duration:410,easing:"cubic-bezier(.18,.78,.3,1)",fill:"forwards"});
-   await animation.finished.catch(()=>{});animation.cancel();
-  }else await later(410);
-  if(game!==epoch||ended)return;
+  const rect=cell.getBoundingClientRect(),width=Math.max(22,rect.width*.8),height=Math.max(27,rect.height*.84);
+  // A fixed overlay runner is not clipped by the board's square or perimeter layers.
+  const runner=document.createElement("div");runner.textContent=token.textContent;
+  runner.className="oil-ambush-runner";runner.setAttribute("aria-hidden","true");
+  Object.assign(runner.style,{
+   position:"fixed",zIndex:"170",pointerEvents:"none",display:"grid",placeItems:"center",
+   left:(rect.left+(rect.width-width)/2)+"px",top:(rect.top+(rect.height-height)/2)+"px",
+   width:width+"px",height:height+"px",boxSizing:"border-box",fontSize:getComputedStyle(token).fontSize,
+   fontFamily:"system-ui,sans-serif",fontWeight:"900",color:"#fffaf0",
+   textShadow:"0 1px 3px #1b0b10",background:'url("assets/pieces/saccho_token.png") center/100% 100% no-repeat',
+   filter:"drop-shadow(0 4px 6px #000b)"
+  });
+  layer.append(runner);
+  const startY=-Math.max(160,Math.min(340,rect.top+100));
+  if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+   const animation=runner.animate([
+    {opacity:0,transform:`translate(65px,${startY}px) rotate(180deg) scale(.76)`},
+    {opacity:1,offset:.18,transform:`translate(45px,${startY*.7}px) rotate(180deg) scale(.9)`},
+    {opacity:1,transform:"translate(0,0) rotate(180deg) scale(1)"}
+   ],{duration:560,easing:"ease-out",fill:"forwards"});
+   await Promise.race([animation.finished.catch(()=>{}),later(750)]);
+   animation.cancel();
+  }else await later(400);
+  runner.remove();token.style.opacity="";
+  if(game!==epoch||ended){layer.replaceChildren();return}
   if(casualties.has(i)){
    cell.classList.add("compact-blood");
    await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};compactSound("kill",finish);setTimeout(finish,1700)});
-   if(game!==epoch||ended)return;
+   if(game!==epoch||ended){layer.replaceChildren();return}
    await playCasualtyCry();
-   if(game!==epoch||ended)return;
+   if(game!==epoch||ended){layer.replaceChildren();return}
    ghosts.get(i)?.remove();cell.classList.remove("compact-blood");
   }
   await later(100);
  }
+ layer.replaceChildren();
  await running;
  if(game!==epoch||ended)return;
  const message="伊東甲子太郎、討死！\n御陵衛士の伏兵が布陣した。"+(event.retreat?"\n近藤勇は後方へ退却！":"")+"\n藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
@@ -1336,7 +1358,7 @@ function storyLoadMatch(){
 }
 window.storySaveMatch=storySaveMatch;window.storyLoadMatch=storyLoadMatch;
 function storyDebugReady(){return g&&!ended&&!busy&&!compactTurnLocked&&g.side===0&&!compactIncident&&!pendingWeaponDisplay&&$("storyPopup").classList.contains("hidden")}
-function storyDebugRun(action,changesBoard=false){
+function storyDebugRun(action,changesBoard=false,renderAfter=true){
  if(!storyDebugReady())return;
  window.StoryBgm?.unlock();
  if(changesBoard){debugModified=true;selected=null}
@@ -1352,7 +1374,7 @@ function storyDebugRun(action,changesBoard=false){
   const y=Math.max(0,Math.round(top-Math.max(0,(viewport-height)/2)));
   window.scrollTo({top:y,behavior:"instant"});
  }
- requestAnimationFrame(()=>{action();render()});
+ requestAnimationFrame(()=>{action();if(renderAfter)render()});
 }
 function storyDebugIncident(kind){
  const side=g.side,owner=kind==="寝返り"?1-side:side;
@@ -1364,6 +1386,11 @@ function storyDebugIncident(kind){
 $("debugWin").onclick=()=>storyDebugRun(()=>finish(0,"開発テスト：新選組の勝利"),true);
 $("debugLose").onclick=()=>storyDebugRun(()=>finish(1,"開発テスト：薩長同盟の勝利"),true);
 $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
+ $("debugOilAmbush").onclick=()=>storyDebugRun(()=>{
+ if(stage!==2||g.oilPhase!==1)return;
+ for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]?.king==="ito"&&g.board[y][x]?.s===1)g.board[y][x]=null;
+ oilAmbushReveal();
+},true,false);
 $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
 $("debugRevival").onclick=()=>storyDebugRun(()=>{
