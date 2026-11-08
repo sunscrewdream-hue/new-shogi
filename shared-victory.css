@@ -1,0 +1,91 @@
+/* Shared finale for 9x9 and every story chapter: victor drops, defeated rises. */
+#endOverlay.composite-victory #endPanel #endWinnerImage,
+#endOverlay.composite-victory #endPanel #endLoserImage,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+ position:absolute!important;top:auto!important;bottom:12%!important;
+ height:75dvh!important;max-height:75dvh!important;width:55vw!important;
+ max-width:650px!important;object-fit:contain!important;object-position:center bottom!important;
+ display:block!important;margin:0!important;z-index:1!important;
+ filter:none!important; /* Avoid iOS WebKit black alpha tiles during compositing. */
+}
+#endOverlay.composite-victory #endPanel #endWinnerImage,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{
+ left:24%!important;right:auto!important;z-index:1!important;
+ animation:sharedVictoryWinner .85s cubic-bezier(.18,.85,.25,1) both!important;
+}
+#endOverlay.composite-victory #endPanel #endLoserImage,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+ right:24%!important;left:auto!important;z-index:2!important;
+ animation:sharedVictoryLoser 1s cubic-bezier(.18,.85,.25,1) both!important;
+}
+@keyframes sharedVictoryWinner{from{opacity:0;transform:translateY(-80dvh)}to{opacity:1;transform:translateY(0)}}
+@keyframes sharedVictoryLoser{from{opacity:0;transform:translateY(75dvh)}to{opacity:1;transform:translateY(0)}}
+@media(orientation:portrait){
+ #endOverlay.composite-victory #endPanel #endWinnerImage,
+ #endOverlay.composite-victory #endPanel #endLoserImage,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+  bottom:16%!important;width:78vw!important;height:65dvh!important;max-height:65dvh!important;
+ }
+ #endOverlay.composite-victory #endPanel #endWinnerImage,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{left:-1%!important}
+ #endOverlay.composite-victory #endPanel #endLoserImage,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{right:-1%!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #endOverlay.composite-victory #endPanel #endWinnerImage,
+ #endOverlay.composite-victory #endPanel #endLoserImage,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{animation:none!important;transform:none!important}
+}
+
+/* Compact theatrical lettering: both faces remain fully visible. */
+@media(orientation:portrait){
+ #endOverlay.composite-victory #endVictoryGraphic,
+ #storyEndOverlay.composite-victory #storyEndVictoryGraphic{left:8%!important;top:28%!important;width:35vw!important;max-height:23dvh!important}
+ #endOverlay.composite-victory #endDefeatGraphic,
+ #storyEndOverlay.composite-victory #storyEndDefeatGraphic{right:3%!important;top:47%!important;width:32vw!important;max-height:20dvh!important}
+ #endOverlay.composite-victory #endVerdictGraphic,
+ #storyEndOverlay.composite-victory #storyEndVerdictGraphic{bottom:106px!important;width:min(65vw,330px)!important;max-height:12dvh!important}
+}
+
+/* Figure entrances finish first. The opposing verdict marks then cross paths. */
+#endOverlay.composite-victory #endVictoryGraphic,
+#storyEndOverlay.composite-victory #storyEndVictoryGraphic{
+ animation:sharedVictoryWordFromRight 1.30s cubic-bezier(.2,.78,.19,1) 1.2s both!important;
+}
+#endOverlay.composite-victory #endDefeatGraphic,
+#storyEndOverlay.composite-victory #storyEndDefeatGraphic{
+ animation:sharedVictoryWordFromLeft 1.30s cubic-bezier(.2,.78,.19,1) 1.3s both!important;
+}
+#endOverlay.composite-victory #endVerdictGraphic,
+#storyEndOverlay.composite-victory #storyEndVerdictGraphic{
+ animation:none!important;opacity:1!important;transform:translateX(-50%)!important;
+}
+@keyframes sharedVictoryWordFromRight{
+ 0%{opacity:0;transform:translateX(70vw) scale(1.2)}
+ 65%{opacity:1}
+ 100%{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes sharedVictoryWordFromLeft{
+ 0%{opacity:0;transform:translateX(-70vw) scale(1.2)}
+ 65%{opacity:1}
+ 100%{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes sharedVictoryFinalWord{
+ from{opacity:0;transform:translateX(-50%) scale(1.35)}
+ to{opacity:1;transform:translateX(-50%) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ #endOverlay.composite-victory #endVictoryGraphic,
+ #endOverlay.composite-victory #endDefeatGraphic,
+ #endOverlay.composite-victory #endVerdictGraphic,
+ #storyEndOverlay.composite-victory #storyEndVictoryGraphic,
+ #storyEndOverlay.composite-victory #storyEndDefeatGraphic,
+ #storyEndOverlay.composite-victory #storyEndVerdictGraphic{animation:none!important}
+}
+
+/* Cold-cache loading: prevent old fallback layers from flashing before both portraits decode. */
+#endOverlay.victory-loading #endPanel,
+#storyEndOverlay.victory-loading #storyEndPanel{visibility:hidden!important}

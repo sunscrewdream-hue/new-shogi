@@ -1,3 +1,16 @@
+/* Shared turn positioning and presentation lock for every battle size. */
+window.ShinsengumiTurnPresentation=Object.freeze({
+ place(board,panel,mode){
+  if(!board||!panel)return;
+  const rect=board.getBoundingClientRect();
+  const viewportTop=window.visualViewport?.offsetTop||0;
+  const viewportHeight=window.visualViewport?.height||window.innerHeight;
+  const center=Math.round(rect.top+rect.height/2);
+  if(mode==='offset')panel.style.setProperty('--turn-center-offset',center-(viewportTop+viewportHeight/2)+'px');
+  else panel.style.setProperty('--finished-turn-board-y',center+'px');
+  return center;
+ }
+});
 /* Shared game presentation lock: keep viewport and overlays stationary on mobile. */
 (()=>{
  "use strict";
@@ -11,13 +24,13 @@
   "body.story-quake-active","#storyEndOverlay:not(.hidden)",
   "#compactIntroClash.show","#endOverlay.show"
  ];
- let locked=false,scrollY=0,previous=null;
+ let locked=false;
  const active=()=>selectors.some(q=>!!document.querySelector(q));
  const inStoryBattle=()=>{
   const battle=document.getElementById("storyBattle");
   return !!battle&&!battle.classList.contains("hidden");
  };
- const blockTouch=e=>{if(locked&&e.cancelable)e.preventDefault()};
+ const blockScroll=e=>{if(locked&&e.cancelable)e.preventDefault()};
  const centerStoryBoard=()=>{
   const battle=document.getElementById("storyBattle");
   const storyVisible=!!battle&&!battle.classList.contains("hidden");
@@ -35,23 +48,15 @@
   const next=active();if(next===locked)return;
   const storyVisible=inStoryBattle();
   if(next){
-   scrollY=window.scrollY||document.documentElement.scrollTop||0;
    // Story opening already anchors the board. Never re-centre it on each
    // turn banner or card: that causes a visible jump after every move.
-   previous={htmlOverflow:document.documentElement.style.overflow,bodyOverflow:document.body.style.overflow,htmlOverscroll:document.documentElement.style.overscrollBehavior,bodyOverscroll:document.body.style.overscrollBehavior};
-   document.documentElement.style.overflow="hidden";
-   document.body.style.overflow="hidden";
-   document.documentElement.style.overscrollBehavior="none";
-   document.body.style.overscrollBehavior="none";
+   // Do not toggle overflow: removing the scrollbar changes viewport width
+   // and can shift the board even if scrollY is untouched.
    document.documentElement.classList.add("game-effect-scroll-locked");
    document.body.classList.add("game-effect-scroll-locked");
    locked=true;
    if(!storyVisible)requestAnimationFrame(centerStoryBoard);
   }else{
-   document.documentElement.style.overflow=previous?.htmlOverflow??"";
-   document.body.style.overflow=previous?.bodyOverflow??"";
-   document.documentElement.style.overscrollBehavior=previous?.htmlOverscroll??"";
-   document.body.style.overscrollBehavior=previous?.bodyOverscroll??"";
    document.documentElement.classList.remove("game-effect-scroll-locked");
    document.body.classList.remove("game-effect-scroll-locked");
    locked=false;
@@ -62,7 +67,8 @@
  };
  const start=()=>{
   new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]});
-  document.addEventListener("touchmove",blockTouch,{passive:false});
+  document.addEventListener("touchmove",blockScroll,{passive:false});
+  document.addEventListener("wheel",blockScroll,{passive:false});
   sync();
  };
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
