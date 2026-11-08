@@ -88,8 +88,38 @@ class StoryEngine{
     leader.kinmonId=0;
     let next=1;
     for(const piece of occupied)if(piece!==leader)piece.kinmonId=next++;
+    // Three historical casualties cannot appear in the later Kinmon chapter.
+    // Their slots become a separate Satsuma cavalry reserve, never hand pieces.
+    const retired=new Set([15,18,19]);
+    const released=[];
+    for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
+     const p=B[y][x];if(p?.s===0&&retired.has(p.cid)){released.push(p);B[y][x]=null}
+    }
+    if(released.length!==3)throw Error("Invalid Kinmon friendly reserve");
+    const types=["飛","角","金"];
+    this.kinmonSatsumaReserve=released.map((p,i)=>({piece:{...p,t:types[i],s:0,cid:null,origin:1,uid:"satsuma:kinmon:"+i,satsumaId:i,p:false}}));
+    this.kinmonSatsumaReinforced=false;
    }
   }
+ }
+ deployKinmonSatsumaReinforcements(){
+  if(this.stage!==1||this.kinmonSatsumaReinforced||!this.kinmonSatsumaReserve)return null;
+  const next=this.clone(this.board),placements=[];
+  for(const entry of this.kinmonSatsumaReserve){
+   const candidates=[];
+   for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
+    if(next[y][x]||this.isHole(y,x))continue;
+    // Prefer friendly home ranks, then neighbouring clear squares.
+    const score=(y<5?1000:0)+Math.abs(y-7)*10+Math.abs(x-4);
+    candidates.push({y,x,score});
+   }
+   candidates.sort((a,b)=>a.score-b.score||b.y-a.y||a.x-b.x);
+   if(!candidates.length)return null;
+   const {y,x}=candidates[0];next[y][x]=entry.piece;
+   placements.push({piece:entry.piece,y,x,hand:false});
+  }
+  this.board=next;this.kinmonSatsumaReinforced=true;
+  return placements;
  }
  deployIkedayaReinforcements(){
   if(this.stage!==0||this.ikedayaReinforced||!this.ikedayaReserve)return null;
