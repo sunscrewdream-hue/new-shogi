@@ -11,7 +11,7 @@ class StoryEngine{
   this.oilEnemyReserve=this.board.slice(0,2).map(row=>row.map(p=>p?{...p}:null));
   for(let y=0;y<2;y++)this.board[y].fill(null);
   this.board[1][0]={...this.oilEnemyReserve[0][2],king:"ito"};
-  this.oilPhase=1;
+  this.oilPhase=1;this.oilVisitCounts=new Map([["1:0",1]]);
  }
  triggerOilAmbush(){
   if(this.stage!==2||this.oilPhase!==1||!this.oilEnemyReserve)return null;
@@ -141,6 +141,7 @@ class StoryEngine{
   const unit=m.drop?this.hands[this.side].find(p=>p.t===m.t):this.board[m.y][m.x];
   const captured=this.act(this.board,this.hands,this.side,m,prom,kill);
   if(kill&&captured&&captured.t!=="玉")this.fallen[captured.s].push({...captured,p:false});
+  if(this.stage===2&&this.oilPhase===1&&this.side===1){const k=m.Y+":"+m.X;this.oilVisitCounts?.set(k,(this.oilVisitCounts.get(k)||0)+1)}
   this.last={y:m.Y,x:m.X};this.ply++;this.holes=this.holes.filter(v=>this.ply<v.expiresPly);this.side=1-this.side;
   return {unit,captured};
  }
@@ -160,7 +161,51 @@ class StoryEngine{
   }
   return score;
  }
- ai(){const ms=this.legal(1);if(!ms.length)return null;return ms.map(m=>({m,score:this.score(m,this.config.level)})).sort((a,b)=>b.score-a.score)[0].m}
+ oilItoAi(ms){
+  // One defender against a full army: optimize the WORST plausible reply.
+  // This is defensive minimax, not the normal attack-oriented material score.
+  const reserveSlots=new Set();
+  for(let y=0;y<2;y++)for(let x=0;x<this.w;x++)if(this.oilEnemyReserve?.[y]?.[x])reserveSlots.add(y*this.w+x);
+  let best=ms[0],bestScore=-Infinity;
+  for(const move of ms){
+   const B=this.clone(this.board),H=this.handClone(this.hands);
+   this.act(B,H,1,move);
+   // Check the most forcing human replies first; keep mobile search bounded.
+   const responsePriority=r=>{
+    const p=r.drop?H[0].find(v=>v.t===r.t):B[r.y][r.x];
+    const distance=Math.max(Math.abs(r.Y-move.Y),Math.abs(r.X-move.X));
+    return (B[r.Y][r.X]?.s===1?120:0)+(distance<=1?50:0)
+      +(p?.t==="飛"?12:0)+(r.Y<=2?8:0)-distance*8;
+   };
+   const responses=this.legal(0,B,H,false).sort((a,b)=>responsePriority(b)-responsePriority(a)).slice(0,14);
+   let worst=Infinity;
+   for(const response of responses){
+    const next=this.clone(B),hands=this.handClone(H);
+    this.act(next,hands,0,response);
+    const escape=this.legal(1,next,hands,false);
+    let value;
+    if(!escape.length)value=-500;
+    else{
+     const destinations=new Set(escape.map(m=>m.Y*this.w+m.X));
+     const lateral=new Set(escape.map(m=>m.X));
+     const pressure=this.check(next,1)?12:0;
+     const bait=[...reserveSlots].filter(k=>next[Math.floor(k/this.w)][k%this.w]?.s===0).length;
+     value=destinations.size*12+lateral.size*3-pressure+bait*2;
+    }
+    if(value<worst)worst=value;
+   }
+   if(!responses.length)worst=90;
+   const key=move.Y+":"+move.X;
+   const repeated=this.oilVisitCounts?.get(key)||0;
+   // Prefer escape routes that retain room, but keep the chase near the ambush ranks.
+   const score=worst-repeated*15+Math.max(0,3-move.Y)*2+Math.random()*.15;
+   if(score>bestScore){bestScore=score;best=move}
+  }
+  return best;
+ }
+ ai(){const ms=this.legal(1);if(!ms.length)return null;
+  if(this.stage===2&&this.oilPhase===1)return this.oilItoAi(ms);
+  return ms.map(m=>({m,score:this.score(m,this.config.level)})).sort((a,b)=>b.score-a.score)[0].m}
  fire(kind,side=1){
   const x=Math.floor(Math.random()*this.w);
   if(kind==="cannon"){
