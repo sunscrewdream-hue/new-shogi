@@ -6,6 +6,49 @@ const VALUES={玉:10000,飛:14,角:12,金:9,銀:7,桂:5,香:4,歩:2};
 class StoryEngine{
  constructor(stage){this.stage=stage;this.config=window.StoryData.chapters[stage];this.w=this.config.w;this.h=this.config.h;this.side=0;this.last=null;this.ply=0;this.holes=[];this.hands=[[],[]];this.fallen=[[],[]];this.allowAbandonKing=true;this.board=Array.from({length:this.h},()=>Array(this.w).fill(null));this.setup();}
  isHole(y,x){return this.holes.some(v=>v.y===y&&v.x===x&&this.ply<v.expiresPly)}
+ startOilAmbush(){
+  if(this.stage!==2)return;
+  this.oilEnemyReserve=this.board.slice(0,2).map(row=>row.map(p=>p?{...p}:null));
+  for(let y=0;y<2;y++)this.board[y].fill(null);
+  this.board[1][0]={...this.oilEnemyReserve[0][2],king:"ito"};
+  this.oilPhase=1;
+ }
+ triggerOilAmbush(){
+  if(this.stage!==2||this.oilPhase!==1||!this.oilEnemyReserve)return null;
+  const enemy=this.oilEnemyReserve.map(row=>row.map(p=>p?{...p}:null));
+  enemy[0][2]={...enemy[0][1],t:"玉",king:"todo",p:false};
+  enemy[0][1]={...enemy[0][3],uid:"1:銀:ambush",mob:1};
+  const slots=[];
+  for(let y=0;y<2;y++)for(let x=0;x<this.w;x++)if(enemy[y][x])slots.push({y,x});
+  let king=null;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)if(this.board[y][x]?.s===0&&this.board[y][x].t==="玉")king={y,x};
+  let retreat=null;
+  if(king&&slots.some(q=>q.y===king.y&&q.x===king.x)){
+   const ordered=[];
+   for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)
+    if(!slots.some(q=>q.y===y&&q.x===x)&&!this.isHole(y,x)&&this.board[y][x]===null)
+     ordered.push({y,x});
+   ordered.sort((a,b)=>b.y-a.y||Math.abs(a.x-king.x)-Math.abs(b.x-king.x));
+   for(const q of ordered){
+    const test=this.clone(this.board);
+    test[king.y][king.x]=null;test[q.y][q.x]={...this.board[king.y][king.x]};
+    for(const slot of slots)test[slot.y][slot.x]={...enemy[slot.y][slot.x]};
+    if(!this.check(test,0)){retreat=q;break}
+   }
+   if(!retreat)return null;
+   const moving=this.board[king.y][king.x];
+   this.board[king.y][king.x]=null;
+   this.board[retreat.y][retreat.x]=moving;
+  }
+  const casualties=[];
+  for(const slot of slots){
+   const p=this.board[slot.y][slot.x];
+   if(p?.s===0){casualties.push({y:slot.y,x:slot.x,cid:p.cid});this.destroy(slot.y,slot.x)}
+   this.board[slot.y][slot.x]={...enemy[slot.y][slot.x]};
+  }
+  this.oilPhase=2;this.oilEnemyReserve=null;this.side=0;this.last=null;
+  return {casualties,retreat,valid:!!this.king(0)&&!!this.king(1)&&!!this.legal(0).length};
+ }
  setup(){
   const used=[{},{}],make=(t,s)=>{
    const n=used[s][t]||0;used[s][t]=n+1;

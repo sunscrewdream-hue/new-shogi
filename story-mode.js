@@ -879,6 +879,7 @@ function battle(i,oilFormation=null){
   if(g.check(g.board,0)||g.check(g.board,1)||!g.legal(0).length||!g.legal(1).length)
    [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
  }
+ if(i===2)g.startOilAmbush();
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
@@ -1006,6 +1007,16 @@ function square(y,x){
  if(p?.s===1){banner(1,p);return}
  selected=p?.s===0?{y,x}:null;render();if(p)banner(p.s,p);
 }
+function oilAmbushReveal(){
+ const event=g.triggerOilAmbush();
+ if(!event){busy=false;render();popup("布陣を整えられません","近藤勇の退路が確保できません。再挑戦してください。",[["再挑戦",()=>battle(2)]]);return}
+ const casualties=event.casualties.length;
+ compactBloodMarks=event.casualties.map(p=>p.y+":"+p.x);
+ busy=true;compactTurnLocked=true;selected=null;render();
+ if(casualties)compactSound("slash");
+ const message="伊東甲子太郎、討死！\n御陵衛士、伏兵出現！\n"+(casualties?"新選組の"+casualties+"枚が討死。\n":"")+(event.retreat?"近藤勇は後方へ退却！\n":"")+"藤堂平助率いる御陵衛士と決着をつけよ。";
+ popup("御陵衛士、伏兵出現！",message,[["応戦する",()=>{compactBloodMarks=[];busy=false;compactTurnLocked=false;g.side=0;render()}]]);
+}
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
  const holesBefore=compactMode()?[...g.holes]:[];
@@ -1013,7 +1024,8 @@ function makeMove(m,prom){
  const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
- const willKill=capturePlan.lethal;
+ const oilItoCapture=stage===2&&g.oilPhase===1&&!m.drop&&g.board[m.Y][m.X]?.king==="ito";
+ const willKill=capturePlan.lethal||oilItoCapture;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
@@ -1045,6 +1057,7 @@ function makeMove(m,prom){
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
  if(unit)banner(actor,unit);selected=null;render();const result=g.state();
+ const oilFirstActVictory=stage===2&&g.oilPhase===1&&result?.winner===0;
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
@@ -1058,6 +1071,7 @@ function makeMove(m,prom){
    await compactFadeExpiredHoles(id);
    if(id!==epoch||ended)return;
    compactArrival=null;
+   if(oilFirstActVictory){oilAmbushReveal();return}
    if(result){finish(result.winner,result.why);return}
    busy=false;
    if(compactCardDue(actor)){
@@ -1089,13 +1103,14 @@ function makeMove(m,prom){
   }else setTimeout(afterFx,prom?800:850);
   return;
  }
+ if(oilFirstActVictory){oilAmbushReveal();return}
  if(result){finish(result.winner,result.why);return}
  if(g.side===1){busy=true;render();const id=epoch;setTimeout(()=>{if(id===epoch)computer()},420)}
 }
 function computer(){
  if(ended||!g||g.side!==1)return;
  const move=g.ai();busy=false;
- if(!move){finish(0,"敵軍に指す手なし");return}
+ if(!move){if(stage===2&&g.oilPhase===1)oilAmbushReveal();else finish(0,"敵軍に指す手なし");return}
  const p=move.drop?null:g.board[move.y][move.x],prom=!!p&&g.promoted(p,move.y,move.Y);
  if(p)banner(1,p);
  makeMove(move,prom);
@@ -1222,7 +1237,7 @@ function storySaveMatch(){
  if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
  try{
   const snapshot={version:1,stage,at:Date.now(),engine:{
-   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last
+   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve
   },enemyTurns,playerTurns,weapons,debugModified};
   localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
   alert("この章の対局を保存しました。");
@@ -1235,9 +1250,10 @@ function storyLoadMatch(){
  const cfg=D.chapters[data.stage],state=data.engine;
  if(!Array.isArray(state.board)||state.board.length!==cfg.h||!state.board.every(row=>Array.isArray(row)&&row.length===cfg.w)||!Array.isArray(state.hands)||state.hands.length!==2||![0,1].includes(state.side)){alert("保存データの形式が正しくありません。");return}
  if(g&&!ended&&!confirm("現在の対局を中断し、保存した対局に戻りますか？"))return;
- battle(data.stage);
+ battle(data.stage,2);
  g.board=state.board;g.hands=state.hands;g.fallen=Array.isArray(state.fallen)?state.fallen:[[],[]];
  g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
+ g.oilPhase=state.oilPhase??(data.stage===2?2:null);g.oilEnemyReserve=state.oilEnemyReserve||null;
  enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
  weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
  // Invalidate timers started by the chapter opening before restoring play.
