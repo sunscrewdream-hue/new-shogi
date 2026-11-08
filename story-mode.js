@@ -1009,6 +1009,13 @@ function square(y,x){
 }
 async function oilAmbushReveal(){
  const game=epoch,board=$("storyBoard");
+ // Close Ito\u0027s last pit after the killing blow and before reinforcements.
+ if(g.holes.length){
+  busy=true;compactTurnLocked=true;
+  compactClosingHoles=g.holes.map(({y,x})=>({y,x}));g.holes=[];render();
+  await compactFadeExpiredHoles(game);
+  if(game!==epoch||ended)return;
+ }
  // Keep a visual copy of each friendly piece until the actual collision beat.
  const before=[...board.children].map(cell=>cell.querySelector(".story-token")?.cloneNode(true)||null);
  const previousKing=[...board.children].findIndex(cell=>cell.getAttribute("aria-label")?.includes("近藤勇 玉"));
@@ -1210,6 +1217,14 @@ function makeMove(m,prom){
 }
 function computer(){
  if(ended||!g||g.side!==1)return;
+ const pit=g.oilItoDig?.();
+ if(pit){
+  const game=epoch;busy=true;compactTurnLocked=true;
+  compactQuakeCracks=[{y:pit.y,x:pit.x}];render();
+  playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx");
+  setTimeout(()=>{if(game!==epoch||ended)return;compactQuakeCracks=[];render();computer()},900);
+  return;
+ }
  const move=g.ai();busy=false;
  if(!move){
   if(stage===2&&g.oilPhase===1&&g.king(1)){
