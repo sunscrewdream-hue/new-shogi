@@ -860,7 +860,7 @@ function line(){
  $("dialogueNext").classList.toggle("story-sortie-button",sortie);
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
-function battle(i,oilFormation=null){
+function battle(i,oilFormation=null,retry=false){
  // Oil-koji formation choice happens before the battle and its opening animation.
  // Only swap the friendly rook with one front-rank pawn; all other pieces stay fixed.
  // Start Oil-koji in the standard formation without a selection popup.
@@ -869,6 +869,8 @@ function battle(i,oilFormation=null){
  document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};reinforcementSerial=0;
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
+ // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
+ if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
  if(i===2&&[1,3].includes(oilFormation)){
   const front=g.board[4];
@@ -1285,7 +1287,7 @@ async function fire(kind,ownerSide=1){
  else{await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
 }
 function finish(winner,reason){
- if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
+ if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage,null,true)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
  if(win&&!devPreview&&!debugModified){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
@@ -1302,7 +1304,7 @@ function finish(winner,reason){
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
  const choices=[
-  [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage)],
+  [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage,null,true)],
   ["章選択",screenHome]
  ];
  for(const [label,action] of choices){
