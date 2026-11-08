@@ -1040,7 +1040,7 @@ async function oilAmbushReveal(){
  // Reuse the approved reinforcement voice, then the desertion footsteps.
  await new Promise(resolve=>playStoryClip(compactCardVoices["援軍"],"voice",resolve));
  if(game!==epoch||ended)return;
- const running=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,2700)});
+ // Each reinforcement gets its own running footsteps, synchronized to its arrival.
  const layer=$("compactActionLayer");
  layer.replaceChildren();
  for(const i of arrivals){
@@ -1060,16 +1060,17 @@ async function oilAmbushReveal(){
    filter:"drop-shadow(0 4px 6px #000b)"
   });
   layer.append(runner);
+  compactSound("desert");
   const startY=-Math.max(160,Math.min(340,rect.top+100));
   if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
    const animation=runner.animate([
     {opacity:0,transform:`translate(65px,${startY}px) rotate(180deg) scale(.76)`},
     {opacity:1,offset:.18,transform:`translate(45px,${startY*.7}px) rotate(180deg) scale(.9)`},
     {opacity:1,transform:"translate(0,0) rotate(180deg) scale(1)"}
-   ],{duration:560,easing:"ease-out",fill:"forwards"});
-   await Promise.race([animation.finished.catch(()=>{}),later(750)]);
+   ],{duration:820,easing:"ease-out",fill:"forwards"});
+   await Promise.race([animation.finished.catch(()=>{}),later(1050)]);
    animation.cancel();
-  }else await later(400);
+  }else await later(820);
   runner.remove();token.style.opacity="";
   if(game!==epoch||ended){layer.replaceChildren();return}
   if(casualties.has(i)){
@@ -1080,10 +1081,9 @@ async function oilAmbushReveal(){
    if(game!==epoch||ended){layer.replaceChildren();return}
    ghosts.get(i)?.remove();cell.classList.remove("compact-blood");
   }
-  await later(100);
+  await later(220);
  }
  layer.replaceChildren();
- await running;
  if(game!==epoch||ended)return;
  const message="伊東甲子太郎、討死！\n御陵衛士の伏兵が布陣した。"+(event.retreat?"\n近藤勇は後方へ退却！":"")+"\n藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
  popup("御陵衛士、伏兵出現！",message,[["応戦する",()=>{busy=false;compactTurnLocked=false;g.side=0;render()}]]);
