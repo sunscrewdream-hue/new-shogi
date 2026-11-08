@@ -13,6 +13,7 @@
   const token=String((Number(overlay.dataset.victorySequence)||0)+1);
   overlay.dataset.victorySequence=token;
   overlay.classList.remove('composite-victory','victory-image-error');
+  overlay.classList.add('victory-loading');
   const winnerUrl=portrait(winnerId,'winner'),loserUrl=portrait(loserId,'loser');
   winnerElement.alt=winnerName+'の勝利';loserElement.alt=loserName+'の敗北';
   winnerElement.removeAttribute('src');loserElement.removeAttribute('src');
@@ -21,13 +22,14 @@
    if(overlay.dataset.victorySequence!==token)return false;
    winnerElement.src=winnerUrl;loserElement.src=loserUrl;
    overlay.classList.add('composite-victory');
+   overlay.classList.remove('victory-loading');
    // Trigger at the first visible overlap, accounting for the eased entrance.
    if(typeof onCross==='function')setTimeout(()=>{
     if(overlay.dataset.victorySequence===token&&overlay.classList.contains('composite-victory')&&getComputedStyle(overlay).display!=='none')onCross();
    },1480);
    return true;
   }).catch(error=>{
-   if(overlay.dataset.victorySequence===token)overlay.classList.add('victory-image-error');
+   if(overlay.dataset.victorySequence===token){overlay.classList.remove('victory-loading');overlay.classList.add('victory-image-error')};
    console.error(error);return false;
   });
  }

@@ -7,7 +7,7 @@
  height:75dvh!important;max-height:75dvh!important;width:55vw!important;
  max-width:650px!important;object-fit:contain!important;object-position:center bottom!important;
  display:block!important;margin:0!important;z-index:1!important;
- filter:drop-shadow(0 6px 10px #0008)!important;
+ filter:none!important; /* Avoid iOS WebKit black alpha tiles during compositing. */
 }
 #endOverlay.composite-victory #endPanel #endWinnerImage,
 #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{
@@ -85,3 +85,7 @@
  #storyEndOverlay.composite-victory #storyEndDefeatGraphic,
  #storyEndOverlay.composite-victory #storyEndVerdictGraphic{animation:none!important}
 }
+
+/* Cold-cache loading: prevent old fallback layers from flashing before both portraits decode. */
+#endOverlay.victory-loading #endPanel,
+#storyEndOverlay.victory-loading #storyEndPanel{visibility:hidden!important}
