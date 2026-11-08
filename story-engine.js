@@ -82,25 +82,22 @@ class StoryEngine{
  }
  deployIkedayaReinforcements(){
   if(this.stage!==0||this.ikedayaReinforced||!this.ikedayaReserve)return null;
-  this.ikedayaReinforced=true;
-  const placements=[];
+  // Plan all four board placements atomically. Reinforcements never enter hands.
+  const next=this.clone(this.board),placements=[];
   for(const entry of this.ikedayaReserve){
    const candidates=[];
-   for(let y=this.h-1;y>=2;y--)for(let x=0;x<this.w;x++){
-    if(this.board[y][x]||this.isHole(y,x))continue;
-    // Reinforcements may arrive while the king is in check; resolving that check
-    // belongs to the player after all four officers have reached the board.
-    candidates.push({y,x,score:Math.abs(y-entry.y)*10+Math.abs(x-entry.x)});
+   for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
+    if(next[y][x]||this.isHole(y,x))continue;
+    candidates.push({y,x,score:Math.abs(y-entry.y)*10+Math.abs(x-entry.x)+(y<2?100:0)});
    }
    candidates.sort((a,b)=>a.score-b.score||b.y-a.y||a.x-b.x);
-   if(candidates.length){
-    const {y,x}=candidates[0];this.board[y][x]=entry.piece;
-    placements.push({piece:entry.piece,y,x,hand:false});
-   }else{
-    this.hands[0].push(entry.piece);
-    placements.push({piece:entry.piece,hand:true});
-   }
+   if(!candidates.length)return null;
+   const {y,x}=candidates[0];
+   next[y][x]=entry.piece;
+   placements.push({piece:entry.piece,y,x,hand:false});
   }
+  this.board=next;
+  this.ikedayaReinforced=true;
   return placements;
  }
  clone(B){return B.map(r=>r.map(p=>p?{...p}:null))}
