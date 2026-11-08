@@ -20,6 +20,12 @@ class StoryEngine{
   const enemy=this.oilEnemyReserve.map(row=>row.map(p=>p?{...p}:null));
   enemy[0][2]={...enemy[0][1],t:"玉",king:"todo",p:false};
   enemy[0][1]={...enemy[0][3],uid:"1:銀:ambush",mob:1};
+  // Seven confirmed Goryo-eji came to recover Ito; other reserve slots remain empty.
+  for(const [y,x] of [[0,0],[0,4],[1,4]])enemy[y][x]=null;
+  enemy[0][2].oilRaiderId=0;
+  let raiderId=1;
+  for(let y=0;y<2;y++)for(let x=0;x<this.w;x++)if(enemy[y][x]&&!Number.isInteger(enemy[y][x].oilRaiderId))enemy[y][x].oilRaiderId=raiderId++;
+  if(raiderId!==7)throw Error("Invalid Aburanokoji raider count");
   const slots=[];
   for(let y=0;y<2;y++)for(let x=0;x<this.w;x++)if(enemy[y][x])slots.push({y,x});
   let king=null;
@@ -66,6 +72,16 @@ class StoryEngine{
   if(this.w===5){
    const row=["金","銀","玉","銀","金"],row2=["歩","歩","飛","歩","歩"];
    for(let x=0;x<5;x++){B[0][x]=make(row[x],1);B[1][x]=make(row2[x],1);B[4][x]=make(row2[x],0);B[5][x]=make(row[x],0)}
+   if(this.stage===2){
+    // Ten named members of the incident, including Kondo/Hijikata in command roles.
+    B[5][2].oilDefenderId=0;
+    B[4][2].oilDefenderId=1;
+    let officer=2;
+    for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
+     const p=B[y][x];if(p?.s===0&&!Number.isInteger(p.oilDefenderId))p.oilDefenderId=officer++;
+    }
+    if(officer!==10)throw Error("Invalid Aburanokoji defender count");
+   }
    // Six historical officers enter Ikedaya; four more arrive on turn three.
    for(const [y,x,cid] of [[5,0,9],[5,1,5],[5,2,0],[5,3,7],[5,4,18],[4,2,2],[4,0,1],[4,1,3],[4,3,8],[4,4,6]])if(this.stage===0)B[y][x].cid=cid;
    // Ikedaya identities occupy four existing enemy slots; preserve battle balance.

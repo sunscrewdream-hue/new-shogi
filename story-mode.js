@@ -784,6 +784,14 @@ function popup(title,text,options,img){
 }
 function collect(p){
  if(devPreview||debugModified||!p)return;
+ for(const [field,side,list] of [["oilDefenderId","shinsengumi",D.oilDefenders],["oilRaiderId","goryo-eji",D.oilRaiders]]){
+  if(Number.isInteger(p[field])){
+   const profile=list?.[p[field]];if(!profile)return;
+   try{const key="shinsengumi-story-oil-historical-cards-v1",owned=JSON.parse(localStorage.getItem(key)||"[]"),id=side+":"+p[field];
+    if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(key,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+profile.name,0)}
+   }catch(e){}return;
+  }
+ }
  if(Number.isInteger(p.satsumaId)){
   const item=D.kinmonAllies?.[p.satsumaId];if(!item)return;
   try{const key="shinsengumi-story-kinmon-satsuma-cards-v1",owned=JSON.parse(localStorage.getItem(key)||"[]");
@@ -811,6 +819,9 @@ function collect(p){
 }
 function person(p){
  if(!p)return{name:"",role:"",img:""};
+ for(const [field,list] of [["oilDefenderId",D.oilDefenders],["oilRaiderId",D.oilRaiders]]){
+  if(Number.isInteger(p[field])){const record=list?.[p[field]];if(record)return{name:record.name,role:record.role,img:record.art};}
+ }
  if(Number.isInteger(p.satsumaId)){
   const record=D.kinmonAllies?.[p.satsumaId];
   if(record)return{name:record.name,role:record.role,img:record.art};
