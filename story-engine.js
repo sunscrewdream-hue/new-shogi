@@ -66,14 +66,42 @@ class StoryEngine{
   if(this.w===5){
    const row=["金","銀","玉","銀","金"],row2=["歩","歩","飛","歩","歩"];
    for(let x=0;x<5;x++){B[0][x]=make(row[x],1);B[1][x]=make(row2[x],1);B[4][x]=make(row2[x],0);B[5][x]=make(row[x],0)}
+   // Six historical officers enter Ikedaya; four more arrive on turn three.
+   for(const [y,x,cid] of [[5,0,9],[5,1,5],[5,2,0],[5,3,7],[5,4,18],[4,2,2],[4,0,1],[4,1,3],[4,3,8],[4,4,6]])if(this.stage===0)B[y][x].cid=cid;
    // Ikedaya identities occupy four existing enemy slots; preserve battle balance.
    if(this.stage===0){
     for(const [y,x,id] of [[0,0,"ishikawa"],[0,1,"yoshida"],[0,3,"kitazoe"],[0,4,"mochizuki"],[1,0,"matsuda"],[1,1,"otaka"],[1,2,"hirooka"],[1,3,"sugiyama"],[1,4,"fukuoka"]])B[y][x].featuredId=id;
+    this.ikedayaReserve=[[4,0],[4,1],[4,3],[4,4]].map(([y,x])=>({y,x,piece:B[y][x]}));
+    for(const entry of this.ikedayaReserve)B[entry.y][entry.x]=null;
+    this.ikedayaReinforced=false;
    }
   }else{
    for(let x=0;x<9;x++){B[0][x]=make(BACK[x],1);B[2][x]=make("歩",1);B[6][x]=make("歩",0);B[8][x]=make(BACK[x],0)}
    B[1][1]=make("飛",1);B[1][7]=make("角",1);B[7][1]=make("角",0);B[7][7]=make("飛",0);
   }
+ }
+ deployIkedayaReinforcements(){
+  if(this.stage!==0||this.ikedayaReinforced||!this.ikedayaReserve)return null;
+  this.ikedayaReinforced=true;
+  const placements=[];
+  for(const entry of this.ikedayaReserve){
+   const candidates=[];
+   for(let y=this.h-1;y>=2;y--)for(let x=0;x<this.w;x++){
+    if(this.board[y][x]||this.isHole(y,x))continue;
+    const test=this.clone(this.board);test[y][x]=entry.piece;
+    if(this.check(test,0))continue;
+    candidates.push({y,x,score:Math.abs(y-entry.y)*10+Math.abs(x-entry.x)});
+   }
+   candidates.sort((a,b)=>a.score-b.score||b.y-a.y||a.x-b.x);
+   if(candidates.length){
+    const {y,x}=candidates[0];this.board[y][x]=entry.piece;
+    placements.push({piece:entry.piece,y,x,hand:false});
+   }else{
+    this.hands[0].push(entry.piece);
+    placements.push({piece:entry.piece,hand:true});
+   }
+  }
+  return placements;
  }
  clone(B){return B.map(r=>r.map(p=>p?{...p}:null))}
  handClone(H){return H.map(a=>a.map(p=>({...p})))}
