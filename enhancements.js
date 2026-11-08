@@ -132,33 +132,53 @@
   return baseShowOfficer(piece);
  };
  let hoveredBannerSide=null;
+ let hoverCandidate=-1,hoverTimer=null,hoverActive=-1;
+ const HOVER_INSET=0.225; // Center 55% of a square is the banner-only hit area.
+ const HOVER_DELAY_MS=140;
+ function cancelHoverCandidate(){
+  if(hoverTimer!==null)clearTimeout(hoverTimer);
+  hoverTimer=null;hoverCandidate=-1;
+ }
  function clearHoveredBanner(){
   if(hoveredBannerSide===null)return;
   const side=hoveredBannerSide;hoveredBannerSide=null;
   const panel=$(side===0?'officerPanel':'enemyOfficerPanel');
   if(!panel.classList.contains('speaking'))clearCharacterBanner(side);
  }
- gameBoard.addEventListener('pointerover',event=>{
+ gameBoard.addEventListener('pointermove',event=>{
   if(event.pointerType!=='mouse'||titleIsVisible()||ended||busy||incidentRunning||!playerTurnReady||(gameMode==='ai'&&turn!==0))return;
   const cell=event.target.closest('.sq');
-  if(!cell||!gameBoard.contains(cell))return;
+  if(!cell||!gameBoard.contains(cell)){cancelHoverCandidate();hoverActive=-1;clearHoveredBanner();return}
+  const rect=cell.getBoundingClientRect();
+  const px=(event.clientX-rect.left)/rect.width,py=(event.clientY-rect.top)/rect.height;
+  if(px<HOVER_INSET||px>1-HOVER_INSET||py<HOVER_INSET||py>1-HOVER_INSET){
+   cancelHoverCandidate();hoverActive=-1;clearHoveredBanner();return;
+  }
   const index=Array.prototype.indexOf.call(gameBoard.children,cell),piece=b?.[Math.floor(index/9)]?.[index%9];
-  if(!piece){clearHoveredBanner();return}
-  if(hoveredBannerSide!==null&&hoveredBannerSide!==piece.s)clearHoveredBanner();
-  const panel=$(piece.s===0?'officerPanel':'enemyOfficerPanel');
-  if(panel.classList.contains('speaking'))return;
-  setCharacterBanner(piece.s,piece,'',0);
-  hoveredBannerSide=piece.s;
+  if(!piece){cancelHoverCandidate();hoverActive=-1;clearHoveredBanner();return}
+  if(hoverActive===index||hoverCandidate===index)return;
+  cancelHoverCandidate();hoverCandidate=index;
+  hoverTimer=setTimeout(()=>{
+   hoverTimer=null;hoverCandidate=-1;
+   if(!gameBoard.contains(cell)||hoverActive===index)return;
+   const panel=$(piece.s===0?'officerPanel':'enemyOfficerPanel');
+   if(panel.classList.contains('speaking'))return;
+   if(hoveredBannerSide!==null&&hoveredBannerSide!==piece.s)clearHoveredBanner();
+   setCharacterBanner(piece.s,piece,'',0);
+   hoveredBannerSide=piece.s;hoverActive=index;
+  },HOVER_DELAY_MS);
  });
  gameBoard.addEventListener('pointerout',event=>{
   if(event.pointerType!=='mouse')return;
   const cell=event.target.closest('.sq');
   if(!cell||cell.contains(event.relatedTarget))return;
+  cancelHoverCandidate();hoverActive=-1;
   clearHoveredBanner();
  });
- gameBoard.addEventListener('pointerleave',clearHoveredBanner);
+ gameBoard.addEventListener('pointerleave',()=>{cancelHoverCandidate();hoverActive=-1;clearHoveredBanner()});
  const baseRender=render;
  render=function(){
+  cancelHoverCandidate();hoverActive=-1;
   clearHoveredBanner();
   baseRender();
   if(ruleSettings.abandonKing&&rulePreset!=='traditional'&&check(b,turn)&&!ended){
