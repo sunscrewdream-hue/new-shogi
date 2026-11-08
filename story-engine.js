@@ -88,8 +88,8 @@ class StoryEngine{
    const candidates=[];
    for(let y=this.h-1;y>=2;y--)for(let x=0;x<this.w;x++){
     if(this.board[y][x]||this.isHole(y,x))continue;
-    const test=this.clone(this.board);test[y][x]=entry.piece;
-    if(this.check(test,0))continue;
+    // Reinforcements may arrive while the king is in check; resolving that check
+    // belongs to the player after all four officers have reached the board.
     candidates.push({y,x,score:Math.abs(y-entry.y)*10+Math.abs(x-entry.x)});
    }
    candidates.sort((a,b)=>a.score-b.score||b.y-a.y||a.x-b.x);
