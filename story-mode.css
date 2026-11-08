@@ -1040,3 +1040,18 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
 
 
 /* Winner/loser positions and animation live exclusively in shared-victory.css. */
+
+/* Oil-koji: approved organic perimeter sits outside the exact 5x6 playable grid.
+   The transparent opening matches the stone-and-soil board 1:1; hit targets stay untouched. */
+#storyBoard[data-stage="2"].small-board{
+  border:3px solid #463829;
+  position:relative;
+  overflow:visible;
+  isolation:isolate;
+}
+#storyBoard[data-stage="2"].small-board::before{
+  content:"";position:absolute;z-index:3;pointer-events:none;
+  left:-35.371%;top:-7.423%;width:172.402%;height:115.429%;
+  background:url("assets/boards/story/board-aburanokoji-perimeter.webp") center/100% 100% no-repeat;
+}
+#storyBoard[data-stage="2"]>.sq{z-index:2}
