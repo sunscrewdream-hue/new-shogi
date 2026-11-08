@@ -339,47 +339,76 @@ function faceIsWeaponReady(){return $("compactCardFace").classList.contains("car
 async function ikedayaReinforcementArrival(){
  const game=epoch;ikedayaReinforcing=true;busy=true;compactTurnLocked=true;selected=null;
  const arrivals=g.deployIkedayaReinforcements();
- if(!arrivals){ikedayaReinforcing=false;compactResumeTurn();return}
- ikedayaPendingPositions=new Set(arrivals.filter(p=>!p.hand).map(p=>p.y+":"+p.x));
+ if(!arrivals){ikedayaReinforcing=false;busy=false;compactTurnLocked=false;render();popup("援軍の配置に失敗","盤上に4騎分の空きマスがありません。対局を再開してください。",[["再挑戦",()=>battle(0)]]);return}
+ // Keep the four destinations empty until each runner actually lands.
+ // This avoids Safari retaining opacity:0 on pre-rendered, hidden pieces.
+ for(const entry of arrivals)g.board[entry.y][entry.x]=null;
+ ikedayaPendingPositions.clear();
  render();
  const layer=$("compactActionLayer");layer.replaceChildren();
  try{
   storyBannerMessage("新選組、援軍到着！",0);
   await new Promise(resolve=>{playGestureAudio(compactCardVoices["援軍"],resolve,"voice",2,()=>game===epoch&&!ended);setTimeout(resolve,5000)});
+  // The reinforcements answer the command with a single battle cry as the first officer runs in.
+  playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
-   const target=entry.hand?$("storyHand0").closest(".hand-container"):$("storyBoard").children[entry.y*g.w+entry.x];
-   const rect=target?.getBoundingClientRect();
-   if(!rect)continue;
-   const width=Math.max(28,Math.min(70,rect.width*.8));
-   const runner=document.createElement("div");runner.className="oil-ambush-runner";runner.textContent=label(entry.piece);runner.setAttribute("aria-hidden","true");
-   Object.assign(runner.style,{position:"fixed",zIndex:"170",pointerEvents:"none",display:"grid",placeItems:"center",
-    left:(rect.left+(rect.width-width)/2)+"px",top:(rect.top+(rect.height-width*1.16)/2)+"px",
-    width:width+"px",height:(width*1.16)+"px",fontSize:Math.max(16,width*.45)+"px",
-    fontFamily:"system-ui,sans-serif",fontWeight:"900",color:"#fff",textShadow:"0 1px 3px #123",
-    background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'});
-   layer.append(runner);
+   const board=$("storyBoard");
+   const cell=board.children[entry.y*g.w+entry.x];
+   const boardWidth=board.clientWidth,boardHeight=board.clientHeight;
+   const cellWidth=boardWidth/g.w,cellHeight=boardHeight/g.h;
+   const width=Math.max(22,Math.min(cellWidth*.78,cellHeight*.78));
+   let runner=null;
+   if(cell){
+    // Board-local coordinates stay aligned when Safari scrolls or resizes.
+    runner=document.createElement("div");
+    runner.textContent=label(entry.piece);
+    runner.setAttribute("aria-hidden","true");
+    runner.className="ikedaya-board-runner";
+    Object.assign(runner.style,{
+     position:"absolute",zIndex:"25",pointerEvents:"none",display:"grid",placeItems:"center",
+     left:(entry.x*cellWidth+(cellWidth-width)/2)+"px",
+     top:(entry.y*cellHeight+(cellHeight-width*1.16)/2)+"px",
+     width:width+"px",height:(width*1.16)+"px",
+     // Match the visible board tokens exactly, including mobile container-query sizing.
+     fontSize:getComputedStyle(board.querySelector(".story-token:not(.enemy)")||board.querySelector(".story-token")||board).fontSize,
+     fontFamily:"system-ui,sans-serif",fontWeight:"900",
+     color:"#fff",textShadow:"0 1px 3px #123",boxSizing:"border-box",
+     background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'
+    });
+    board.append(runner);
+   }
    let feet=true;
-   const foot=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,()=>feet&&game===epoch&&!ended);
-   foot();const second=setTimeout(()=>{if(feet&&game===epoch&&!ended)foot()},390);
-   const distance=Math.max(180,innerHeight-rect.top+80);
-   if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
-    const animation=runner.animate([{opacity:0,transform:`translate(0,${distance}px) scale(.76)`},{opacity:1,offset:.2,transform:`translate(0,${distance*.7}px) scale(.9)`},{opacity:1,transform:"translate(0,0) scale(1)"}],{duration:900,easing:"ease-out",fill:"forwards"});
-    await Promise.race([animation.finished.catch(()=>{}),later(1100)]);
+   const active=()=>feet&&game===epoch&&!ended;
+   const foot=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,active);
+   foot();const second=setTimeout(()=>{if(active())foot()},390);
+   if(runner?.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+    const startY=boardHeight-(entry.y+.5)*cellHeight+width;
+    const animation=runner.animate([
+     {opacity:0,transform:`translateY(${startY}px) scale(.82)`},
+     {opacity:1,offset:.17,transform:`translateY(${startY*.8}px) scale(.9)`},
+     {opacity:1,transform:"translateY(0) scale(1)"}
+    ],{duration:1000,easing:"ease-out",fill:"forwards"});
+    await Promise.race([animation.finished.catch(()=>{}),later(1200)]);
     animation.cancel();
-   }else await later(900);
-   feet=false;clearTimeout(second);stopStoryClip("fx");runner.remove();
+   }else await later(1000);
+   feet=false;clearTimeout(second);stopStoryClip("fx");
+   runner?.remove();
    if(game!==epoch||ended)return;
-   if(!entry.hand)ikedayaPendingPositions.delete(entry.y+":"+entry.x);
+   g.board[entry.y][entry.x]=entry.piece;
    render();
    banner(0,entry.piece,true);
    await later(260);
   }
  }finally{
   layer.replaceChildren();ikedayaPendingPositions.clear();
+  // Never leave an officer invisible or missing if mobile animation aborts.
+  if(game===epoch&&!ended)for(const entry of arrivals)
+   if(!g.board[entry.y][entry.x])g.board[entry.y][entry.x]=entry.piece;
   if(game===epoch&&!ended){
    ikedayaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
    render();
+   storyBannerMessage("援軍四騎、盤上に到着！",0);
    if(g.check(g.board,0))compactSound("check");
    else if(g.check(g.board,1))compactSound("check");
    compactResumeTurn();
@@ -388,7 +417,7 @@ async function ikedayaReinforcementArrival(){
 }
 function compactResumeTurn(){
  if(ended)return;
- if(stage===0&&g?.ply===4&&g.side===0&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
+ if(stage===0&&g?.ply>=3&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -1237,7 +1266,7 @@ function makeMove(m,prom){
  const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
  // Being cornered without legal moves is not Ito's death.
  const rawResult=g.state();
- const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(stage===0&&g.ply===4&&g.side===0&&g.king(0)&&g.king(1)&&rawResult?.winner===1&&rawResult.why!=="主君討死")?null:rawResult;
+ const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(stage===0&&g.ply>=3&&!g.ikedayaReinforced&&g.king(0)&&g.king(1)&&rawResult&&rawResult.why!=="主君討死")?null:rawResult;
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
