@@ -61,7 +61,7 @@
 }
 #endOverlay.composite-victory #endVerdictGraphic,
 #storyEndOverlay.composite-victory #storyEndVerdictGraphic{
- animation:sharedVictoryFinalWord .85s ease-out 0s both!important;
+ animation:none!important;opacity:1!important;transform:translateX(-50%)!important;
 }
 @keyframes sharedVictoryWordFromRight{
  0%{opacity:0;transform:translateX(70vw) scale(1.2)}
