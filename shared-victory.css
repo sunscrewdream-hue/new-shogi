@@ -49,3 +49,39 @@
  #endOverlay.composite-victory #endVerdictGraphic,
  #storyEndOverlay.composite-victory #storyEndVerdictGraphic{bottom:106px!important;width:min(65vw,330px)!important;max-height:12dvh!important}
 }
+
+/* Figure entrances finish first. The opposing verdict marks then cross paths. */
+#endOverlay.composite-victory #endVictoryGraphic,
+#storyEndOverlay.composite-victory #storyEndVictoryGraphic{
+ animation:sharedVictoryWordFromRight .9s cubic-bezier(.2,.78,.19,1) 1.2s both!important;
+}
+#endOverlay.composite-victory #endDefeatGraphic,
+#storyEndOverlay.composite-victory #storyEndDefeatGraphic{
+ animation:sharedVictoryWordFromLeft .9s cubic-bezier(.2,.78,.19,1) 1.3s both!important;
+}
+#endOverlay.composite-victory #endVerdictGraphic,
+#storyEndOverlay.composite-victory #storyEndVerdictGraphic{
+ animation:sharedVictoryFinalWord .65s ease-out 2.2s both!important;
+}
+@keyframes sharedVictoryWordFromRight{
+ 0%{opacity:0;transform:translateX(70vw) scale(1.2)}
+ 65%{opacity:1}
+ 100%{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes sharedVictoryWordFromLeft{
+ 0%{opacity:0;transform:translateX(-70vw) scale(1.2)}
+ 65%{opacity:1}
+ 100%{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes sharedVictoryFinalWord{
+ from{opacity:0;transform:translateX(-50%) scale(1.35)}
+ to{opacity:1;transform:translateX(-50%) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ #endOverlay.composite-victory #endVictoryGraphic,
+ #endOverlay.composite-victory #endDefeatGraphic,
+ #endOverlay.composite-victory #endVerdictGraphic,
+ #storyEndOverlay.composite-victory #storyEndVictoryGraphic,
+ #storyEndOverlay.composite-victory #storyEndDefeatGraphic,
+ #storyEndOverlay.composite-victory #storyEndVerdictGraphic{animation:none!important}
+}
