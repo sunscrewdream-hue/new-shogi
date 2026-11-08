@@ -11,12 +11,12 @@
 }
 #endOverlay.composite-victory #endPanel #endWinnerImage,
 #storyEndOverlay.composite-victory #storyEndPanel #storyEndWinner{
- left:12%!important;right:auto!important;z-index:1!important;
+ left:24%!important;right:auto!important;z-index:1!important;
  animation:sharedVictoryWinner .85s cubic-bezier(.18,.85,.25,1) both!important;
 }
 #endOverlay.composite-victory #endPanel #endLoserImage,
 #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
- right:12%!important;left:auto!important;z-index:2!important;
+ right:24%!important;left:auto!important;z-index:2!important;
  animation:sharedVictoryLoser 1s cubic-bezier(.18,.85,.25,1) both!important;
 }
 @keyframes sharedVictoryWinner{from{opacity:0;transform:translateY(-80dvh)}to{opacity:1;transform:translateY(0)}}
