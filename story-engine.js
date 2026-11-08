@@ -68,7 +68,7 @@ class StoryEngine{
    for(let x=0;x<5;x++){B[0][x]=make(row[x],1);B[1][x]=make(row2[x],1);B[4][x]=make(row2[x],0);B[5][x]=make(row[x],0)}
    // Ikedaya identities occupy four existing enemy slots; preserve battle balance.
    if(this.stage===0){
-    for(const [y,x,id] of [[0,1,"yoshida"],[0,3,"kitazoe"],[1,1,"otaka"],[1,3,"sugiyama"]])B[y][x].featuredId=id;
+    for(const [y,x,id] of [[0,0,"ishikawa"],[0,1,"yoshida"],[0,3,"kitazoe"],[0,4,"mochizuki"],[1,0,"matsuda"],[1,1,"otaka"],[1,2,"hirooka"],[1,3,"sugiyama"],[1,4,"fukuoka"]])B[y][x].featuredId=id;
    }
   }else{
    for(let x=0;x<9;x++){B[0][x]=make(BACK[x],1);B[2][x]=make("歩",1);B[6][x]=make("歩",0);B[8][x]=make(BACK[x],0)}
