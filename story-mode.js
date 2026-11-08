@@ -863,12 +863,8 @@ function line(){
 function battle(i,oilFormation=null){
  // Oil-koji formation choice happens before the battle and its opening animation.
  // Only swap the friendly rook with one front-rank pawn; all other pieces stay fixed.
- if(i===2&&oilFormation===null){
-  popup("油小路・布陣を選ぶ",
-   "王将は中央固定。駒の数と動きは変わりません。\n飛車と歩を入れ替え、左・中央・右の三陣形から選びます。",
-   [["左翼の布陣",()=>battle(i,1)],["中央の布陣（標準）",()=>battle(i,2)],["右翼の布陣",()=>battle(i,3)]]);
-  return;
- }
+ // Start Oil-koji in the standard formation without a selection popup.
+ if(i===2&&oilFormation===null)oilFormation=2;
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};reinforcementSerial=0;
@@ -1091,8 +1087,8 @@ async function oilAmbushReveal(){
  }
  layer.replaceChildren();
  if(game!==epoch||ended)return;
- const message="伊東甲子太郎、討死！\n御陵衛士の伏兵が布陣した。"+(event.retreat?"\n近藤勇は後方へ退却！":"")+"\n藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
- popup("御陵衛士、伏兵出現！",message,[["応戦する",()=>{busy=false;compactTurnLocked=false;g.side=0;render()}]]);
+ // Transition directly into Act II; the arrivals themselves provide the reveal.
+ busy=false;compactTurnLocked=false;g.side=0;render();
 }
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
