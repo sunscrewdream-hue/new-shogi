@@ -1205,7 +1205,7 @@ function computer(){
    const game=epoch;
    busy=true;compactTurnLocked=true;render();
    storyBannerMessage("伊東甲子太郎「無念！」 指す手なし、パス",1);
-   sfx("loss",()=>{if(game!==epoch||ended)return;g.side=0;g.ply++;compactResumeTurn()});
+   playBattleShout("assets/audio/voice_loss_munen.mp3",()=>{if(game!==epoch||ended)return;g.side=0;g.ply++;compactResumeTurn()});
    return;
   }
   finish(0,"敵軍に指す手なし");return;
