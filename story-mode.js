@@ -370,7 +370,9 @@ async function ikedayaReinforcementArrival(){
      left:(entry.x*cellWidth+(cellWidth-width)/2)+"px",
      top:(entry.y*cellHeight+(cellHeight-width*1.16)/2)+"px",
      width:width+"px",height:(width*1.16)+"px",
-     fontSize:Math.max(14,width*.44)+"px",fontFamily:"system-ui,sans-serif",fontWeight:"900",
+     // Match the visible board tokens exactly, including mobile container-query sizing.
+     fontSize:getComputedStyle(board.querySelector(".story-token:not(.enemy)")||board.querySelector(".story-token")||board).fontSize,
+     fontFamily:"system-ui,sans-serif",fontWeight:"900",
      color:"#fff",textShadow:"0 1px 3px #123",boxSizing:"border-box",
      background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'
     });
