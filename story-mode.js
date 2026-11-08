@@ -1009,17 +1009,62 @@ function square(y,x){
  if(p?.s===1){banner(1,p);return}
  selected=p?.s===0?{y,x}:null;render();if(p)banner(p.s,p);
 }
-function oilAmbushReveal(){
+async function oilAmbushReveal(){
+ const game=epoch,board=$("storyBoard");
+ // Keep a visual copy of each friendly piece until the actual collision beat.
+ const before=[...board.children].map(cell=>cell.querySelector(".story-token")?.cloneNode(true)||null);
+ const previousKing=[...board.children].findIndex(cell=>cell.getAttribute("aria-label")?.includes("近藤勇 玉"));
  const event=g.triggerOilAmbush();
- // The ambush begins a new battle phase: incident-card turns count anew.
  if(event){g.ply=0;compactCaptures={};}
  if(!event){busy=false;render();popup("布陣を整えられません","近藤勇の退路が確保できません。再挑戦してください。",[["再挑戦",()=>battle(2)]]);return}
- const casualties=event.casualties.length;
- compactBloodMarks=event.casualties.map(p=>p.y+":"+p.x);
  busy=true;compactTurnLocked=true;selected=null;render();
- if(casualties)compactSound("slash");
- const message="伊東甲子太郎、討死！\n御陵衛士、伏兵出現！\n"+(casualties?"新選組の"+casualties+"枚が討死。\n":"")+(event.retreat?"近藤勇は後方へ退却！\n":"")+"藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
- popup("御陵衛士、伏兵出現！",message,[["応戦する",()=>{compactBloodMarks=[];busy=false;compactTurnLocked=false;g.side=0;render()}]]);
+ const casualties=new Set(event.casualties.map(p=>p.y*g.w+p.x));
+ const arrivals=[];
+ for(let y=0;y<2;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]?.s===1)arrivals.push(y*g.w+x);
+ const ghosts=new Map();
+ for(const i of casualties){
+  const old=before[i],cell=board.children[i];if(!old||!cell)continue;
+  old.classList.add("oil-ambush-victim");
+  cell.append(old);ghosts.set(i,old);
+ }
+ for(const i of arrivals){const token=board.children[i]?.querySelector(".story-token.enemy");if(token)token.style.opacity="0"}
+ if(event.retreat&&previousKing>=0){
+  const next=event.retreat.y*g.w+event.retreat.x;
+  const token=board.children[next]?.querySelector(".story-token");
+  if(token?.animate){
+   const oldRect=board.children[previousKing]?.getBoundingClientRect();
+   const newRect=board.children[next]?.getBoundingClientRect();
+   if(oldRect&&newRect)token.animate([{transform:`translate(${oldRect.left-newRect.left}px,${oldRect.top-newRect.top}px)`},{transform:"translate(0,0)"}],{duration:520,easing:"ease-out"});
+  }
+ }
+ // Reuse the approved reinforcement voice, then the desertion footsteps.
+ await new Promise(resolve=>playStoryClip(compactCardVoices["援軍"],"voice",resolve));
+ if(game!==epoch||ended)return;
+ const running=new Promise(resolve=>{compactSound("desert",resolve);setTimeout(resolve,2700)});
+ for(const i of arrivals){
+  if(game!==epoch||ended)return;
+  const cell=board.children[i],token=cell?.querySelector(".story-token.enemy");
+  if(!token)continue;
+  token.style.opacity="";
+  if(token.animate){
+   const animation=token.animate([{opacity:0,transform:"translateY(-95px) scale(.7)"},{opacity:1,transform:"translateY(0) scale(1)"}],{duration:410,easing:"cubic-bezier(.18,.78,.3,1)",fill:"forwards"});
+   await animation.finished.catch(()=>{});animation.cancel();
+  }else await later(410);
+  if(game!==epoch||ended)return;
+  if(casualties.has(i)){
+   cell.classList.add("compact-blood");
+   await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};compactSound("kill",finish);setTimeout(finish,1700)});
+   if(game!==epoch||ended)return;
+   await playCasualtyCry();
+   if(game!==epoch||ended)return;
+   ghosts.get(i)?.remove();cell.classList.remove("compact-blood");
+  }
+  await later(100);
+ }
+ await running;
+ if(game!==epoch||ended)return;
+ const message="伊東甲子太郎、討死！\n御陵衛士の伏兵が布陣した。"+(event.retreat?"\n近藤勇は後方へ退却！":"")+"\n藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
+ popup("御陵衛士、伏兵出現！",message,[["応戦する",()=>{busy=false;compactTurnLocked=false;g.side=0;render()}]]);
 }
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
