@@ -1223,20 +1223,16 @@ function computer(){
  const pit=g.oilItoDig?.();
  if(pit){
   const game=epoch;busy=true;compactTurnLocked=true;
-  // Show the crack while Ito digs; the hole opens on the final impact.
+  // Digging and filling use the same approved earth-collapse sound.
   g.holes=g.holes.filter(h=>h!==pit);
   compactQuakeCracks=[{y:pit.y,x:pit.x}];render();
   const active=()=>game===epoch&&!ended&&g?.oilPhase===1;
-  const dig=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,active);
-  dig();
-  setTimeout(()=>{if(active())dig()},280);
-  setTimeout(()=>{if(active())dig()},560);
   setTimeout(()=>{
    if(!active())return;
-   // Opening uses only dry soil strokes; collapse audio is reserved for filling.
    g.holes.push(pit);compactQuakeCracks=[];render();
-  },810);
-  setTimeout(()=>{if(!active())return;stopStoryClip("fx");computer()},1160);
+   playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx");
+  },360);
+  setTimeout(()=>{if(active())computer()},1500);
   return;
  }
  const move=g.ai();busy=false;
