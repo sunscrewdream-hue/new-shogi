@@ -6,6 +6,51 @@ const VALUES={玉:10000,飛:14,角:12,金:9,銀:7,桂:5,香:4,歩:2};
 class StoryEngine{
  constructor(stage){this.stage=stage;this.config=window.StoryData.chapters[stage];this.w=this.config.w;this.h=this.config.h;this.side=0;this.last=null;this.ply=0;this.holes=[];this.hands=[[],[]];this.fallen=[[],[]];this.allowAbandonKing=true;this.board=Array.from({length:this.h},()=>Array(this.w).fill(null));this.setup();}
  isHole(y,x){return this.holes.some(v=>v.y===y&&v.x===x&&this.ply<v.expiresPly)}
+ startOilAmbush(){
+  if(this.stage!==2)return;
+  this.oilEnemyReserve=this.board.slice(0,2).map(row=>row.map(p=>p?{...p}:null));
+  for(let y=0;y<2;y++)this.board[y].fill(null);
+  this.board[1][0]={...this.oilEnemyReserve[0][2],king:"ito"};
+  this.oilPhase=1;this.oilItoGunUsed=false;this.oilDigCount=0;this.oilVisitCounts=new Map([["1:0",1]]);
+ }
+ triggerOilAmbush(){
+  if(this.stage!==2||this.oilPhase!==1||!this.oilEnemyReserve)return null;
+  // The ambush must never start while Ito is still on the board.
+  if(this.king(1))return null;
+  const enemy=this.oilEnemyReserve.map(row=>row.map(p=>p?{...p}:null));
+  enemy[0][2]={...enemy[0][1],t:"玉",king:"todo",p:false};
+  enemy[0][1]={...enemy[0][3],uid:"1:銀:ambush",mob:1};
+  const slots=[];
+  for(let y=0;y<2;y++)for(let x=0;x<this.w;x++)if(enemy[y][x])slots.push({y,x});
+  let king=null;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)if(this.board[y][x]?.s===0&&this.board[y][x].t==="玉")king={y,x};
+  let retreat=null;
+  if(king&&slots.some(q=>q.y===king.y&&q.x===king.x)){
+   const ordered=[];
+   for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)
+    if(!slots.some(q=>q.y===y&&q.x===x)&&!this.isHole(y,x)&&this.board[y][x]===null)
+     ordered.push({y,x});
+   ordered.sort((a,b)=>b.y-a.y||Math.abs(a.x-king.x)-Math.abs(b.x-king.x));
+   for(const q of ordered){
+    const test=this.clone(this.board);
+    test[king.y][king.x]=null;test[q.y][q.x]={...this.board[king.y][king.x]};
+    for(const slot of slots)test[slot.y][slot.x]={...enemy[slot.y][slot.x]};
+    if(!this.check(test,0)){retreat=q;break}
+   }
+   if(!retreat)return null;
+   const moving=this.board[king.y][king.x];
+   this.board[king.y][king.x]=null;
+   this.board[retreat.y][retreat.x]=moving;
+  }
+  const casualties=[];
+  for(const slot of slots){
+   const p=this.board[slot.y][slot.x];
+   if(p?.s===0){casualties.push({y:slot.y,x:slot.x,cid:p.cid});this.board[slot.y][slot.x]=null}
+   this.board[slot.y][slot.x]={...enemy[slot.y][slot.x]};
+  }
+  this.oilPhase=2;this.oilEnemyReserve=null;this.side=0;this.last=null;
+  return {casualties,retreat,valid:!!this.king(0)&&!!this.king(1)&&!!this.legal(0).length};
+ }
  setup(){
   const used=[{},{}],make=(t,s)=>{
    const n=used[s][t]||0;used[s][t]=n+1;
@@ -21,10 +66,42 @@ class StoryEngine{
   if(this.w===5){
    const row=["金","銀","玉","銀","金"],row2=["歩","歩","飛","歩","歩"];
    for(let x=0;x<5;x++){B[0][x]=make(row[x],1);B[1][x]=make(row2[x],1);B[4][x]=make(row2[x],0);B[5][x]=make(row[x],0)}
+   // Six historical officers enter Ikedaya; four more arrive on turn three.
+   for(const [y,x,cid] of [[5,0,9],[5,1,5],[5,2,0],[5,3,7],[5,4,18],[4,2,2],[4,0,1],[4,1,3],[4,3,8],[4,4,6]])if(this.stage===0)B[y][x].cid=cid;
+   // Ikedaya identities occupy four existing enemy slots; preserve battle balance.
+   if(this.stage===0){
+    for(const [y,x,id] of [[0,0,"ishikawa"],[0,1,"yoshida"],[0,3,"kitazoe"],[0,4,"mochizuki"],[1,0,"matsuda"],[1,1,"otaka"],[1,2,"hirooka"],[1,3,"sugiyama"],[1,4,"fukuoka"]])B[y][x].featuredId=id;
+    this.ikedayaReserve=[[4,0],[4,1],[4,3],[4,4]].map(([y,x])=>({y,x,piece:B[y][x]}));
+    for(const entry of this.ikedayaReserve)B[entry.y][entry.x]=null;
+    this.ikedayaReinforced=false;
+   }
   }else{
    for(let x=0;x<9;x++){B[0][x]=make(BACK[x],1);B[2][x]=make("歩",1);B[6][x]=make("歩",0);B[8][x]=make(BACK[x],0)}
    B[1][1]=make("飛",1);B[1][7]=make("角",1);B[7][1]=make("角",0);B[7][7]=make("飛",0);
   }
+ }
+ deployIkedayaReinforcements(){
+  if(this.stage!==0||this.ikedayaReinforced||!this.ikedayaReserve)return null;
+  this.ikedayaReinforced=true;
+  const placements=[];
+  for(const entry of this.ikedayaReserve){
+   const candidates=[];
+   for(let y=this.h-1;y>=2;y--)for(let x=0;x<this.w;x++){
+    if(this.board[y][x]||this.isHole(y,x))continue;
+    const test=this.clone(this.board);test[y][x]=entry.piece;
+    if(this.check(test,0))continue;
+    candidates.push({y,x,score:Math.abs(y-entry.y)*10+Math.abs(x-entry.x)});
+   }
+   candidates.sort((a,b)=>a.score-b.score||b.y-a.y||a.x-b.x);
+   if(candidates.length){
+    const {y,x}=candidates[0];this.board[y][x]=entry.piece;
+    placements.push({piece:entry.piece,y,x,hand:false});
+   }else{
+    this.hands[0].push(entry.piece);
+    placements.push({piece:entry.piece,hand:true});
+   }
+  }
+  return placements;
  }
  clone(B){return B.map(r=>r.map(p=>p?{...p}:null))}
  handClone(H){return H.map(a=>a.map(p=>({...p})))}
@@ -96,6 +173,7 @@ class StoryEngine{
   const unit=m.drop?this.hands[this.side].find(p=>p.t===m.t):this.board[m.y][m.x];
   const captured=this.act(this.board,this.hands,this.side,m,prom,kill);
   if(kill&&captured&&captured.t!=="玉")this.fallen[captured.s].push({...captured,p:false});
+  if(this.stage===2&&this.oilPhase===1&&this.side===1){const k=m.Y+":"+m.X;this.oilVisitCounts?.set(k,(this.oilVisitCounts.get(k)||0)+1)}
   this.last={y:m.Y,x:m.X};this.ply++;this.holes=this.holes.filter(v=>this.ply<v.expiresPly);this.side=1-this.side;
   return {unit,captured};
  }
@@ -115,7 +193,99 @@ class StoryEngine{
   }
   return score;
  }
- ai(){const ms=this.legal(1);if(!ms.length)return null;return ms.map(m=>({m,score:this.score(m,this.config.level)})).sort((a,b)=>b.score-a.score)[0].m}
+ oilItoDig(){
+  // Oil-koji first act only. One pit may exist at a time.
+  if(this.stage!==2||this.oilPhase!==1||this.side!==1||this.holes.length||(this.oilDigCount||0)>=3)return null;
+  let king=null;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)if(this.board[y][x]?.king==="ito")king={y,x};
+  if(!king)return null;
+  const escapes=this.legal(1);
+  if(escapes.length>3&&!this.check(this.board,1))return null;
+  const kingEscape=new Set(escapes.map(m=>m.Y+":"+m.X));
+  const humanMoves=this.legal(0);
+  const threat=m=>Math.max(Math.abs(m.Y-king.y),Math.abs(m.X-king.x))<=2;
+  const oldThreat=humanMoves.filter(threat).length;
+  let best=null,bestScore=0;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
+   if(this.board[y][x]||this.isHole(y,x)||kingEscape.has(y+":"+x))continue;
+   const distance=Math.max(Math.abs(y-king.y),Math.abs(x-king.x));
+   if(distance>2||distance===0)continue;
+   const hole={y,x,expiresPly:this.ply+6};this.holes.push(hole);
+   const own=this.legal(1).length,opponent=this.legal(0);
+   const block=oldThreat-opponent.filter(threat).length;
+   const safe=own>0&&!this.check(this.board,1);
+   this.holes.pop();
+   if(!safe)continue;
+   // A pit should block a real approach, not merely decorate an empty square.
+   const score=block*8+(humanMoves.some(m=>m.Y===y&&m.X===x)?4:0)-Math.max(0,escapes.length-own)*9-distance;
+   if(score>bestScore){bestScore=score;best=hole}
+  }
+  if(best){this.holes.push(best);this.oilDigCount=(this.oilDigCount||0)+1}
+  return best;
+ }
+ oilItoGunTarget(){
+  if(this.stage!==2||this.oilPhase!==1||this.oilItoGunUsed)return null;
+  let ito=null;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++)
+   if(this.board[y][x]?.king==="ito")ito={y,x};
+  if(!ito)return null;
+  let best=null,score=-Infinity;
+  for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
+   const victim=this.board[y][x];if(victim?.s!==0||victim.t==="玉")continue;
+   this.board[y][x]=null;
+   const exits=this.legal(1).length,stillChecked=this.check(this.board,1);
+   this.board[y][x]=victim;
+   const distance=Math.max(Math.abs(ito.y-y),Math.abs(ito.x-x));
+   const value=exits*50-(stillChecked?80:0)-distance*3;
+   if(value>score){score=value;best={x,y,fromX:ito.x,fromY:ito.y,side:1,hit:victim}}
+  }
+  return best;
+ }
+ oilItoAi(ms){
+  // One defender against a full army: optimize the WORST plausible reply.
+  // This is defensive minimax, not the normal attack-oriented material score.
+  const reserveSlots=new Set();
+  for(let y=0;y<2;y++)for(let x=0;x<this.w;x++)if(this.oilEnemyReserve?.[y]?.[x])reserveSlots.add(y*this.w+x);
+  let best=ms[0],bestScore=-Infinity;
+  for(const move of ms){
+   const B=this.clone(this.board),H=this.handClone(this.hands);
+   this.act(B,H,1,move);
+   // Check the most forcing human replies first; keep mobile search bounded.
+   const responsePriority=r=>{
+    const p=r.drop?H[0].find(v=>v.t===r.t):B[r.y][r.x];
+    const distance=Math.max(Math.abs(r.Y-move.Y),Math.abs(r.X-move.X));
+    return (B[r.Y][r.X]?.s===1?120:0)+(distance<=1?50:0)
+      +(p?.t==="飛"?12:0)+(r.Y<=2?8:0)-distance*8;
+   };
+   const responses=this.legal(0,B,H,false).sort((a,b)=>responsePriority(b)-responsePriority(a)).slice(0,14);
+   let worst=Infinity;
+   for(const response of responses){
+    const next=this.clone(B),hands=this.handClone(H);
+    this.act(next,hands,0,response);
+    const escape=this.legal(1,next,hands,false);
+    let value;
+    if(!escape.length)value=-500;
+    else{
+     const destinations=new Set(escape.map(m=>m.Y*this.w+m.X));
+     const lateral=new Set(escape.map(m=>m.X));
+     const pressure=this.check(next,1)?12:0;
+     const bait=[...reserveSlots].filter(k=>next[Math.floor(k/this.w)][k%this.w]?.s===0).length;
+     value=destinations.size*12+lateral.size*3-pressure+bait*2;
+    }
+    if(value<worst)worst=value;
+   }
+   if(!responses.length)worst=90;
+   const key=move.Y+":"+move.X;
+   const repeated=this.oilVisitCounts?.get(key)||0;
+   // Prefer escape routes that retain room, but keep the chase near the ambush ranks.
+   const score=worst-repeated*15+Math.max(0,3-move.Y)*2+Math.random()*.15;
+   if(score>bestScore){bestScore=score;best=move}
+  }
+  return best;
+ }
+ ai(){const ms=this.legal(1);if(!ms.length)return null;
+  if(this.stage===2&&this.oilPhase===1)return this.oilItoAi(ms);
+  return ms.map(m=>({m,score:this.score(m,this.config.level)})).sort((a,b)=>b.score-a.score)[0].m}
  fire(kind,side=1){
   const x=Math.floor(Math.random()*this.w);
   if(kind==="cannon"){

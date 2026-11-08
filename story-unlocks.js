@@ -23,10 +23,10 @@
  const explanation=panel.querySelector('#storyUnlockExplanation');
  const cleared=()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
  const cssAssets={
-  ikedaya:'assets/story/ikedaya-bg-v2.webp',
-  kinmon:'assets/story/kinmon-bg-v2.webp',
-  aburanokoji:'assets/story/aburanokoji-bg-v2.webp',
-  tobafushimi:'assets/story/tobafushimi-bg-v2.webp'
+  ikedaya:'assets/backgrounds/story/ikedaya-bg-v2.webp',
+  kinmon:'assets/backgrounds/story/kinmon-bg-v2.webp',
+  aburanokoji:'assets/backgrounds/story/aburanokoji-bg-v2.webp',
+  tobafushimi:'assets/backgrounds/story/tobafushimi-bg-v2.webp'
  };
  function updateAppearance(){
   match.setAttribute('data-unlocked-field',selected);
@@ -34,8 +34,8 @@
   // Keep the 9x9 board, cell hit targets and piece geometry completely unchanged.
   // The two 9x9 chapter grounds were specifically designed for these coordinates.
   const boardImages={
-   kinmon:'url("assets/story/board-kinmon-ground-v2.webp")',
-   tobafushimi:'url("assets/story/board-tobafushimi-ground-v2.webp")'
+   kinmon:'url("assets/boards/story/board-kinmon-ground-v2.webp")',
+   tobafushimi:'url("assets/boards/story/board-tobafushimi-ground-v2.webp")'
   };
   match.style.backgroundImage=boardImages[selected]||'';
   // The 5x6 story chapters supply scenery only, not a stretched 5x6 chessboard.

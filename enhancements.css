@@ -105,7 +105,6 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #endVictoryGraphic{left:2%;top:23%;width:min(29vw,350px)!important;max-height:34dvh}
 #endDefeatGraphic{right:5%;top:62%;width:min(23vw,270px)!important;max-height:25dvh}
 #endPanel.result-draw .end-result-calligraphy{display:none}
-#endPanel #endResponsiveScene{display:contents}
 @media(orientation:portrait){
  #endPanel .endIllustration#endWinnerImage{top:1%!important;left:50%!important;width:min(96vw,48dvh)!important;max-width:96vw!important;height:calc(100dvh - 112px)!important;object-fit:contain!important;object-position:center center!important}
  #endVictoryGraphic{left:0;top:23%;width:42vw!important;max-height:30dvh}

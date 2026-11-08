@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>将棋の遊び方｜新選組将棋</title>
+<title>将棋の基本ルール｜新選組将棋</title>
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;color:#f5eedc;background:linear-gradient(#10161ee8,#1b1922ee),url('kyoto-autumn.webp') center/cover fixed;font-family:system-ui,"Hiragino Kaku Gothic ProN",sans-serif;line-height:1.7}
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;color:#f5eedc;background:#e5d3b4;font-family:system-ui,"Hiragino Kaku Gothic ProN",sans-serif;line-height:1.7}
 main{max-width:800px;margin:auto;padding:15px 14px 60px}header{text-align:center;margin:10px auto 28px}header img{display:block;width:min(85%,480px);margin:0 auto 14px}h1{font-size:clamp(24px,7vw,35px);color:#f4d391}h2{border-left:5px solid #cba35b;padding-left:12px;margin-top:34px;color:#ffe9bc;font-size:1.25rem}
 a{color:#b9edfa}.nav{display:inline-block;padding:10px 18px;margin:10px;border:1px solid #d6b980;border-radius:9px;text-decoration:none;color:#f8ecdc;background:#253946}
 section{background:#17181cde;border:1px solid #aa8d6655;padding:13px 16px;border-radius:11px;margin:16px 0}
@@ -15,8 +15,8 @@ section{background:#17181cde;border:1px solid #aa8d6655;padding:13px 16px;border
 .note{padding:10px;background:#2c302e;border-left:4px solid #84bcb9}
 table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;border-bottom:1px solid #75664a;text-align:left;vertical-align:top}th{color:#f8db9e}strong{color:#ffdfaa}
 @media(max-width:440px){main{padding:10px}section{padding:12px}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{padding:7px;font-size:.9rem} .move{grid-template-columns:repeat(3,23px);grid-template-rows:repeat(3,23px)}.move.knight{grid-template-rows:repeat(5,23px)}}
-</style></head>
-<body><main><header><img src="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" alt="新選組将棋" loading="eager"><h1>将棋の遊び方</h1><p>初めての方にも分かる、盤上の戦いの基本</p><a class="nav" href="card-ai-test.html">対局画面へ戻る</a></header>
+</style><link rel="stylesheet" href="page-navigation.css?v=20261108a"></head>
+<body><main><nav class="page-nav" aria-label="ページ案内"><a class="page-nav-link" href="card-ai-test.html">タイトルへ戻る</a><a class="page-nav-link" href="collection.html">人物コレクション</a><a class="page-nav-link" href="history.html">新選組の歴史</a><a class="page-nav-link" href="manual.html">新選組将棋の遊び方</a><a class="page-nav-link" href="rules.html" aria-current="page">将棋の基本ルール</a></nav><header><img src="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" alt="新選組将棋" loading="eager"><h1>将棋の基本ルール</h1><p>初めての方にも分かる、盤上の戦いの基本</p></header>
 <section><h2>1. 将棋はどうすれば勝ち？</h2><p class="lead">相手の<strong>王（玉）</strong>を逃げられない状態にする「<strong>詰み</strong>」を目指すゲームです。</p>
 <p>盤は縦9マス×横9マス。自分の駒を一手ずつ動かし、相手の駒があるマスへ進めばその駒を取れます。自分の駒がある場所へは進めません。</p>
 <p><strong>王手</strong>は「次に王を取れる位置にいる」という警告です。王手されたら、王を逃がす・攻撃駒を取る・攻撃の間に駒を置くなど、必ず王手を解消してください。</p></section>
@@ -45,7 +45,7 @@ table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;bor
 <tr><th>大地震</th><td>盤と背景が揺れ、一部の駒が安全な隣接マスへ移動する</td></tr>
 </tbody></table><p>事件札の抽選確率は調整中です。王将を直接退場させるなど、将棋の勝敗原則を壊す事件は発動しません。</p></section>
 <section><h2>7. 遊び始めるには</h2><p>対局画面で「いざ、出陣」をタップ。自分の駒を選び、色が付いた移動可能マスをタップすれば動かせます。赤く点滅する駒は王手をかけている刺客です。</p><p>途中でやめる場合は「降参」か「タイトルへ戻る」を選びます。</p></section>
-<div style="text-align:center"><a class="nav" href="card-ai-test.html">新選組将棋へ戻る</a></div>
+<div style="text-align:center"><a class="page-return" href="card-ai-test.html">タイトルへ戻る</a></div>
 </main><script>
 const data=[
 ['歩','前に1マス',[0,1,0,0,0,0,0,0]],

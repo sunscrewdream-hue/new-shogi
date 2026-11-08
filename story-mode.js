@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0;
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set();
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -20,7 +20,7 @@ function unlockBattleVoice(){
 }
 document.addEventListener("pointerdown",unlockBattleVoice,{passive:true});
 document.addEventListener("touchstart",unlockBattleVoice,{passive:true});
-function playGestureAudio(path,onDone,channel="voice"){
+function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=null){
  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden){onDone?.();return}
  const context=unlockBattleVoice();if(!context){playStoryClip(path,channel,onDone);return}
  let loading=battleVoiceBuffers.get(path);
@@ -31,20 +31,20 @@ function playGestureAudio(path,onDone,channel="voice"){
  let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},9000);
  const finish=()=>{if(settled)return;settled=true;clearTimeout(watchdog);onDone?.()};
  Promise.resolve(loading).then(buffer=>{
-  if(!voiceEnabled||document.hidden){finish();return}
+  if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden||(isStillValid&&!isStillValid())){finish();return}
   stopStoryClip(channel);
   const previous=channel==="voice"?battleVoiceActive:battleImpactActive;
   if(previous){try{previous.stop()}catch(e){}}
-  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=channel==="voice"?voiceLevel():fxLevel();source.connect(gain).connect(context.destination);
+  const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=Math.min(1,(channel==="voice"?voiceLevel():fxLevel())*gainBoost);source.connect(gain).connect(context.destination);
   if(channel==="voice")battleVoiceActive=source;else battleImpactActive=source;
   source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;if(battleImpactActive===source)battleImpactActive=null;finish()};
-  context.resume().then(()=>source.start()).catch(()=>{playStoryClip(path,channel,finish)});
+  context.resume().then(()=>{if(isStillValid&&!isStillValid()){finish();return}source.start()}).catch(()=>{if(isStillValid&&!isStillValid()){finish();return}playStoryClip(path,channel,finish)});
  }).catch(()=>playStoryClip(path,channel,finish));
 }
 function playBattleShout(path,onDone){playGestureAudio(path,onDone,"voice")}
 // Cannon impact needs its own channel: shot, hit cry and other FX must not
 // interrupt the explosion halfway through.
-const cannonImpactAudio=new Audio("assets/story/audio/master_explosion.mp3");
+const cannonImpactAudio=new Audio("assets/audio/story/master_explosion.mp3");
 cannonImpactAudio.preload="auto";cannonImpactAudio.playsInline=true;
 function playCannonImpact(){
  if(!fxEnabled||document.hidden||storyVolume<=0)return;
@@ -78,7 +78,7 @@ function playStoryClip(path,channel="fx",onDone=null){
  if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish);watchdog=setTimeout(()=>{console.warn("音声終了通知タイムアウト",path);finish()},9000)}
  a.play().catch(finish);return a;
 }
-const kabukiVoice={promotion:"assets/story/audio/master_kabuki_promotion_v1.mp3",cannon:"assets/story/audio/master_kabuki_cannon_v1.mp3",rifle:"assets/story/audio/master_kabuki_rifle_v1.mp3",awakening:"assets/story/audio/master_kabuki_awakening_v1.mp3",kill:"assets/story/audio/master_kabuki_kill_v1.mp3"};
+const kabukiVoice={promotion:"assets/audio/story/master_kabuki_promotion_v1.mp3",cannon:"assets/audio/story/master_kabuki_cannon_v1.mp3",rifle:"assets/audio/story/master_kabuki_rifle_v1.mp3",awakening:"assets/audio/story/master_kabuki_awakening_v1.mp3",kill:"assets/audio/story/master_kabuki_kill_v1.mp3"};
 function playKabukiVoice(kind){return new Promise(resolve=>{
  const path=kabukiVoice[kind];if(!path)return resolve();
  playStoryClip(path,"voice",resolve);
@@ -87,7 +87,7 @@ function playCasualtyCry(){return new Promise(resolve=>{
  // Dedicated 「ぎゃあ！」 from the user's three-line 2026-11-05 recording.
  // Hold the sequence until this shout actually finishes.
  let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
- playStoryClip("assets/story/audio/master_battle_gyah_v1.mp3","voice",done);
+ playBattleShout("assets/audio/story/master_battle_gyah_v1.mp3",done);
  setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
@@ -99,10 +99,10 @@ function sfx(t,onDone=null){
  if(t==="blast"){window.StoryBgm?.duck();playCannonImpact();onDone?.();return}
  if(t==="cannon"||t==="rifle"){
   window.StoryBgm?.duck();
-  playStoryClip("assets/story/audio/master_"+t+".mp3","fx",onDone);return;
+  playStoryClip("assets/audio/story/master_"+t+".mp3","fx",onDone);return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/story/audio/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/audio/story/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/story/master_samurai_loss_v1.mp3"};
  if(files[t]){if(t==="capture")playBattleShout(files[t],onDone);else playStoryClip(files[t],["win","loss"].includes(t)?"voice":"fx",onDone);return}
  onDone?.();
  // No legacy synthesized fallback: only approved recorded assets are played.
@@ -111,9 +111,9 @@ function sfx(t,onDone=null){
 // Historical 5x6-only gating silently disabled cards, capture escorts, turn notices,
 // awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
 function compactMode(){return stage>=0&&stage<D.chapters.length}
-const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp","大砲":"assets/story/cards/cannon-v2.webp","鉄砲":"assets/story/cards/rifle-v2.webp"};
+const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp","大砲":"assets/cards/weapons/cannon-v2.webp","鉄砲":"assets/cards/weapons/rifle-v2.webp"};
 const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]];
-const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
+const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/audio/story/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
 // Awakening counts belong to a person, even after capture and redeployment.
 function compactFighterKey(p){
  return window.ShinsengumiBattleRules.fighterKey(p);
@@ -126,7 +126,7 @@ const compactAudio={
  // The 0.98-second enemy take was masked during the capture escort on phones.
  // Use the same audible, approved 1.75-second 「捕らえた！」 as the player.
  sacchoCapture:"assets/audio/voice_capture_toraeta.mp3",
- sacchoLoss:"assets/story/audio/master_enemy_loss_v4.mp3",
+ sacchoLoss:"assets/audio/story/master_enemy_loss_v4.mp3",
  saigo:"assets/audio/voice_saigo_takamori.mp3",
  kido:"assets/audio/voice_kido_takayoshi.mp3",
  sacchoCheck:"assets/audio/saccho_voice_06_korede_saigo.mp3",
@@ -137,7 +137,7 @@ const compactAudio={
  banner:"assets/audio/sfx/taiko_dodon.mp3",
  quake:"assets/audio/sfx/rumble.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
- desert:"assets/story/audio/master_gravel_run_v2.mp3",
+ desert:"assets/audio/story/master_gravel_run_v2.mp3",
  reinforce:"assets/audio/sfx/taiko_dodon.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
  // One approved impact sound for purge, lethal slash and rifle casualties.
@@ -163,7 +163,7 @@ async function compactFadeExpiredHoles(game){
  // Play the treated first second of the cliff collapse while the hole fades.
  // The turn/card queue may only resume once BOTH the sound and fade have ended.
  await Promise.all([
-  new Promise(resolve=>playStoryClip("assets/story/audio/master_cliffcollapse_1s_v1.mp3","fx",resolve)),
+  new Promise(resolve=>playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx",resolve)),
   later(1350)
  ]);
  if(game!==epoch)return;
@@ -202,10 +202,12 @@ function compactPickCard(side){
 }
 function compactCardInterval(){return stage===3?3:4}
 function compactCardDue(actor){
+ if(stage===2)return g?.oilPhase===2&&g.ply>0&&g.ply%4===0;
  if(stage===3)return g.ply>=5&&(g.ply-5)%3===0; // Alternate sides; avoid back-to-back incidents.
  const cycle=compactCardInterval()*2;return g.ply%cycle===(actor===0?cycle-1:0);
 }
 function compactCardRemaining(){
+ if(stage===2&&g?.oilPhase===2)return 2-Math.floor((g.ply%4)/2);
  if(stage===3)return Math.max(1,Math.ceil(((g.ply<5?5:5+Math.ceil((g.ply-4)/3)*3)-g.ply)/2));
  const cycle=compactCardInterval()*2;return compactCardInterval()-Math.floor((g.ply%cycle)/2);
 }
@@ -315,7 +317,7 @@ $("compactCardFace").onclick=()=>{
    const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
-   $("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent="";
+   $("compactCardArtwork").src=`assets/cards/weapons/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent="";
    window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
     $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
    },{valid:()=>pendingWeaponDisplay===item});
@@ -334,8 +336,59 @@ $("compactCardFace").onclick=()=>{
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
 };
 function faceIsWeaponReady(){return $("compactCardFace").classList.contains("card-text-ready")}
+async function ikedayaReinforcementArrival(){
+ const game=epoch;ikedayaReinforcing=true;busy=true;compactTurnLocked=true;selected=null;
+ const arrivals=g.deployIkedayaReinforcements();
+ if(!arrivals){ikedayaReinforcing=false;compactResumeTurn();return}
+ ikedayaPendingPositions=new Set(arrivals.filter(p=>!p.hand).map(p=>p.y+":"+p.x));
+ render();
+ const layer=$("compactActionLayer");layer.replaceChildren();
+ try{
+  storyBannerMessage("新選組、援軍到着！",0);
+  await new Promise(resolve=>{playGestureAudio(compactCardVoices["援軍"],resolve,"voice",2,()=>game===epoch&&!ended);setTimeout(resolve,5000)});
+  for(const entry of arrivals){
+   if(game!==epoch||ended)return;
+   const target=entry.hand?$("storyHand0").closest(".hand-container"):$("storyBoard").children[entry.y*g.w+entry.x];
+   const rect=target?.getBoundingClientRect();
+   if(!rect)continue;
+   const width=Math.max(28,Math.min(70,rect.width*.8));
+   const runner=document.createElement("div");runner.className="oil-ambush-runner";runner.textContent=label(entry.piece);runner.setAttribute("aria-hidden","true");
+   Object.assign(runner.style,{position:"fixed",zIndex:"170",pointerEvents:"none",display:"grid",placeItems:"center",
+    left:(rect.left+(rect.width-width)/2)+"px",top:(rect.top+(rect.height-width*1.16)/2)+"px",
+    width:width+"px",height:(width*1.16)+"px",fontSize:Math.max(16,width*.45)+"px",
+    fontFamily:"system-ui,sans-serif",fontWeight:"900",color:"#fff",textShadow:"0 1px 3px #123",
+    background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'});
+   layer.append(runner);
+   let feet=true;
+   const foot=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,()=>feet&&game===epoch&&!ended);
+   foot();const second=setTimeout(()=>{if(feet&&game===epoch&&!ended)foot()},390);
+   const distance=Math.max(180,innerHeight-rect.top+80);
+   if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+    const animation=runner.animate([{opacity:0,transform:`translate(0,${distance}px) scale(.76)`},{opacity:1,offset:.2,transform:`translate(0,${distance*.7}px) scale(.9)`},{opacity:1,transform:"translate(0,0) scale(1)"}],{duration:900,easing:"ease-out",fill:"forwards"});
+    await Promise.race([animation.finished.catch(()=>{}),later(1100)]);
+    animation.cancel();
+   }else await later(900);
+   feet=false;clearTimeout(second);stopStoryClip("fx");runner.remove();
+   if(game!==epoch||ended)return;
+   if(!entry.hand)ikedayaPendingPositions.delete(entry.y+":"+entry.x);
+   render();
+   banner(0,entry.piece,true);
+   await later(260);
+  }
+ }finally{
+  layer.replaceChildren();ikedayaPendingPositions.clear();
+  if(game===epoch&&!ended){
+   ikedayaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
+   render();
+   if(g.check(g.board,0))compactSound("check");
+   else if(g.check(g.board,1))compactSound("check");
+   compactResumeTurn();
+  }
+ }
+}
 function compactResumeTurn(){
- if(ended)return;busy=false;compactTurnLocked=true;render();const game=epoch;
+ if(ended)return;
+ if(stage===0&&g?.ply===4&&g.side===0&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -454,7 +507,7 @@ function compactApplyIncident(effect){
      setTimeout(()=>{
       if(game!==epoch||quakeFinished)return;
       compactQuakeCracks=[];
-      if(chosen.length)playStoryClip("assets/story/audio/master_cliffcollapse_1s_v1.mp3","fx");
+      if(chosen.length)playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx");
       for(const hole of chosen)if(!g.board[hole.y][hole.x])g.holes.push(hole);
       render();
      },650);
@@ -504,7 +557,7 @@ function compactApplyIncident(effect){
    // never play its unrelated 「助太刀致す」 second half.
    let escortDone=false,voiceDone=false,completed=false;
    const resume=()=>{if(completed)return;if(escortDone&&voiceDone){completed=true;finish()}};
-   playGestureAudio("assets/story/audio/master_battle_gomen_v1.mp3",()=>{voiceDone=true;resume()},"voice");
+   playGestureAudio("assets/audio/story/master_battle_gomen_v1.mp3",()=>{voiceDone=true;resume()},"voice");
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
    // Safari can discard animation.finished or audio ended when the page scrolls.
    // The board/hand mutation above is already complete; always unlock the turn.
@@ -542,7 +595,7 @@ function compactApplyIncident(effect){
 function compactIntro(){
  if(!compactMode())return;
  const game=epoch,root=$("compactIntroClash");root.classList.remove("show");void root.offsetWidth;root.classList.add("show");
- setTimeout(()=>{if(game===epoch&&root.classList.contains("show"))compactSound("slash")},1010);
+ setTimeout(()=>{if(game===epoch&&root.classList.contains("show"))compactSound("slash")},840);
  setTimeout(()=>{if(game!==epoch||ended)return;root.classList.remove("show");compactTurnLocked=true;render();
   setTimeout(()=>{if(game===epoch&&!ended){busy=false;compactTurn(0,null,true)}},450);
  },2600);
@@ -571,14 +624,8 @@ function compactTurn(side,after,opening=false){
  // The opening battle position is already anchored before the VS sequence.
  compactTurnLocked=true;
  const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
- // Keep the existing scroll position throughout a match. Recentring the page
- // on every turn made the board jump vertically on desktop browsers.
- // The turn graphic itself is still positioned over the board's current center.
- const viewportHeight=window.visualViewport?.height||window.innerHeight;
- const viewportTop=window.visualViewport?.offsetTop||0;
- const boardRect=$("storyBoard").getBoundingClientRect();
- const boardCenterY=boardRect.top+boardRect.height/2;
- panel.style.setProperty("--turn-center-offset",Math.round(boardCenterY-(viewportTop+viewportHeight/2))+"px");
+ // All battle sizes use the same board-relative turn presentation routine.
+ window.ShinsengumiTurnPresentation.place($("storyBoard"),panel,'offset');
  const title=side===0?"新選組の手番！":"敵軍の手番！";
  art.src=side===0?"assets/turn-notice/turn_shinsengumi_illustrated.png":"assets/turn-notice/turn_enemy_illustrated.png";
  art.alt=title;art.style.display="block";fallback.textContent=title;fallback.classList.add("hidden");
@@ -627,7 +674,14 @@ function popup(title,text,options,img){
  modal.classList.remove("hidden");
 }
 function collect(p){
- if(devPreview||debugModified||!p||p.cid==null)return;
+ if(devPreview||debugModified||!p)return;
+ if(p.featuredId){
+  const ids={ishikawa:40,yoshida:41,kitazoe:42,mochizuki:43,matsuda:44,otaka:45,hirooka:46,sugiyama:47,fukuoka:48};
+  const id=ids[p.featuredId];if(id==null)return;
+  try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+person(p).name,0)}}catch(e){}
+  return;
+ }
+ if(p.cid==null)return;
  const id=(p.origin===0?0:20)+p.cid;
  if(id<0||id>=40)return;
  try{const owned=JSON.parse(localStorage.getItem(COL)||"[]");if(Array.isArray(owned)&&!owned.includes(id)){owned.push(id);localStorage.setItem(COL,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+person(p).name,0)}}catch(e){}
@@ -636,7 +690,11 @@ function person(p){
  if(!p)return{name:"",role:"",img:""};
  const king=p.king;
  if(king==="miyabe")return{name:"宮部鼎蔵",role:"尊攘派志士",img:"assets/dialogue_banners/miyabe_banner.webp?v=miyabe-framing-20261107b"};
- if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士（仮画像）",img:"assets/dialogue_banners/person_08.webp"};
+ if(p.featuredId){
+  const featured={ishikawa:["石川潤次郎","土佐藩士"],yoshida:["吉田稔麿","長州藩士"],kitazoe:["北添佶摩","土佐出身の尊攘派志士"],mochizuki:["望月亀弥太","土佐藩士"],matsuda:["松田重助","肥後藩士"],otaka:["大高又次郎","播磨林田藩出身の志士"],hirooka:["広岡浪秀","長州系の尊攘派志士"],sugiyama:["杉山松助","長州藩士"],fukuoka:["福岡祐次郎","伊予松山出身の志士"]}[p.featuredId];
+  if(featured)return{name:featured[0],role:featured[1],img:"assets/cards/back/card-back-saccho-1024x1536.webp"};
+ }
+ if(king==="ito")return{name:"伊東甲子太郎",role:"御陵衛士・盟主",img:"assets/dialogue_banners/ito_kashitaro_banner.webp"};
  if(king==="kusaka")return{name:"久坂玄瑞",role:"長州藩士",img:"assets/dialogue_banners/person_38.webp?v=face-final-20261107"};
  if(king==="saigo")return{name:"西郷隆盛",role:"新政府軍・薩摩藩",img:"assets/dialogue_banners/person_21.webp?v=face-final-20261107"};
  if(king==="todo")return{name:"藤堂平助",role:"御陵衛士",img:"assets/dialogue_banners/person_08.webp?v=face-final-20261107"};
@@ -644,7 +702,7 @@ function person(p){
   const data=(p.origin===0?D.F:D.E)[p.cid];
   if(data)return{name:data[0],role:data[1],img:"assets/dialogue_banners/person_"+String((p.origin===0?1:21)+p.cid).padStart(2,"0")+".webp?v=face-final-20261107"};
  }
- const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/story/mobs/"+m[2]};
+ const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/characters/mobs/"+m[2]};
 }
 const storyBannerTimers=[null,null];
 function banner(s,p,hold=false){
@@ -720,26 +778,16 @@ function restoreStoryHover(){
  $(prefix+"StoryName").textContent=saved.name;$(prefix+"StoryRole").textContent=saved.role;
  const art=$(prefix+"StoryArt");if(saved.src)art.src=saved.src;
 }
-function storyCellFromPointer(event){
- const root=$("storyBoard"),cell=event.target.closest?.(".sq");
- if(!cell||!root.contains(cell)||!g)return null;
- const i=Array.prototype.indexOf.call(root.children,cell),y=Math.floor(i/g.w),x=i%g.w;
- return {cell,y,x,p:g.board[y]?.[x]};
-}
-$("storyBoard").addEventListener("pointerover",event=>{
- if(event.pointerType!=="mouse")return;
- if(!canPreviewStoryHover()){restoreStoryHover();return}
- const unit=storyCellFromPointer(event);
- if(unit?.p)previewStoryUnit(unit.p);else restoreStoryHover();
+const storyPieceHover=window.ShinsengumiPieceHover.bind({
+ root:$("storyBoard"),
+ getPiece:index=>g?.board[Math.floor(index/g.w)]?.[index%g.w],
+ canPreview:canPreviewStoryHover,
+ onPreview:previewStoryUnit,
+ onClear:restoreStoryHover
 });
-$("storyBoard").addEventListener("pointerout",event=>{
- if(event.pointerType!=="mouse")return;
- const unit=storyCellFromPointer(event);
- if(unit&&!unit.cell.contains(event.relatedTarget))restoreStoryHover();
-});
-$("storyBoard").addEventListener("pointerleave",restoreStoryHover);
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
+ storyPieceHover.reset();
  stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};restoreStoryHover();window.StoryBgm?.stop();
@@ -758,17 +806,17 @@ function screenHome(){
  const caption=document.createElement("h2");caption.textContent="王将コレクション　"+owned.length+" / 4";collection.append(caption);
  const cards=document.createElement("div");cards.className="story-king-grid";
  const profile=[
-  {id:"miyabe",name:"宮部鼎蔵",subtitle:"尊王攘夷派・池田屋事件",text:"肥後出身の尊攘派志士。池田屋事件で命を落とした。",art:"assets/collection/38.webp",temporaryArt:true},
+  {id:"miyabe",name:"宮部鼎蔵",subtitle:"尊王攘夷派・池田屋事件",text:"肥後出身の尊攘派志士。池田屋事件で命を落とした。",art:"assets/collection/king_miyabe.webp"},
   {id:"kusaka",name:"久坂玄瑞",subtitle:"長州藩・禁門の変",text:"吉田松陰に学んだ長州藩士。禁門の変で自刃した。",art:"assets/portraits/38.webp"},
-  {id:"ito",name:"伊東甲子太郎",subtitle:"御陵衛士・油小路事件",text:"新選組を離れて御陵衛士を結成。油小路事件で暗殺された。",art:"assets/collection/08.webp",temporaryArt:true},
+  {id:"ito",name:"伊東甲子太郎",subtitle:"御陵衛士・油小路事件",text:"新選組を離れて御陵衛士を結成。油小路事件で暗殺された。",art:"assets/collection/king_ito.webp"},
   {id:"saigo",name:"西郷隆盛",subtitle:"薩摩藩・鳥羽伏見の戦い",text:"新政府側の有力指導者。ゲーム上の最終章王将。",art:"assets/portraits/21.webp"}
  ];
  for(const p of profile){
   const card=document.createElement("button");card.className="story-king-card";const unlocked=owned.includes(p.id);
   card.setAttribute("aria-label",unlocked?p.name+"の人物情報":"未解放の人物カード");
-  const picture=document.createElement("img");picture.alt=unlocked&&p.temporaryArt?"別人物の仮画像":"";picture.loading="lazy";picture.src=unlocked?p.art:"card-back-saccho-1024x1536.webp";
-  const heading=document.createElement("strong");heading.textContent=unlocked?p.name+(p.temporaryArt?"（仮画像）":""):"？？？";
-  card.append(picture,heading);card.onclick=()=>unlocked&&popup(p.name,p.subtitle+"\n"+p.text+(p.temporaryArt?"\n※現在は別人物の仮画像を使用中。正式素材は後日制作。":""),[["閉じる",()=>{}]],p.art);cards.append(card);
+  const picture=document.createElement("img");picture.alt=unlocked?p.name:"";picture.loading="lazy";picture.src=unlocked?p.art:"assets/cards/back/card-back-saccho-1024x1536.webp";
+  const heading=document.createElement("strong");heading.textContent=unlocked?p.name:"？？？";
+  card.append(picture,heading);card.onclick=()=>unlocked&&popup(p.name,p.subtitle+"\n"+p.text,[["閉じる",()=>{}]],p.art);cards.append(card);
  }
  collection.append(cards);
  function addButton(step,title,size,enabled,done,callback){
@@ -874,16 +922,30 @@ function line(){
  $("dialogueNext").classList.toggle("story-sortie-button",sortie);
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
-function battle(i){
+function battle(i,oilFormation=null,retry=false){
+ // Oil-koji formation choice happens before the battle and its opening animation.
+ // Only swap the friendly rook with one front-rank pawn; all other pieces stay fixed.
+ // Start Oil-koji in the standard formation without a selection popup.
+ if(i===2&&oilFormation===null)oilFormation=2;
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
- hideCompactFx();compactCaptures={};reinforcementSerial=0;
+ hideCompactFx();compactCaptures={};reinforcementSerial=0;oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
+ // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
+ if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
+ if(i===2&&[1,3].includes(oilFormation)){
+  const front=g.board[4];
+  [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
+  // Revert on any future rule change that makes this starting setup invalid.
+  if(g.check(g.board,0)||g.check(g.board,1)||!g.legal(0).length||!g.legal(1).length)
+   [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
+ }
+ if(i===2)g.startOilAmbush();
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
- document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
+ document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/backgrounds/story/"+ch.scene+"-bg-v2.webp'),url('assets/backgrounds/seasons/kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  for(const side of [0,1]){clearTimeout(storyBannerTimers[side]);$(side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character","compact-awakened")}
  chooseView("storyBattle");render();
@@ -900,7 +962,7 @@ function battle(i){
  }
 }
 function render(){
- restoreStoryHover();
+ storyPieceHover.reset();
  if(!g||$("storyBattle").classList.contains("hidden"))return;
  const root=$("storyBoard");
  const inputLocked=!canPreviewStoryHover();
@@ -917,14 +979,14 @@ function render(){
  const defendingPieces=defending?new Set(safeDefense.filter(m=>!m.drop).map(m=>m.y+":"+m.x)):null;
  const defendingDrops=defending?new Set(safeDefense.filter(m=>m.drop).map(m=>m.t)):null;
  const targets=selected?legal.filter(m=>selected.drop?m.drop&&m.t===selected.t:!m.drop&&m.y===selected.y&&m.x===selected.x):[];
- const attackers=compactCheckSources();
+ const attackers=oilAmbushAnimating||ikedayaReinforcing?{attackers:new Set(),rays:new Set(),paths:[]}:compactCheckSources();
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
   const p=g.board[y][x],btn=document.createElement("button");btn.type="button";btn.className="sq";btn.setAttribute("role","gridcell");
   btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(p?person(p).name+" "+label(p):"空きマス"));
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
   if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add(p&&p.s===1?"capture-hint":"hint");
-  if(p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
+  if(!oilAmbushAnimating&&!ikedayaReinforcing&&p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
   if(defendingPieces?.has(y+":"+x))btn.classList.add("check-defender");
   if(attackers.attackers.has(y+":"+x))btn.classList.add("compact-check-attacker");
   if(attackers.rays.has(y+":"+x))btn.classList.add("compact-check-ray");
@@ -942,7 +1004,7 @@ function render(){
   if(compactClosingHoles.some(hole=>hole.y===y&&hole.x===x))btn.classList.add("compact-hole-closing",...(compactHoleFading?["compact-hole-fading"]:[]));
   if(compactBloodMarks.includes(y+":"+x))btn.classList.add("compact-blood");
   if(compactArrival?.y===y&&compactArrival.x===x)btn.classList.add("compact-arrival");
-  if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token)}
+  if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token);if(ikedayaPendingPositions.has(y+":"+x))token.style.opacity="0"}
   btn.onclick=()=>square(y,x);root.append(btn);
  }
  if(attackers.paths.length){
@@ -967,15 +1029,15 @@ function render(){
    if(s===0&&defendingDrops?.has(t))b.classList.add("check-defender");
    if(s===0&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{if(b.disabled)return;selected={drop:true,t};render()};hand.append(b)}
  }
- const countdown=compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
+ const countdown=stage===2&&g?.oilPhase===1?"伊東甲子太郎を討て！":compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
  const turnText=ended?"対局終了":busy?"演出・思考中…":g.side?"敵軍、思案中…"+(g.check(g.board,1)?"　⚠王手":""):"新選組の手番！"+(g.check(g.board,0)?"　⚠王手！ 防ぐか、覚悟して主君を見捨てる":"");
  const showCountdown=countdown&&!busy;
- storyBannerMessage(turnText+(showCountdown?"　"+countdown:""),g.side,showCountdown?{turn:turnText,remaining:compactIncident?"・事件札を確認中":`まで${compactCardRemaining()}手`}:null);
- $("storyStatus").classList.toggle("check-status",!ended&&g.check(g.board,g.side));
+ storyBannerMessage(turnText+(showCountdown?"　"+countdown:""),g.side,showCountdown?{turn:turnText,remaining:g?.oilPhase===1?"・伊東を討て！":compactIncident?"・事件札を確認中":`まで${compactCardRemaining()}手`}:null);
+ $("storyStatus").classList.toggle("check-status",!oilAmbushAnimating&&!ikedayaReinforcing&&!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
- for(const id of ["debugCard","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
-  $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3);
+ for(const id of ["debugCard","debugOilAmbush","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
+  $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3)||(id==="debugOilAmbush"&&(stage!==2||g.oilPhase!==1));
  }
 }
 function square(y,x){
@@ -1007,6 +1069,130 @@ function square(y,x){
  if(p?.s===1){banner(1,p);return}
  selected=p?.s===0?{y,x}:null;render();if(p)banner(p.s,p);
 }
+async function oilAmbushReveal(){
+ const game=epoch,board=$("storyBoard");
+ let completed=false;
+ const complete=()=>{
+  if(completed||game!==epoch||ended)return;
+  completed=true;clearTimeout(recovery);
+  oilAmbushAnimating=false;compactTurnLocked=false;busy=false;selected=null;g.side=0;
+  $("storyPopup").classList.add("hidden");
+  $("compactTurnNotice").classList.remove("show");
+  $("compactAwakenNotice").classList.remove("show");
+  $("compactActionLayer").replaceChildren();
+  window.StoryBgm?.unlock();window.StoryBgm?.restart?.("battle01");
+  render();
+  // The check ray and warning belong to the completed formation, not arrivals.
+  if(g.check(g.board,0))compactSound("check");
+ };
+ const recovery=setTimeout(()=>{if(game===epoch&&!completed){
+  console.warn("油小路援軍イベントの操作ロックを復旧");
+  complete();
+ }},75000);
+ // Even a pit that expired on the fatal move closes AFTER the slash.
+ if(g.holes.length||compactClosingHoles.length){
+  busy=true;compactTurnLocked=true;
+  const closing=new Map([...compactClosingHoles,...g.holes].map(({y,x})=>[y+":"+x,{y,x}]));
+  compactClosingHoles=[...closing.values()];g.holes=[];render();
+  await compactFadeExpiredHoles(game);
+  if(game!==epoch||ended)return;
+ }
+ // Keep a visual copy of each friendly piece until the actual collision beat.
+ const before=[...board.children].map(cell=>cell.querySelector(".story-token")?.cloneNode(true)||null);
+ const previousKing=[...board.children].findIndex(cell=>cell.getAttribute("aria-label")?.includes("近藤勇 玉"));
+ oilAmbushAnimating=true;
+ const event=g.triggerOilAmbush();
+ if(event){g.ply=0;compactCaptures={};}
+ if(!event){completed=true;clearTimeout(recovery);oilAmbushAnimating=false;compactTurnLocked=false;busy=false;render();popup("布陣を整えられません","近藤勇の退路が確保できません。再挑戦してください。",[["再挑戦",()=>battle(2)]]);return}
+ busy=true;compactTurnLocked=true;selected=null;render();
+ const casualties=new Set(event.casualties.map(p=>p.y*g.w+p.x));
+ const arrivals=[];
+ for(let y=0;y<2;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]?.s===1)arrivals.push(y*g.w+x);
+ const ghosts=new Map();
+ for(const i of casualties){
+  const old=before[i],cell=board.children[i];if(!old||!cell)continue;
+  old.classList.add("oil-ambush-victim");
+  cell.append(old);ghosts.set(i,old);
+ }
+ for(const i of arrivals){const token=board.children[i]?.querySelector(".story-token.enemy");if(token)token.style.opacity="0"}
+ if(event.retreat&&previousKing>=0){
+  const next=event.retreat.y*g.w+event.retreat.x;
+  const token=board.children[next]?.querySelector(".story-token");
+  if(token?.animate){
+   const oldRect=board.children[previousKing]?.getBoundingClientRect();
+   const newRect=board.children[next]?.getBoundingClientRect();
+   if(oldRect&&newRect)token.animate([{transform:`translate(${oldRect.left-newRect.left}px,${oldRect.top-newRect.top}px)`},{transform:"translate(0,0)"}],{duration:520,easing:"ease-out"});
+  }
+ }
+ // Reuse the approved reinforcement voice, then the desertion footsteps.
+ await new Promise(resolve=>playStoryClip(compactCardVoices["援軍"],"voice",resolve));
+ if(game!==epoch||ended)return;
+ // Each reinforcement gets its own running footsteps, synchronized to its arrival.
+ const layer=$("compactActionLayer");
+ layer.replaceChildren();
+ for(const i of arrivals){
+  if(game!==epoch||ended){layer.replaceChildren();return}
+  const cell=board.children[i],token=cell?.querySelector(".story-token.enemy");
+  if(!token)continue;
+  const rect=cell.getBoundingClientRect(),width=Math.max(22,rect.width*.8),height=Math.max(27,rect.height*.84);
+  // A fixed overlay runner is not clipped by the board's square or perimeter layers.
+  const runner=document.createElement("div");runner.textContent=token.textContent;
+  runner.className="oil-ambush-runner";runner.setAttribute("aria-hidden","true");
+  Object.assign(runner.style,{
+   position:"fixed",zIndex:"170",pointerEvents:"none",display:"grid",placeItems:"center",
+   left:(rect.left+(rect.width-width)/2)+"px",top:(rect.top+(rect.height-height)/2)+"px",
+   width:width+"px",height:height+"px",boxSizing:"border-box",fontSize:getComputedStyle(token).fontSize,
+   fontFamily:"system-ui,sans-serif",fontWeight:"900",color:"#fffaf0",
+   textShadow:"0 1px 3px #1b0b10",background:'url("assets/pieces/saccho_token.png") center/100% 100% no-repeat',
+   filter:"drop-shadow(0 4px 6px #000b)"
+  });
+  layer.append(runner);
+  // Two distinct footfalls per arriving piece; unlocked Web Audio also works on iOS.
+  let runningFootsteps=true;
+  const footstep=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,()=>runningFootsteps&&game===epoch&&!ended);
+  footstep();
+  const secondStep=setTimeout(()=>{if(runningFootsteps&&game===epoch&&!ended)footstep()},390);
+  const startY=-Math.max(160,Math.min(340,rect.top+100));
+  if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+   const animation=runner.animate([
+    {opacity:0,transform:`translate(65px,${startY}px) rotate(180deg) scale(.76)`},
+    {opacity:1,offset:.18,transform:`translate(45px,${startY*.7}px) rotate(180deg) scale(.9)`},
+    {opacity:1,transform:"translate(0,0) rotate(180deg) scale(1)"}
+   ],{duration:820,easing:"ease-out",fill:"forwards"});
+   await Promise.race([animation.finished.catch(()=>{}),later(1050)]);
+   animation.cancel();
+  }else await later(820);
+  // Arrival is the exact sound cutoff, even for the final runner.
+  runningFootsteps=false;clearTimeout(secondStep);stopStoryClip("fx");
+  runner.remove();token.style.opacity="";
+  if(game!==epoch||ended){layer.replaceChildren();return}
+  if(casualties.has(i)){
+   cell.classList.add("compact-blood");
+   await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};playGestureAudio("assets/audio/sfx/purge_shukusei.mp3",finish,"fx",2);setTimeout(finish,1700)});
+   if(game!==epoch||ended){layer.replaceChildren();return}
+   await playCasualtyCry();
+   if(game!==epoch||ended){layer.replaceChildren();return}
+   ghosts.get(i)?.remove();cell.classList.remove("compact-blood");
+  }
+  await later(220);
+ }
+ layer.replaceChildren();
+ if(game!==epoch||ended)return;
+ // The board is now complete: enable check highlights and rays only once.
+ oilAmbushAnimating=false;render();
+ // Keep the Act II message, but never require a confirmation button.
+ const message="伊東甲子太郎、討死！\n御陵衛士の伏兵が布陣した。"+(event.retreat?"\n近藤勇は後方へ退却！":"")+"\n藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
+ popup("御陵衛士、伏兵出現！",message+"\n（画面をタップして進む）",[]);
+ // The whole message overlay is a dismiss target; it also auto-continues.
+ await new Promise(resolve=>{
+  const modal=$("storyPopup");let done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(timer);modal.removeEventListener("click",finish);resolve()};
+  const timer=setTimeout(finish,5000);
+  modal.addEventListener("click",finish);
+ });
+ if(game!==epoch||ended)return;
+ complete();
+}
 function makeMove(m,prom){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
  const holesBefore=compactMode()?[...g.holes]:[];
@@ -1014,7 +1200,8 @@ function makeMove(m,prom){
  const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
- const willKill=capturePlan.lethal;
+ const oilItoCapture=stage===2&&g.oilPhase===1&&!m.drop&&g.board[m.Y][m.X]?.king==="ito";
+ const willKill=capturePlan.lethal||oilItoCapture;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
@@ -1024,12 +1211,13 @@ function makeMove(m,prom){
   justAwakened=capturePlan.awakened;
  }
  const gaveCheck=g.check(g.board,1-actor);
+ const delayedCheck=compactClosingHoles.length>0&&gaveCheck;
  const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck});
  if(captured){
   if(!willKill){
    for(const cue of moveCues){if(cue==="capture"){
     if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
-   }else announce("check")}
+   }else if(!delayedCheck)announce("check")}
    if(compactMode())compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
@@ -1041,11 +1229,15 @@ function makeMove(m,prom){
   const nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
-  if(moveCues.includes("check"))announce("check");
+  if(moveCues.includes("check")&&!delayedCheck)announce("check");
   else if(dedicated)announce(dedicated);
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
- if(unit)banner(actor,unit);selected=null;render();const result=g.state();
+ if(unit)banner(actor,unit);selected=null;render();
+ const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
+ // Being cornered without legal moves is not Ito's death.
+ const rawResult=g.state();
+ const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(stage===0&&g.ply===4&&g.side===0&&g.king(0)&&g.king(1)&&rawResult?.winner===1&&rawResult.why!=="主君討死")?null:rawResult;
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
@@ -1056,9 +1248,25 @@ function makeMove(m,prom){
     await playKabukiVoice("awakening");
     if(id!==epoch||ended)return;
    }
-   await compactFadeExpiredHoles(id);
+   if(!oilFirstActVictory)await compactFadeExpiredHoles(id);
    if(id!==epoch||ended)return;
+   if(delayedCheck){
+    render();
+    storyBannerMessage("王手！",actor);
+    await new Promise(resolve=>compactSound("check",resolve));
+    if(id!==epoch||ended)return;
+   }
    compactArrival=null;
+   if(oilFirstActVictory){
+    // An explicit final blow before the ambush replaces the routine victory.
+    compactCalligraphy(true);
+    storyBannerMessage("伊東甲子太郎、斬殺！",0);
+    await playKabukiVoice("kill");
+    if(id!==epoch||ended)return;
+    await later(700);
+    if(id!==epoch||ended)return;
+    oilAmbushReveal();return;
+   }
    if(result){finish(result.winner,result.why);return}
    busy=false;
    if(compactCardDue(actor)){
@@ -1076,7 +1284,7 @@ function makeMove(m,prom){
     try{
      await window.ShinsengumiBattleRules.runOrderedEffect({
       valid:()=>id===epoch&&!ended,
-      attack:()=>{compactCalligraphy(true);compactBloodMarks.push(square);render()},
+      attack:()=>{if(!oilFirstActVictory)compactCalligraphy(true);compactBloodMarks.push(square);render()},
       impact:playBloodImpact,
       cry:playCasualtyCry,
       result:()=>later(850)
@@ -1090,13 +1298,93 @@ function makeMove(m,prom){
   }else setTimeout(afterFx,prom?800:850);
   return;
  }
+ if(oilFirstActVictory){storyBannerMessage("伊東甲子太郎、斬殺！",0);oilAmbushReveal();return}
  if(result){finish(result.winner,result.why);return}
  if(g.side===1){busy=true;render();const id=epoch;setTimeout(()=>{if(id===epoch)computer()},420)}
 }
 function computer(){
  if(ended||!g||g.side!==1)return;
+ // When truly cornered, the one-time rifle takes priority over digging.
+ const pit=g.legal(1).length?g.oilItoDig?.():null;
+ if(pit){
+  const game=epoch;busy=true;compactTurnLocked=true;
+  // Digging and filling use the same approved earth-collapse sound.
+  g.holes=g.holes.filter(h=>h!==pit);
+  compactQuakeCracks=[{y:pit.y,x:pit.x}];render();
+  const active=()=>game===epoch&&!ended&&g?.oilPhase===1;
+  setTimeout(()=>{
+   if(!active())return;
+   g.holes.push(pit);compactQuakeCracks=[];render();
+   // Do not move Ito until the entire digging sound finishes.
+   let continued=false;
+   const continueTurn=()=>{
+    if(continued)return;continued=true;clearTimeout(recovery);
+    if(active())setTimeout(()=>{if(active())computer()},180);
+   };
+   // A failed audio-ended event must not permanently lock the match.
+   const recovery=setTimeout(continueTurn,6000);
+   playGestureAudio("assets/audio/story/master_cliffcollapse_1s_v1.mp3",continueTurn,"fx",2.4,active);
+  },360);
+  return;
+ }
  const move=g.ai();busy=false;
- if(!move){finish(0,"敵軍に指す手なし");return}
+ if(!move){
+  if(stage===2&&g.oilPhase===1&&!g.oilItoGunUsed&&g.king(1)){
+   const shot=g.oilItoGunTarget?.();
+   if(shot){
+    g.oilItoGunUsed=true;
+    const game=epoch;busy=true;compactTurnLocked=true;selected=null;render();
+    storyBannerMessage("伊東甲子太郎「鉄砲！」",1);
+    (async()=>{
+     const active=()=>game===epoch&&!ended;
+     try{
+      // Name the weapon before its small projectile appears on the board.
+      await new Promise(resolve=>playGestureAudio(kabukiVoice.rifle,resolve,"voice",3.5,active));
+      if(!active())return;
+      await later(350);
+      if(!active())return;
+      await window.StoryWeapons.fire(g,"rifle",active,kind=>{
+       if(kind==="rifle"){
+        window.StoryBgm?.duck();
+        playGestureAudio("assets/audio/story/master_rifle.mp3",null,"fx",2.5,active);
+       }else sfx(kind);
+      },async(result,hit)=>{
+       if(!active()||!hit)return;
+       const mark=result.y+":"+result.x;compactBloodMarks.push(mark);render();
+       await playCasualtyCry();
+       compactBloodMarks=compactBloodMarks.filter(v=>v!==mark);
+       if(active())render();
+      },1,shot,()=>new Promise(resolve=>{
+       // The projectile lands: purge slash first, then the casualty cries.
+       playGestureAudio("assets/audio/sfx/purge_shukusei.mp3",resolve,"fx",2.5,active);
+      }));
+     }catch(error){console.error("伊東の鉄砲演出",error)}
+     if(game!==epoch||ended)return;
+     g.side=0;g.ply++;g.last=null;
+     render();compactResumeTurn();
+    })();
+    return;
+   }
+  }
+  if(stage===2&&g.oilPhase===1&&g.king(1)){
+   // Ito remains alive: announce his helplessness before passing the turn.
+   const game=epoch;
+   busy=true;compactTurnLocked=true;render();
+   storyBannerMessage("伊東甲子太郎「無念！」 指す手なし、パス",1);
+   // Make Ito visibly waver as he says 「無念」, then pass his turn.
+   const itoIndex=g.board.flat().findIndex(p=>p?.king==="ito");
+   const itoToken=$("storyBoard").children[itoIndex]?.querySelector(".story-token");
+   const blink=itoToken?.animate?.([
+    {opacity:1,offset:0},{opacity:.12,offset:.16},{opacity:1,offset:.32},
+    {opacity:.12,offset:.49},{opacity:1,offset:.65},{opacity:.12,offset:.82},{opacity:1,offset:1}
+   ],{duration:1500,easing:"ease-in-out"});
+   const blinkDone=blink?Promise.race([blink.finished.catch(()=>{}),later(1800)]):later(1500);
+   const voiceDone=new Promise(resolve=>playBattleShout("assets/audio/voice_loss_munen.mp3",resolve));
+   Promise.all([voiceDone,blinkDone]).then(()=>{if(game!==epoch||ended)return;g.side=0;g.ply++;compactResumeTurn()});
+   return;
+  }
+  finish(0,"敵軍に指す手なし");return;
+ }
  const p=move.drop?null:g.board[move.y][move.x],prom=!!p&&g.promoted(p,move.y,move.Y);
  if(p)banner(1,p);
  makeMove(move,prom);
@@ -1121,7 +1409,7 @@ async function fire(kind,ownerSide=1){
  // The spoken order to fire is distinct from the subsequent discharge and impact.
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
   // Restore the previously mastered original 「撃て！」 clip.
-  playStoryClip("assets/story/audio/master_battle_fire_v1.mp3","voice",done);setTimeout(done,4500)});
+  playStoryClip("assets/audio/story/master_battle_fire_v1.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
  const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,async(shot,hit)=>{
   if(id!==epoch||shot.y<0)return;
@@ -1156,7 +1444,7 @@ async function fire(kind,ownerSide=1){
  else{await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
 }
 function finish(winner,reason){
- if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
+ if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage,null,true)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
  if(win&&!devPreview&&!debugModified){
   unlock=Math.max(unlock,stage+1);try{localStorage.setItem(SAVE,String(unlock));
    const arr=JSON.parse(localStorage.getItem(KINGS)||"[]");if(Array.isArray(arr)&&!arr.includes(king)){arr.push(king);localStorage.setItem(KINGS,JSON.stringify(arr))}}catch(e){}
@@ -1164,40 +1452,16 @@ function finish(winner,reason){
 
  // Same presentation contract as the finished game's showVictory().
  const overlay=$("storyEndOverlay");
- $("storyEndWinner").src=win?"assets/visuals/victory_shinsengumi_scene.webp":"assets/visuals/victory_saccho_scene.webp";
- $("storyEndPortraitSource").srcset=win?"assets/visuals/victory_shinsengumi_mobile.webp":"assets/visuals/victory_saccho_mobile.webp";
- // Independently illustrated, transparent character assets. Existing approved scene
- // remains the fallback until BOTH chapter-specific portraits are supplied.
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
- // All five approved king pairs were recovered from the ten image share pages
- // saved together in the project Drive. These are validated complete cutouts.
- const completeKings=["miyabe","kondo","kusaka","ito","saigo"];
- const winnerArt=completeKings.includes(winnerId)?"assets/story/victory/"+winnerId+"_winner.webp":null;
- const loserArt=completeKings.includes(loserId)?"assets/story/victory/"+loserId+"_loser.webp":null;
- const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
- const portraitSource=$("storyEndPortraitSource");
- const artworkToken=String(Date.now());
- overlay.dataset.artworkToken=artworkToken;
- overlay.classList.remove("composite-victory");
- loserEl.style.display="none";
- winnerEl.alt=(win?"近藤勇":ch.boss)+"の勝利";
- loserEl.alt=(win?ch.boss:"近藤勇")+"の敗北";
- // The original GitHub PNG uploads were truncated. Never reference those files.
- const verifiedPortraitsAvailable=Boolean(winnerArt&&loserArt);
- if(verifiedPortraitsAvailable)Promise.all([winnerArt,loserArt].map(url=>new Promise((resolve,reject)=>{
-  const img=new Image();img.onload=()=>resolve(url);img.onerror=reject;img.src=url;
- }))).then(()=>{
-  if(overlay.dataset.artworkToken!==artworkToken||overlay.classList.contains("hidden"))return;
-  portraitSource.removeAttribute("srcset");
-  winnerEl.src=winnerArt;loserEl.src=loserArt;loserEl.style.display="block";
-  overlay.classList.add("composite-victory");
- }).catch(()=>{/* Existing scene artwork stays visible until both assets are approved. */});
+ window.SharedVictory.show({overlay,winnerElement:$("storyEndWinner"),loserElement:$("storyEndLoser"),
+  winnerId,loserId,winnerName:win?"近藤勇":ch.boss,loserName:win?ch.boss:"近藤勇",
+  onCross:()=>compactSound("slash")});
  $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
  const choices=[
-  [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage)],
+  [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage,null,true)],
   ["章選択",screenHome]
  ];
  for(const [label,action] of choices){
@@ -1248,7 +1512,7 @@ function storySaveMatch(){
  if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
  try{
   const snapshot={version:1,stage,at:Date.now(),engine:{
-   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last
+   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed,oilDigCount:g.oilDigCount
   },enemyTurns,playerTurns,weapons,debugModified};
   localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
   alert("この章の対局を保存しました。");
@@ -1260,10 +1524,19 @@ function storyLoadMatch(){
  if(!data||data.version!==1||!Number.isInteger(data.stage)||data.stage<0||data.stage>=D.chapters.length||!data.engine){alert("読み込める対局データがありません。");return}
  const cfg=D.chapters[data.stage],state=data.engine;
  if(!Array.isArray(state.board)||state.board.length!==cfg.h||!state.board.every(row=>Array.isArray(row)&&row.length===cfg.w)||!Array.isArray(state.hands)||state.hands.length!==2||![0,1].includes(state.side)){alert("保存データの形式が正しくありません。");return}
+ if(data.stage===2){
+  const enemies=state.board.flat().filter(p=>p?.s===1);
+  if(enemies.filter(p=>p.t==="玉").length!==1||(state.oilPhase===1&&enemies.length!==1)){
+   alert("旧版の油小路対局データには駒の重複があります。章選択から再開始してください。");return;
+  }
+ }
  if(g&&!ended&&!confirm("現在の対局を中断し、保存した対局に戻りますか？"))return;
- battle(data.stage);
+ battle(data.stage,2);
  g.board=state.board;g.hands=state.hands;g.fallen=Array.isArray(state.fallen)?state.fallen:[[],[]];
  g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
+ g.oilPhase=state.oilPhase??(data.stage===2?2:null);g.oilEnemyReserve=state.oilEnemyReserve||null;
+ g.oilItoGunUsed=!!state.oilItoGunUsed;
+ g.oilDigCount=Math.max(0,Math.min(3,Number(state.oilDigCount)||0));
  enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
  weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
  // Invalidate timers started by the chapter opening before restoring play.
@@ -1273,7 +1546,7 @@ function storyLoadMatch(){
 }
 window.storySaveMatch=storySaveMatch;window.storyLoadMatch=storyLoadMatch;
 function storyDebugReady(){return g&&!ended&&!busy&&!compactTurnLocked&&g.side===0&&!compactIncident&&!pendingWeaponDisplay&&$("storyPopup").classList.contains("hidden")}
-function storyDebugRun(action,changesBoard=false){
+function storyDebugRun(action,changesBoard=false,renderAfter=true){
  if(!storyDebugReady())return;
  window.StoryBgm?.unlock();
  if(changesBoard){debugModified=true;selected=null}
@@ -1289,7 +1562,7 @@ function storyDebugRun(action,changesBoard=false){
   const y=Math.max(0,Math.round(top-Math.max(0,(viewport-height)/2)));
   window.scrollTo({top:y,behavior:"instant"});
  }
- requestAnimationFrame(()=>{action();render()});
+ requestAnimationFrame(()=>{action();if(renderAfter)render()});
 }
 function storyDebugIncident(kind){
  const side=g.side,owner=kind==="寝返り"?1-side:side;
@@ -1301,6 +1574,11 @@ function storyDebugIncident(kind){
 $("debugWin").onclick=()=>storyDebugRun(()=>finish(0,"開発テスト：新選組の勝利"),true);
 $("debugLose").onclick=()=>storyDebugRun(()=>finish(1,"開発テスト：薩長同盟の勝利"),true);
 $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
+ $("debugOilAmbush").onclick=()=>storyDebugRun(()=>{
+ if(stage!==2||g.oilPhase!==1)return;
+ for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++)if(g.board[y][x]?.king==="ito"&&g.board[y][x]?.s===1)g.board[y][x]=null;
+ oilAmbushReveal();
+},true,false);
 $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
 $("debugRevival").onclick=()=>storyDebugRun(()=>{

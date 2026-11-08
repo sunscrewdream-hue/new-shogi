@@ -33,7 +33,7 @@ async function load(name){
  if(pending.has(name))return pending.get(name);
  const cfg=specs[name];if(!cfg)return null;
  const request=(async()=>{
-  const urls=Array.from({length:cfg.count},(_,i)=>"assets/story/audio/bgm_"+name+"_"+String(i).padStart(2,"0")+".part");
+  const urls=Array.from({length:cfg.count},(_,i)=>"assets/audio/story/bgm_"+name+"_"+String(i).padStart(2,"0")+".part");
   const responses=await Promise.all(urls.map(url=>fetch(url,{cache:"force-cache"})));
   for(let i=0;i<responses.length;i++)if(!responses[i].ok)throw Error("BGM segment missing: "+urls[i]);
   const chunks=await Promise.all(responses.map(r=>r.arrayBuffer()));
@@ -95,5 +95,5 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden)ctx.suspend().catch(()=>{});
  else if(!muted&&wanted)ctx.resume().catch(()=>{});
 });
-window.StoryBgm={play,unlock,setMuted,setVolume,duck,stop:()=>play(null)};
+window.StoryBgm={play,unlock,setMuted,setVolume,duck,restart:name=>{current=null;return play(name)},stop:()=>play(null)};
 })();
