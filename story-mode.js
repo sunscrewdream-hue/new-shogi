@@ -571,14 +571,8 @@ function compactTurn(side,after,opening=false){
  // The opening battle position is already anchored before the VS sequence.
  compactTurnLocked=true;
  const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
- // Keep the existing scroll position throughout a match. Recentring the page
- // on every turn made the board jump vertically on desktop browsers.
- // The turn graphic itself is still positioned over the board's current center.
- const viewportHeight=window.visualViewport?.height||window.innerHeight;
- const viewportTop=window.visualViewport?.offsetTop||0;
- const boardRect=$("storyBoard").getBoundingClientRect();
- const boardCenterY=boardRect.top+boardRect.height/2;
- panel.style.setProperty("--turn-center-offset",Math.round(boardCenterY-(viewportTop+viewportHeight/2))+"px");
+ // All battle sizes use the same board-relative turn presentation routine.
+ window.ShinsengumiTurnPresentation.place($("storyBoard"),panel,'offset');
  const title=side===0?"新選組の手番！":"敵軍の手番！";
  art.src=side===0?"assets/turn-notice/turn_shinsengumi_illustrated.png":"assets/turn-notice/turn_enemy_illustrated.png";
  art.alt=title;art.style.display="block";fallback.textContent=title;fallback.classList.add("hidden");
