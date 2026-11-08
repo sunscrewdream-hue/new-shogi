@@ -30,7 +30,7 @@ async function impact(g,y,x,kind,isActive){
  if(shake){board()?.classList.add("compact-quake");document.body.classList.add("story-quake-active")}
  c.classList.remove("warn");
  const overlay=document.createElement("div");overlay.className="shot-overlay "+kind;
- const art=document.createElement("img");art.alt="";art.src="assets/story/fx/"+(kind==="cannon"?"explosion-v3.webp":"rifle-impact-v3.webp");
+ const art=document.createElement("img");art.alt="";art.src="assets/effects/weapons/"+(kind==="cannon"?"explosion-v3.webp":"rifle-impact-v3.webp");
  art.onerror=()=>{art.style.display="none";overlay.textContent="✴"};
  overlay.append(art);c.append(overlay);
  const previousZ=c.style.zIndex;c.style.zIndex="26";

@@ -17,11 +17,18 @@ index.html をWebサーバーの公開ディレクトリ直下に配置してく
 
 - ルート直下のHTML：ページ入口
 - ルート直下のJS/CSS：ゲーム処理・表示
-- assets/：画像、音声、盤面、カード、演出素材
+- assets/audio/：音声・BGM・効果音（ストーリー専用音源もここへ集約）
+- assets/characters/：人物・勝敗演出・モブ
+- assets/cards/：通常事件札と兵器カード
+- assets/boards/：各章の盤面
+- assets/backgrounds/：季節と各章の背景
+- assets/effects/：命中等の画像演出
+- assets/scenes/：章の物語・序章・終章の場面画像
+- assets/portraits/、assets/dialogue_banners/、assets/collection/：既存の正式人物素材
 - manifest.webmanifest：Webアプリ設定
 
 ## 変更・検証のルール
 
-制作原本・過去版・テストコードはGoogleドライブおよび開発用の main で管理します。商品版への反映前に、通常対局9×9とストーリー全章、画像・音声、スマートフォン表示を検証してください。
+制作原本・過去版・テストコードはGoogleドライブで管理します。旧背景4点、旧兵器カード2点、破損確認済みPNG10点と制作確認用WebP2点は、この商品版から除外しました。商品版への反映前に、通常対局9×9とストーリー全章、画像・音声、スマートフォン表示を検証してください。
 
 このブランチをGitHub Pagesで直接公開するには別途Pagesの公開元設定が必要です。現在の main の公開URLは変更していません。

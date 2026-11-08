@@ -44,7 +44,7 @@ function playGestureAudio(path,onDone,channel="voice"){
 function playBattleShout(path,onDone){playGestureAudio(path,onDone,"voice")}
 // Cannon impact needs its own channel: shot, hit cry and other FX must not
 // interrupt the explosion halfway through.
-const cannonImpactAudio=new Audio("assets/story/audio/master_explosion.mp3");
+const cannonImpactAudio=new Audio("assets/audio/story/master_explosion.mp3");
 cannonImpactAudio.preload="auto";cannonImpactAudio.playsInline=true;
 function playCannonImpact(){
  if(!fxEnabled||document.hidden||storyVolume<=0)return;
@@ -78,7 +78,7 @@ function playStoryClip(path,channel="fx",onDone=null){
  if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish);watchdog=setTimeout(()=>{console.warn("音声終了通知タイムアウト",path);finish()},9000)}
  a.play().catch(finish);return a;
 }
-const kabukiVoice={promotion:"assets/story/audio/master_kabuki_promotion_v1.mp3",cannon:"assets/story/audio/master_kabuki_cannon_v1.mp3",rifle:"assets/story/audio/master_kabuki_rifle_v1.mp3",awakening:"assets/story/audio/master_kabuki_awakening_v1.mp3",kill:"assets/story/audio/master_kabuki_kill_v1.mp3"};
+const kabukiVoice={promotion:"assets/audio/story/master_kabuki_promotion_v1.mp3",cannon:"assets/audio/story/master_kabuki_cannon_v1.mp3",rifle:"assets/audio/story/master_kabuki_rifle_v1.mp3",awakening:"assets/audio/story/master_kabuki_awakening_v1.mp3",kill:"assets/audio/story/master_kabuki_kill_v1.mp3"};
 function playKabukiVoice(kind){return new Promise(resolve=>{
  const path=kabukiVoice[kind];if(!path)return resolve();
  playStoryClip(path,"voice",resolve);
@@ -87,7 +87,7 @@ function playCasualtyCry(){return new Promise(resolve=>{
  // Dedicated 「ぎゃあ！」 from the user's three-line 2026-11-05 recording.
  // Hold the sequence until this shout actually finishes.
  let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
- playStoryClip("assets/story/audio/master_battle_gyah_v1.mp3","voice",done);
+ playStoryClip("assets/audio/story/master_battle_gyah_v1.mp3","voice",done);
  setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
@@ -99,10 +99,10 @@ function sfx(t,onDone=null){
  if(t==="blast"){window.StoryBgm?.duck();playCannonImpact();onDone?.();return}
  if(t==="cannon"||t==="rifle"){
   window.StoryBgm?.duck();
-  playStoryClip("assets/story/audio/master_"+t+".mp3","fx",onDone);return;
+  playStoryClip("assets/audio/story/master_"+t+".mp3","fx",onDone);return;
  }
  if(t==="capture"||t==="win"||t==="loss")window.StoryBgm?.duck();
- const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/story/audio/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/story/audio/master_samurai_loss_v1.mp3"};
+ const files={move:"assets/audio/sfx/step_soil.mp3",capture:"assets/audio/voice_capture_toraeta.mp3",card:"assets/audio/sfx/taiko_don.mp3",flip:"assets/audio/sfx/card_flip.mp3",woodSlide:"assets/audio/story/wood_lid_slide.mp3",win:"assets/audio/voice_shobu_atta.mp3",loss:"assets/audio/story/master_samurai_loss_v1.mp3"};
  if(files[t]){if(t==="capture")playBattleShout(files[t],onDone);else playStoryClip(files[t],["win","loss"].includes(t)?"voice":"fx",onDone);return}
  onDone?.();
  // No legacy synthesized fallback: only approved recorded assets are played.
@@ -111,9 +111,9 @@ function sfx(t,onDone=null){
 // Historical 5x6-only gating silently disabled cards, capture escorts, turn notices,
 // awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
 function compactMode(){return stage>=0&&stage<D.chapters.length}
-const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp","大砲":"assets/story/cards/cannon-v2.webp","鉄砲":"assets/story/cards/rifle-v2.webp"};
+const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp","大砲":"assets/cards/weapons/cannon-v2.webp","鉄砲":"assets/cards/weapons/rifle-v2.webp"};
 const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]];
-const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/story/audio/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
+const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/audio/story/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
 // Awakening counts belong to a person, even after capture and redeployment.
 function compactFighterKey(p){
  return window.ShinsengumiBattleRules.fighterKey(p);
@@ -126,7 +126,7 @@ const compactAudio={
  // The 0.98-second enemy take was masked during the capture escort on phones.
  // Use the same audible, approved 1.75-second 「捕らえた！」 as the player.
  sacchoCapture:"assets/audio/voice_capture_toraeta.mp3",
- sacchoLoss:"assets/story/audio/master_enemy_loss_v4.mp3",
+ sacchoLoss:"assets/audio/story/master_enemy_loss_v4.mp3",
  saigo:"assets/audio/voice_saigo_takamori.mp3",
  kido:"assets/audio/voice_kido_takayoshi.mp3",
  sacchoCheck:"assets/audio/saccho_voice_06_korede_saigo.mp3",
@@ -137,7 +137,7 @@ const compactAudio={
  banner:"assets/audio/sfx/taiko_dodon.mp3",
  quake:"assets/audio/sfx/rumble.mp3",
  slash:"assets/audio/sfx/sword_slash_2.mp3",
- desert:"assets/story/audio/master_gravel_run_v2.mp3",
+ desert:"assets/audio/story/master_gravel_run_v2.mp3",
  reinforce:"assets/audio/sfx/taiko_dodon.mp3",
  kill:"assets/audio/sfx/purge_shukusei.mp3",
  // One approved impact sound for purge, lethal slash and rifle casualties.
@@ -163,7 +163,7 @@ async function compactFadeExpiredHoles(game){
  // Play the treated first second of the cliff collapse while the hole fades.
  // The turn/card queue may only resume once BOTH the sound and fade have ended.
  await Promise.all([
-  new Promise(resolve=>playStoryClip("assets/story/audio/master_cliffcollapse_1s_v1.mp3","fx",resolve)),
+  new Promise(resolve=>playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx",resolve)),
   later(1350)
  ]);
  if(game!==epoch)return;
@@ -315,7 +315,7 @@ $("compactCardFace").onclick=()=>{
    const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
-   $("compactCardArtwork").src=`assets/story/cards/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent="";
+   $("compactCardArtwork").src=`assets/cards/weapons/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent="";
    window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
     $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
    },{valid:()=>pendingWeaponDisplay===item});
@@ -454,7 +454,7 @@ function compactApplyIncident(effect){
      setTimeout(()=>{
       if(game!==epoch||quakeFinished)return;
       compactQuakeCracks=[];
-      if(chosen.length)playStoryClip("assets/story/audio/master_cliffcollapse_1s_v1.mp3","fx");
+      if(chosen.length)playStoryClip("assets/audio/story/master_cliffcollapse_1s_v1.mp3","fx");
       for(const hole of chosen)if(!g.board[hole.y][hole.x])g.holes.push(hole);
       render();
      },650);
@@ -504,7 +504,7 @@ function compactApplyIncident(effect){
    // never play its unrelated 「助太刀致す」 second half.
    let escortDone=false,voiceDone=false,completed=false;
    const resume=()=>{if(completed)return;if(escortDone&&voiceDone){completed=true;finish()}};
-   playGestureAudio("assets/story/audio/master_battle_gomen_v1.mp3",()=>{voiceDone=true;resume()},"voice");
+   playGestureAudio("assets/audio/story/master_battle_gomen_v1.mp3",()=>{voiceDone=true;resume()},"voice");
    render();animateCompactEscort(side,y,x,p,()=>{escortDone=true;resume()});
    // Safari can discard animation.finished or audio ended when the page scrolls.
    // The board/hand mutation above is already complete; always unlock the turn.
@@ -644,7 +644,7 @@ function person(p){
   const data=(p.origin===0?D.F:D.E)[p.cid];
   if(data)return{name:data[0],role:data[1],img:"assets/dialogue_banners/person_"+String((p.origin===0?1:21)+p.cid).padStart(2,"0")+".webp?v=face-final-20261107"};
  }
- const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/story/mobs/"+m[2]};
+ const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/characters/mobs/"+m[2]};
 }
 const storyBannerTimers=[null,null];
 function banner(s,p,hold=false){
@@ -883,7 +883,7 @@ function battle(i){
  const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
- document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
+ document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/backgrounds/story/"+ch.scene+"-bg-v2.webp'),url('kyoto-autumn.webp')";
  document.body.style.backgroundSize="cover";document.body.style.backgroundAttachment="fixed";
  for(const side of [0,1]){clearTimeout(storyBannerTimers[side]);$(side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character","compact-awakened")}
  chooseView("storyBattle");render();
@@ -1121,7 +1121,7 @@ async function fire(kind,ownerSide=1){
  // The spoken order to fire is distinct from the subsequent discharge and impact.
  await new Promise(resolve=>{let settled=false;const done=()=>{if(settled)return;settled=true;resolve()};
   // Restore the previously mastered original 「撃て！」 clip.
-  playStoryClip("assets/story/audio/master_battle_fire_v1.mp3","voice",done);setTimeout(done,4500)});
+  playStoryClip("assets/audio/story/master_battle_fire_v1.mp3","voice",done);setTimeout(done,4500)});
  if(id!==epoch||ended)return;
  const results=await window.StoryWeapons.fire(g,kind,()=>id===epoch,sfx,async(shot,hit)=>{
   if(id!==epoch||shot.y<0)return;
@@ -1173,8 +1173,8 @@ function finish(winner,reason){
  // All five approved king pairs were recovered from the ten image share pages
  // saved together in the project Drive. These are validated complete cutouts.
  const completeKings=["miyabe","kondo","kusaka","ito","saigo"];
- const winnerArt=completeKings.includes(winnerId)?"assets/story/victory/"+winnerId+"_winner.webp":null;
- const loserArt=completeKings.includes(loserId)?"assets/story/victory/"+loserId+"_loser.webp":null;
+ const winnerArt=completeKings.includes(winnerId)?"assets/characters/victory/"+winnerId+"_winner.webp":null;
+ const loserArt=completeKings.includes(loserId)?"assets/characters/victory/"+loserId+"_loser.webp":null;
  const winnerEl=$("storyEndWinner"),loserEl=$("storyEndLoser");
  const portraitSource=$("storyEndPortraitSource");
  const artworkToken=String(Date.now());
