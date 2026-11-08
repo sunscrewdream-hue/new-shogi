@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set();
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -415,9 +415,89 @@ async function ikedayaReinforcementArrival(){
   }
  }
 }
+async function kinmonSatsumaArrival(){
+ const game=epoch;kinmonSatsumaReinforcing=true;busy=true;compactTurnLocked=true;selected=null;
+ const arrivals=g.deployKinmonSatsumaReinforcements();
+ if(!arrivals){kinmonSatsumaReinforcing=false;busy=false;compactTurnLocked=false;render();popup("援軍の配置に失敗","薩摩援軍3騎分の空きマスがありません。",[["再挑戦",()=>battle(1)]]);return}
+ // Keep the four destinations empty until each runner actually lands.
+ // This avoids Safari retaining opacity:0 on pre-rendered, hidden pieces.
+ for(const entry of arrivals)g.board[entry.y][entry.x]=null;
+ kinmonSatsumaPendingPositions.clear();
+ render();
+ const layer=$("compactActionLayer");layer.replaceChildren();
+ try{
+  storyBannerMessage("薩摩藩、援軍到着！",0);
+  await new Promise(resolve=>{playGestureAudio(compactCardVoices["援軍"],resolve,"voice",2,()=>game===epoch&&!ended);setTimeout(resolve,5000)});
+  // The reinforcements answer the command with a single battle cry as the first officer runs in.
+  playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
+  for(const entry of arrivals){
+   if(game!==epoch||ended)return;
+   const board=$("storyBoard");
+   const cell=board.children[entry.y*g.w+entry.x];
+   const boardWidth=board.clientWidth,boardHeight=board.clientHeight;
+   const cellWidth=boardWidth/g.w,cellHeight=boardHeight/g.h;
+   const width=Math.max(22,Math.min(cellWidth*.78,cellHeight*.78));
+   let runner=null;
+   if(cell){
+    // Board-local coordinates stay aligned when Safari scrolls or resizes.
+    runner=document.createElement("div");
+    runner.textContent=label(entry.piece);
+    runner.setAttribute("aria-hidden","true");
+    runner.className="ikedaya-board-runner";
+    Object.assign(runner.style,{
+     position:"absolute",zIndex:"25",pointerEvents:"none",display:"grid",placeItems:"center",
+     left:(entry.x*cellWidth+(cellWidth-width)/2)+"px",
+     top:(entry.y*cellHeight+(cellHeight-width*1.16)/2)+"px",
+     width:width+"px",height:(width*1.16)+"px",
+     // Match the visible board tokens exactly, including mobile container-query sizing.
+     fontSize:getComputedStyle(board.querySelector(".story-token:not(.enemy)")||board.querySelector(".story-token")||board).fontSize,
+     fontFamily:"system-ui,sans-serif",fontWeight:"900",
+     color:"#fff",textShadow:"0 1px 3px #123",boxSizing:"border-box",
+     background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'
+    });
+    board.append(runner);
+   }
+   let feet=true;
+   const active=()=>feet&&game===epoch&&!ended;
+   const foot=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,active);
+   foot();const second=setTimeout(()=>{if(active())foot()},390);
+   if(runner?.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+    const startY=boardHeight-(entry.y+.5)*cellHeight+width;
+    const animation=runner.animate([
+     {opacity:0,transform:`translateY(${startY}px) scale(.82)`},
+     {opacity:1,offset:.17,transform:`translateY(${startY*.8}px) scale(.9)`},
+     {opacity:1,transform:"translateY(0) scale(1)"}
+    ],{duration:1000,easing:"ease-out",fill:"forwards"});
+    await Promise.race([animation.finished.catch(()=>{}),later(1200)]);
+    animation.cancel();
+   }else await later(1000);
+   feet=false;clearTimeout(second);stopStoryClip("fx");
+   runner?.remove();
+   if(game!==epoch||ended)return;
+   g.board[entry.y][entry.x]=entry.piece;
+   render();
+   banner(0,entry.piece,true);
+   await later(260);
+  }
+ }finally{
+  layer.replaceChildren();kinmonSatsumaPendingPositions.clear();
+  // Never leave an officer invisible or missing if mobile animation aborts.
+  if(game===epoch&&!ended)for(const entry of arrivals)
+   if(!g.board[entry.y][entry.x])g.board[entry.y][entry.x]=entry.piece;
+  if(game===epoch&&!ended){
+   kinmonSatsumaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
+   render();
+   storyBannerMessage("薩摩の援軍三騎、盤上に到着！",0);
+   if(g.check(g.board,0))compactSound("check");
+   else if(g.check(g.board,1))compactSound("check");
+   compactResumeTurn();
+  }
+ }
+}
 function compactResumeTurn(){
  if(ended)return;
- if(stage===0&&g?.ply>=3&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
+ if(stage===0&&g?.ply>=3&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}
+ if(stage===1&&g?.ply>=3&&!g.kinmonSatsumaReinforced){kinmonSatsumaArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -704,6 +784,12 @@ function popup(title,text,options,img){
 }
 function collect(p){
  if(devPreview||debugModified||!p)return;
+ if(Number.isInteger(p.satsumaId)){
+  const item=D.kinmonAllies?.[p.satsumaId];if(!item)return;
+  try{const key="shinsengumi-story-kinmon-satsuma-cards-v1",owned=JSON.parse(localStorage.getItem(key)||"[]");
+   if(Array.isArray(owned)&&!owned.includes(p.satsumaId)){owned.push(p.satsumaId);localStorage.setItem(key,JSON.stringify(owned));storyBannerMessage("🎴 人物カード獲得！ "+item.name,0)}
+  }catch(e){}return;
+ }
  if(Number.isInteger(p.kinmonId)){
   // Preserve the original 40-person collection indexes; provisional Kinmon cards
   // live in their own namespace until portrait art and the unified gallery ship.
@@ -725,6 +811,10 @@ function collect(p){
 }
 function person(p){
  if(!p)return{name:"",role:"",img:""};
+ if(Number.isInteger(p.satsumaId)){
+  const record=D.kinmonAllies?.[p.satsumaId];
+  if(record)return{name:record.name,role:record.role,img:record.art};
+ }
  if(Number.isInteger(p.kinmonId)){
   const record=D.kinmonRoster?.[p.kinmonId];
   if(record)return{name:record.name,role:record.role,img:record.art};
@@ -970,7 +1060,7 @@ function battle(i,oilFormation=null,retry=false){
  if(i===2&&oilFormation===null)oilFormation=2;
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
- hideCompactFx();compactCaptures={};reinforcementSerial=0;oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();
+ hideCompactFx();compactCaptures={};reinforcementSerial=0;oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();kinmonSatsumaReinforcing=false;kinmonSatsumaPendingPositions.clear();
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
  if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
@@ -1553,7 +1643,7 @@ function storySaveMatch(){
  if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
  try{
   const snapshot={version:1,stage,at:Date.now(),engine:{
-   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed,oilDigCount:g.oilDigCount
+   board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed,oilDigCount:g.oilDigCount,kinmonSatsumaReinforced:g.kinmonSatsumaReinforced
   },enemyTurns,playerTurns,weapons,debugModified};
   localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
   alert("この章の対局を保存しました。");
@@ -1578,6 +1668,7 @@ function storyLoadMatch(){
  g.oilPhase=state.oilPhase??(data.stage===2?2:null);g.oilEnemyReserve=state.oilEnemyReserve||null;
  g.oilItoGunUsed=!!state.oilItoGunUsed;
  g.oilDigCount=Math.max(0,Math.min(3,Number(state.oilDigCount)||0));
+ if(data.stage===1)g.kinmonSatsumaReinforced=!!state.kinmonSatsumaReinforced||g.board.flat().some(p=>Number.isInteger(p?.satsumaId));
  enemyTurns=Number(data.enemyTurns)||0;playerTurns=Number(data.playerTurns)||0;
  weapons=Array.isArray(data.weapons)?data.weapons:[];debugModified=!!data.debugModified;
  // Invalidate timers started by the chapter opening before restoring play.
