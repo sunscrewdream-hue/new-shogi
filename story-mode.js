@@ -1089,8 +1089,14 @@ async function oilAmbushReveal(){
  if(game!==epoch||ended)return;
  // Keep the Act II message, but never require a confirmation button.
  const message="伊東甲子太郎、討死！\n御陵衛士の伏兵が布陣した。"+(event.retreat?"\n近藤勇は後方へ退却！":"")+"\n藤堂平助率いる御陵衛士と決着をつけよ。\n動乱の刻は第二幕の2手目から再開。";
- popup("御陵衛士、伏兵出現！",message,[]);
- await later(5000);
+ popup("御陵衛士、伏兵出現！",message+"\n（画面をタップして進む）",[]);
+ // The whole message overlay is a dismiss target; it also auto-continues.
+ await new Promise(resolve=>{
+  const modal=$("storyPopup");let done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(timer);modal.removeEventListener("click",finish);resolve()};
+  const timer=setTimeout(finish,5000);
+  modal.addEventListener("click",finish);
+ });
  if(game!==epoch||ended)return;
  $("storyPopup").classList.add("hidden");
  busy=false;compactTurnLocked=false;g.side=0;render();
