@@ -544,7 +544,7 @@ function compactApplyIncident(effect){
 function compactIntro(){
  if(!compactMode())return;
  const game=epoch,root=$("compactIntroClash");root.classList.remove("show");void root.offsetWidth;root.classList.add("show");
- setTimeout(()=>{if(game===epoch&&root.classList.contains("show"))compactSound("slash")},1010);
+ setTimeout(()=>{if(game===epoch&&root.classList.contains("show"))compactSound("slash")},840);
  setTimeout(()=>{if(game!==epoch||ended)return;root.classList.remove("show");compactTurnLocked=true;render();
   setTimeout(()=>{if(game===epoch&&!ended){busy=false;compactTurn(0,null,true)}},450);
  },2600);
