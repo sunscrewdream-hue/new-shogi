@@ -44,10 +44,6 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 @media(prefers-reduced-motion:reduce){#endWinnerImage,#endLoserImage{animation:none!important}}
 
 /* Uniform ink stays readable over faint, historically themed ornament. */
-.shogi-token:after{background-image:url('assets/piece-pattern-shinsengumi.svg'),linear-gradient(140deg,#6192ab,var(--token-fill) 42%,#163f58);background-size:100% 100%;background-repeat:no-repeat}
-.shogi-token.enemy-token:after{background-image:url('assets/piece-pattern-saccho.svg'),linear-gradient(140deg,#cb7370,var(--token-fill) 42%,#6a242b)}
-.shogi-token.promoted-token:after{background-image:url('assets/piece-pattern-shinsengumi.svg'),linear-gradient(140deg,#8e6f34,#415f60 44%,#27475f)}
-.shogi-token.enemy-token.promoted-token:after{background-image:url('assets/piece-pattern-saccho.svg'),linear-gradient(140deg,#ae733d,#a13f40 48%,#571d20)}
 
 /* New blue-and-white dandara haori-inspired title background. */
 #titleScreen{background:radial-gradient(ellipse at 48% 35%,#257da0 0%,#125275 39%,#102f48 66%,#091728 100%)!important;isolation:isolate}

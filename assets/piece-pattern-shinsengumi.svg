@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 165" aria-hidden="true">
-  <defs><clipPath id="inner"><path d="M65 8L122 43L117 156H13L8 43Z"/></clipPath></defs>
-  <g clip-path="url(#inner)" fill="none" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M6 118L24 131L42 118L60 131L78 118L96 131L114 118L125 127" stroke="#f5ffff" stroke-width="4.2" opacity=".27"/>
-    <path d="M6 125L24 138L42 125L60 138L78 125L96 138L114 125L125 134" stroke="#d2f7ff" stroke-width="1.8" opacity=".40"/>
-    <path d="M12 151H118" stroke="#e2faff" stroke-width="1" opacity=".26"/>
-  </g>
-</svg>

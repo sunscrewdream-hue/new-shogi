@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 165" aria-hidden="true">
-  <defs><clipPath id="inner"><path d="M65 8L122 43L117 156H13L8 43Z"/></clipPath></defs>
-  <g clip-path="url(#inner)" fill="none" stroke-linecap="round">
-    <path d="M13 129Q26 113 39 129T65 129T91 129T117 129" stroke="#f9d48e" stroke-width="5.2" opacity=".63"/>
-    <path d="M13 134Q26 118 39 134T65 134T91 134T117 134" stroke="#f5bb5f" stroke-width="2.1" opacity=".71"/>
-  </g>
-</svg>
