@@ -1245,10 +1245,16 @@ function computer(){
   setTimeout(()=>{
    if(!active())return;
    g.holes.push(pit);compactQuakeCracks=[];render();
-   // iOS enemy turns are timer-driven: use the gesture-unlocked Web Audio channel.
-   playGestureAudio("assets/audio/story/master_cliffcollapse_1s_v1.mp3",null,"fx",2.4,active);
+   // Do not move Ito until the entire digging sound finishes.
+   let continued=false;
+   const continueTurn=()=>{
+    if(continued)return;continued=true;clearTimeout(recovery);
+    if(active())setTimeout(()=>{if(active())computer()},180);
+   };
+   // A failed audio-ended event must not permanently lock the match.
+   const recovery=setTimeout(continueTurn,6000);
+   playGestureAudio("assets/audio/story/master_cliffcollapse_1s_v1.mp3",continueTurn,"fx",2.4,active);
   },360);
-  setTimeout(()=>{if(active())computer()},1500);
   return;
  }
  const move=g.ai();busy=false;
