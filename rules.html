@@ -15,12 +15,23 @@ section{background:#17181cde;border:1px solid #aa8d6655;padding:13px 16px;border
 .note{padding:10px;background:#2c302e;border-left:4px solid #84bcb9}
 table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;border-bottom:1px solid #75664a;text-align:left;vertical-align:top}th{color:#f8db9e}strong{color:#ffdfaa}
 @media(max-width:440px){main{padding:10px}section{padding:12px}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{padding:7px;font-size:.9rem} .move{grid-template-columns:repeat(3,23px);grid-template-rows:repeat(3,23px)}.move.knight{grid-template-rows:repeat(5,23px)}}
+
+/* 本将棋の駒：正確な字形と木の質感を組み合わせた説明用ビジュアル */
+.real-piece{width:72px;height:83px;margin:7px auto 10px;display:flex;align-items:center;justify-content:center;position:relative;filter:drop-shadow(1px 4px 2px #0008)}
+.real-piece::before{content:"";position:absolute;inset:0;background:linear-gradient(112deg,#e6bd78 0%,#f9d99b 28%,#e3b773 56%,#c99652 100%);clip-path:polygon(50% 0,96% 20%,92% 100%,8% 100%,4% 20%);border:0}
+.real-piece::after{content:"";position:absolute;inset:3px;background:repeating-linear-gradient(93deg,transparent 0 7px,#9b682b17 8px 9px,transparent 10px 16px);clip-path:polygon(50% 0,96% 20%,92% 100%,8% 100%,4% 20%);pointer-events:none}
+.real-piece__ink{position:relative;z-index:1;writing-mode:vertical-rl;text-orientation:upright;color:#282019;font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif CJK JP",serif;font-weight:900;font-size:22px;letter-spacing:-3px;line-height:1;transform:translateY(6px);text-shadow:0 .2px #1e1510}
+.real-piece__ink.long{font-size:20px}
+.real-piece-label{font-size:.77rem;color:#cbbda3;margin:0 auto 3px;line-height:1.25}
+.tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.tile .move{margin-top:auto}
+@media(max-width:440px){.real-piece{width:60px;height:69px}.real-piece__ink{font-size:19px}.real-piece__ink.long{font-size:17px}.real-piece-label{font-size:.73rem}}
 </style><link rel="stylesheet" href="page-navigation.css?v=20261108a"></head>
 <body><main><nav class="page-nav" aria-label="ページ案内"><a class="page-nav-link" href="card-ai-test.html">タイトルへ戻る</a><a class="page-nav-link" href="collection.html">人物コレクション</a><a class="page-nav-link" href="history.html">新選組の歴史</a><a class="page-nav-link" href="manual.html">新選組将棋の遊び方</a><a class="page-nav-link" href="rules.html" aria-current="page">将棋の基本ルール</a></nav><header><img src="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" alt="新選組将棋" loading="eager"><h1>将棋の基本ルール</h1><p>初めての方にも分かる、盤上の戦いの基本</p></header>
 <section><h2>1. 将棋はどうすれば勝ち？</h2><p class="lead">相手の<strong>王（玉）</strong>を逃げられない状態にする「<strong>詰み</strong>」を目指すゲームです。</p>
 <p>盤は縦9マス×横9マス。自分の駒を一手ずつ動かし、相手の駒があるマスへ進めばその駒を取れます。自分の駒がある場所へは進めません。</p>
 <p><strong>王手</strong>は「次に王を取れる位置にいる」という警告です。王手されたら、王を逃がす・攻撃駒を取る・攻撃の間に駒を置くなど、必ず王手を解消してください。</p></section>
-<section><h2>2. 駒8種類の動き</h2><p>図は<strong>自分が盤の下側にいる場合</strong>です。「●」が駒、「▲」が1マス移動可能、「↟」がその方向に何マスでも進めることを表します。相手側の駒は上下を反転して考えます。</p>
+<section><h2>2. 駒8種類の動き</h2><p>本物の将棋駒をイメージした木製の五角形と、漢字の表記を添えています。</p><p>図は<strong>自分が盤の下側にいる場合</strong>です。「●」が駒、「▲」が1マス移動可能、「↟」がその方向に何マスでも進めることを表します。相手側の駒は上下を反転して考えます。</p>
 <div class="tiles" id="pieces"></div>
 <p class="note">飛車・角・香のように何マスでも進む駒は、<strong>他の駒を飛び越えられません</strong>。桂馬だけは途中の駒を飛び越えられます。</p></section>
 <section><h2>3. 駒を取る・持ち駒を使う</h2><p>相手の駒のマスへ移動すると、その駒を取って自分の<strong>持ち駒</strong>にできます。次の自分の手番に盤の空いたマスへ打つことができます（その一手を消費します）。取った成り駒は元の駒に戻ります。</p><p>敵の王を直接取る必要はありません。王手を回避できない「詰み」で勝負が決まります。</p></section>
@@ -57,10 +68,14 @@ const data=[
 ['飛','縦横4方向に何マスでも',[0,2,0,2,2,0,2,0]],
 ['王（玉）','周囲8マス',[1,1,1,1,1,1,1,1]]
 ];
+const realNames={'歩':'歩兵','香':'香車','桂':'桂馬','銀':'銀将','金':'金将','角':'角行','飛':'飛車','王（玉）':'王将'};
 const container=document.getElementById('pieces');
 for(const [name,description,arr,knight] of data){
  const card=document.createElement('div');card.className='tile';
  const title=document.createElement('b');title.textContent=name;
+ const visual=document.createElement('div');visual.className='real-piece';visual.setAttribute('role','img');visual.setAttribute('aria-label','木製の将棋駒 '+realNames[name]);
+ const ink=document.createElement('span');ink.className='real-piece__ink'+(realNames[name].length>2?' long':'');ink.textContent=realNames[name];visual.append(ink);
+ const label=document.createElement('div');label.className='real-piece-label';label.textContent='実際の駒：'+realNames[name];
  const text=document.createElement('div');text.textContent=description;
  const grid=document.createElement('div');grid.className='move';grid.setAttribute('role','img');grid.setAttribute('aria-label',description);
  if(knight){
@@ -79,6 +94,6 @@ for(const [name,description,arr,knight] of data){
    grid.append(span);
   }
  }
- card.append(title,grid,text);container.append(card)
+ card.append(title,visual,label,grid,text);container.append(card)
 }
 </script></body></html>
