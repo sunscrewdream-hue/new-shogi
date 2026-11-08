@@ -1296,7 +1296,8 @@ function finish(winner,reason){
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
  window.SharedVictory.show({overlay,winnerElement:$("storyEndWinner"),loserElement:$("storyEndLoser"),
-  winnerId,loserId,winnerName:win?"近藤勇":ch.boss,loserName:win?ch.boss:"近藤勇"});
+  winnerId,loserId,winnerName:win?"近藤勇":ch.boss,loserName:win?ch.boss:"近藤勇",
+  onCross:()=>compactSound("slash")});
  $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();

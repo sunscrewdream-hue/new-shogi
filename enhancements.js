@@ -496,7 +496,8 @@
    $('endWinnerImage').style.display='';$('endLoserImage').style.display='';
    window.SharedVictory.show({overlay:$('endOverlay'),winnerElement:$('endWinnerImage'),loserElement:$('endLoserImage'),
     winnerId:winner===0?'kondo':'saigo',loserId:winner===0?'saigo':'kondo',
-    winnerName:winner===0?'近藤勇':'西郷隆盛',loserName:winner===0?'西郷隆盛':'近藤勇'});
+    winnerName:winner===0?'近藤勇':'西郷隆盛',loserName:winner===0?'西郷隆盛':'近藤勇',
+    onCross:()=>playSampleSfx('slash1')});
    $('endText').textContent='勝負あった！';
    $('endPanel').setAttribute('data-winning-side',winner===0?'shinsengumi':'saccho');
   }
