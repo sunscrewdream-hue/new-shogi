@@ -21,7 +21,7 @@
  // Both choices share one layout center; no viewport-specific offset calculations.
  const group=document.createElement('div');
  group.id='battlefieldModeGroup';
- group.style.cssText='display:flex;flex-direction:column;align-items:center;width:100%;min-width:0';
+ group.style.cssText='display:flex;flex-direction:column;align-items:center;width:min(95vw,520px);min-width:0;position:relative;left:50%;transform:translateX(-50%)';
  anchor.before(group);
  group.append(panel,anchor);
  const choices=panel.querySelector('#storyUnlockChoices');
