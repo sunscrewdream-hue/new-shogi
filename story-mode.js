@@ -202,7 +202,7 @@ function hideCompactFx(){
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
  compactArrival=null;promotionRise=null;promotionCapturePreview=null;promotionVisualHold=null;
- compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
+ compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardFace").blur();$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
 function compactPickCard(side){
@@ -331,7 +331,7 @@ function compactCardClose(){
  const state=compactIncident;if(!state||!state.revealed)return;
  if(!$("compactCardFace").classList.contains("card-text-ready"))return;
  if(!state.voiceDone){state.closeRequested=true;$("compactCardPrompt").textContent="読み上げ終了後に進みます…";return}
- compactIncident=null;$("compactCardOverlay").classList.add("hidden");compactApplyIncident(compactIncidentEffect);compactIncidentEffect=null;
+ compactIncident=null;$("compactCardFace").blur();$("compactCardOverlay").classList.add("hidden");compactApplyIncident(compactIncidentEffect);compactIncidentEffect=null;
 }
 $("compactCardFace").onclick=()=>{
  if(pendingWeaponDisplay){
@@ -351,12 +351,12 @@ $("compactCardFace").onclick=()=>{
    playKabukiVoice(item.kind).then(()=>{
     if(pendingWeaponDisplay!==item)return;
     item.voiceDone=true;
-   if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
+   if(item.closeRequested){pendingWeaponDisplay=null;$("compactCardFace").blur();$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide)}
    });return;
   }
   if(!faceIsWeaponReady())return;
   if(!item.voiceDone){item.closeRequested=true;$("compactCardPrompt").textContent="号令が終わると砲撃を開始します…";return}
-  pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
+  pendingWeaponDisplay=null;$("compactCardFace").blur();$("compactCardOverlay").classList.add("hidden");fire(item.kind,item.ownerSide);return;
  }
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
 };
@@ -1796,18 +1796,8 @@ function storyDebugRun(action,changesBoard=false,renderAfter=true){
  if(!storyDebugReady())return;
  window.StoryBgm?.unlock();
  if(changesBoard){debugModified=true;selected=null}
- // Development controls sit below the board. Return to the battle viewport
- // BEFORE showing a fixed-position effect, so tests mirror normal gameplay.
- const battle=document.getElementById("storyBattle");
- const board=document.getElementById("storyBoard");
- const target=board||battle;
- if(target){
-  const top=window.scrollY+target.getBoundingClientRect().top;
-  const viewport=window.innerHeight;
-  const height=target.getBoundingClientRect().height;
-  const y=Math.max(0,Math.round(top-Math.max(0,(viewport-height)/2)));
-  window.scrollTo({top:y,behavior:"instant"});
- }
+ // Fixed overlays already follow the viewport. Do not re-center the document
+ // when a debug card/effect starts: that visibly jerks the board.
  requestAnimationFrame(()=>{action();if(renderAfter)render()});
 }
 function storyDebugIncident(kind){
