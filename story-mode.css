@@ -1055,3 +1055,15 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
   background:url("assets/boards/story/board-aburanokoji-perimeter.webp") center/100% 100% no-repeat;
 }
 #storyBoard[data-stage="2"]>.sq{z-index:2}
+
+/* Shared promotion calligraphy for every story chapter (including Ikedaya). */
+#storyPromotionHeadlines{display:none}
+.popup.promotion-calligraphy .popup-panel{width:min(92vw,440px);padding:8px 8px 15px;background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.popup.promotion-calligraphy #popupTitle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.popup.promotion-calligraphy #popupText,.popup.promotion-calligraphy #popupArt{display:none!important}
+.popup.promotion-calligraphy #storyPromotionHeadlines{display:flex;flex-direction:column;align-items:center;gap:0;margin:0 auto 12px}
+#storyPromotionHeadlines img{display:block;width:min(84vw,400px);height:auto;max-height:min(17dvh,128px);object-fit:contain}
+#storyPromotionHeadlines .story-promotion-naru{filter:drop-shadow(1px 2px 2px rgba(0,0,0,.82))}
+#storyPromotionHeadlines .story-promotion-naranu{filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))}
+.popup.promotion-calligraphy .popup-buttons{margin:0 auto 2px}
+@media(max-height:600px){#storyPromotionHeadlines img{max-height:90px}.popup.promotion-calligraphy #storyPromotionHeadlines{margin-bottom:8px}}
