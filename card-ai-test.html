@@ -623,6 +623,7 @@ document.addEventListener('DOMContentLoaded',()=>{syncBgmVolume();el('volume').a
 /* Lightweight, mono 64 kbps battle lines. Gameplay FX/BGM stay independent. */
 let voiceEnabled=true,activeVoice=null,voicePreviewTimer=null;
 const battleVoiceUrls={
+ promotion:'assets/audio/story/master_kabuki_promotion_v1.mp3',
  shinsengumi:'assets/audio/voice_shinsengumi_move_sorya.mp3',
  kondoIsami:'assets/audio/voice_kondo_isami_king_move.mp3',
  hijikataToshizo:'assets/audio/voice_hijikata_toshizo_move.mp3',
@@ -1009,12 +1010,22 @@ function animateDesertion(y,x,piece,finished){
 }
 function askPromotion(move){
  if(pendingPromotion||ended)return;
- pendingPromotion={...move};
+ const request=pendingPromotion={...move};
  playerTurnReady=false;
- el('promotionOverlay').classList.remove('promote-shine');
- el('promotionOverlay').classList.toggle('enemy-turn',gameMode==='local'&&turn===1);
- el('promotionOverlay').classList.add('show');
+ const overlay=el('promotionOverlay');
+ overlay.classList.remove('promote-shine');
+ overlay.classList.toggle('enemy-turn',gameMode==='local'&&turn===1);
+ overlay.classList.add('show');
  render();
+ const buttons=[...el('promotionActions').querySelectorAll('button')];
+ buttons.forEach(button=>button.disabled=true);
+ const unlockChoice=()=>{
+  if(pendingPromotion===request&&overlay.classList.contains('show'))buttons.forEach(button=>button.disabled=false);
+ };
+ // Match every story chapter: speak the promotion line before enabling the choice.
+ const clip=playBattleVoice('promotion',unlockChoice);
+ if(!clip)unlockChoice();
+ else setTimeout(unlockChoice,9000); // Safeguard for mobile browsers that omit 'ended'.
 }
 function choosePromotion(yes){
  if(!pendingPromotion||ended)return;
