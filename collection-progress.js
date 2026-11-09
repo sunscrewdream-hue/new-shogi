@@ -14,6 +14,7 @@
  const existing=Array.from(grid.querySelectorAll('details.card'));
  const rows=[],seen=new Map();
  const fallback='assets/cards/back/card-back-saccho-1024x1536.webp';
+ const adoptedArt={"石川潤次郎":"assets/collection/41.webp","吉田稔麿":"assets/collection/42.webp","北添佶摩":"assets/collection/43.webp","望月亀弥太":"assets/collection/44.webp","松田重助":"assets/collection/45.webp","大高又次郎":"assets/collection/46.webp","広岡浪秀":"assets/collection/47.webp","杉山松助":"assets/collection/48.webp","福岡祐次郎":"assets/collection/49.webp","来島又兵衛":"assets/collection/50.webp","真木和泉":"assets/collection/51.webp","国司信濃":"assets/collection/52.webp","福原越後":"assets/collection/53.webp","益田右衛門介":"assets/collection/54.webp","入江九一":"assets/collection/55.webp","寺島忠三郎":"assets/collection/56.webp","児玉小民部":"assets/collection/57.webp","楳本仙之助":"assets/collection/58.webp","湯川庄蔵":"assets/collection/59.webp","有川常槌":"assets/collection/60.webp","三隅竜雄":"assets/collection/61.webp","内田弥三郎":"assets/collection/62.webp","若杉弘之進":"assets/collection/63.webp","中村恒次郎":"assets/collection/64.webp","澄川謙蔵":"assets/collection/65.webp","中尾易三郎":"assets/collection/66.webp","中村総治":"assets/collection/67.webp","吉井友実":"assets/collection/68.webp","服部武雄":"assets/collection/69.webp","毛内有之助":"assets/collection/70.webp","鈴木三樹三郎":"assets/collection/71.webp","篠原泰之進":"assets/collection/72.webp","加納鷲雄":"assets/collection/73.webp","富山弥兵衛":"assets/collection/74.webp","大石鍬次郎":"assets/collection/75.webp","横倉甚五郎":"assets/collection/76.webp","宮川信吉":"assets/collection/77.webp","三浦常三郎":"assets/collection/78.webp","岸島芳太郎":"assets/collection/79.webp","伊地知正治":"assets/collection/80.webp","篠原国幹":"assets/collection/81.webp","野津鎮雄":"assets/collection/82.webp","市来勘兵衛":"assets/collection/83.webp","鈴木武五郎":"assets/collection/84.webp","辺見十郎太":"assets/collection/85.webp","樺山資紀":"assets/collection/86.webp","川路利良":"assets/collection/87.webp","山田顕義":"assets/collection/88.webp","福田侠平":"assets/collection/89.webp","世良修蔵":"assets/collection/90.webp","三浦梧楼":"assets/collection/91.webp","安富才助":"assets/collection/92.webp","佐川官兵衛":"assets/collection/93.webp","林権助":"assets/collection/94.webp","田中土佐":"assets/collection/95.webp","堀半右衛門":"assets/collection/96.webp","生駒五兵衛":"assets/collection/97.webp","上田八郎右衛門":"assets/collection/98.webp","白井五郎太夫":"assets/collection/99.webp","小原宇右衛門":"assets/collection/100.webp","佐藤織之助":"assets/collection/101.webp","中澤常左衛門":"assets/collection/102.webp","宮部鼎蔵":"assets/collection/103.webp","伊東甲子太郎":"assets/collection/104.webp"};
  function register(name,role,side,chapter,art){
   if(!name)return;
   let row=seen.get(name);
@@ -38,6 +39,7 @@
  register('伊東甲子太郎','御陵衛士・盟主',1,'油小路');
  if(rows.length!==104)console.warn('人物数の確認が必要です',rows.length);
  for(const row of rows){
+  if(adoptedArt[row.name])row.art=adoptedArt[row.name];
   if(row.element)continue;
   row.art=fallback;
   const card=document.createElement('details');card.className='card';card.dataset.side=row.side;
@@ -52,15 +54,15 @@
   const dl=document.createElement('dl');
   const dt1=document.createElement('dt');dt1.textContent='人物・役割';const dd1=document.createElement('dd');dd1.textContent=row.role;
   const dt2=document.createElement('dt');dt2.textContent='登場章';const dd2=document.createElement('dd');dd2.textContent=row.chapters.join('・')||'通常盤';
-  const dt3=document.createElement('dt');dt3.textContent='人物素材';const dd3=document.createElement('dd');dd3.textContent='仮画像（正式カード制作待ち）';
+  const dt3=document.createElement('dt');dt3.textContent='人物素材';const dd3=document.createElement('dd');dd3.textContent='正式採用コレクションカード';
   dl.append(dt1,dd1,dt2,dd2,dt3,dd3);
-  const note=document.createElement('p');note.textContent='この人物のカード画像と詳しい略歴は制作中です。ゲーム内の役割は史実の経歴と異なる場合があります。';
+  const note=document.createElement('p');note.textContent='正式採用カードを収録しています。ゲーム内の役割は史実の経歴と異なる場合があります。';
   profile.append(dl,note);card.append(summary,profile);grid.append(card);row.element=card;
  }
  const notice=main.querySelector('.notice');if(notice)notice.remove();
  main.querySelector('h1').textContent='幕末人物コレクション';
  main.querySelector('.eyebrow').textContent='HISTORICAL CHARACTER COLLECTION';
- main.querySelector('.intro').textContent='幕末を生きた104名。対局で駒を取ると人物カードを獲得できます。未完成のカード画像は仮素材で表示します。';
+ main.querySelector('.intro').textContent='幕末を生きた104名。対局で駒を取ると人物カードを獲得できます。全104名の正式採用カードを収録しています。';
  document.title='人物コレクション｜新選組将棋';
  const panel=document.createElement('section');panel.className='collection-progress';
  panel.innerHTML='<strong id="collectionTotal">0 / 104</strong><div>人物カードを収集中</div><div class="collection-bar" aria-hidden="true"><div id="collectionFill"></div></div><p id="collectionStatus" role="status" aria-live="polite"></p><button type="button" id="resetCollection">収集データをリセット</button>';
