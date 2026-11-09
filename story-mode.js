@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,ikedayaPromotionRise=null,promotionCapturePreview=null,promotionVisualHold=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,promotionRise=null,promotionCapturePreview=null,promotionVisualHold=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -78,27 +78,27 @@ function playStoryClip(path,channel="fx",onDone=null){
  if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish);watchdog=setTimeout(()=>{console.warn("音声終了通知タイムアウト",path);finish()},9000)}
  a.play().catch(finish);return a;
 }
-const ikedayaPromotionRiseSound=new Audio('assets/audio/story/promotion_rise_shakiin_20261109.mp3');
-ikedayaPromotionRiseSound.preload='auto';ikedayaPromotionRiseSound.playsInline=true;
-function playIkedayaPromotionRise(){
+const promotionRiseSound=new Audio('assets/audio/story/promotion_rise_shakiin_20261109.mp3');
+promotionRiseSound.preload='auto';promotionRiseSound.playsInline=true;
+function playPromotionRise(){
  if(!fxEnabled||document.hidden)return Promise.resolve();
  return new Promise(resolve=>{
   let finished=false,watchdog;
   const finish=()=>{
    if(finished)return;
    finished=true;clearTimeout(watchdog);
-   ikedayaPromotionRiseSound.removeEventListener('ended',finish);
-   ikedayaPromotionRiseSound.removeEventListener('error',finish);
+   promotionRiseSound.removeEventListener('ended',finish);
+   promotionRiseSound.removeEventListener('error',finish);
    resolve();
   };
   try{
-   ikedayaPromotionRiseSound.pause();
-   ikedayaPromotionRiseSound.currentTime=0;
-   ikedayaPromotionRiseSound.volume=fxLevel();
-   ikedayaPromotionRiseSound.addEventListener('ended',finish,{once:true});
-   ikedayaPromotionRiseSound.addEventListener('error',finish,{once:true});
+   promotionRiseSound.pause();
+   promotionRiseSound.currentTime=0;
+   promotionRiseSound.volume=fxLevel();
+   promotionRiseSound.addEventListener('ended',finish,{once:true});
+   promotionRiseSound.addEventListener('error',finish,{once:true});
    watchdog=setTimeout(finish,2400);
-   const playback=ikedayaPromotionRiseSound.play();
+   const playback=promotionRiseSound.play();
    if(playback?.catch)playback.catch(finish);
   }catch(error){console.warn('池田屋・成り演出音声',error);finish();}
  });
@@ -201,7 +201,7 @@ function hideCompactFx(){
  compactTurnLocked=false;
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
- compactArrival=null;ikedayaPromotionRise=null;promotionCapturePreview=null;promotionVisualHold=null;
+ compactArrival=null;promotionRise=null;promotionCapturePreview=null;promotionVisualHold=null;
  compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
@@ -1192,17 +1192,17 @@ function render(){
   const p=g.board[y][x],btn=document.createElement("button");btn.type="button";btn.className="sq";btn.setAttribute("role","gridcell");
   // During a promotion choice, show the moving piece on the captured square
   // without committing the engine move or displaying it twice.
-  const preview=stage===0&&promotionCapturePreview?.showMover?promotionCapturePreview:null;
+  const preview=promotionCapturePreview?.showMover?promotionCapturePreview:null;
   const previewDestination=preview?.y===y&&preview?.x===x;
   const previewOrigin=preview?.fromY===y&&preview?.fromX===x;
-  const held=stage===0&&promotionVisualHold?.y===y&&promotionVisualHold.x===x?promotionVisualHold.piece:null;
+  const held=promotionVisualHold?.y===y&&promotionVisualHold.x===x?promotionVisualHold.piece:null;
   const shown=previewDestination?preview.piece:previewOrigin?null:held||p;
   btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(shown?person(shown).name+" "+label(shown):"空きマス"));
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
   if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add(p&&p.s===1?"capture-hint":"hint");
-  if(ikedayaPromotionRise?.y===y&&ikedayaPromotionRise.x===x&&stage===0)btn.classList.add('ikedaya-promotion-rise');
-  if(promotionCapturePreview?.hide&&promotionCapturePreview.y===y&&promotionCapturePreview.x===x&&stage===0)btn.classList.add('promotion-capture-preview');
+  if(promotionRise?.y===y&&promotionRise.x===x)btn.classList.add('story-promotion-rise');
+  if(promotionCapturePreview?.hide&&promotionCapturePreview.y===y&&promotionCapturePreview.x===x)btn.classList.add('promotion-capture-preview');
   if(deferredCheckVisualEpoch!==epoch&&!oilAmbushAnimating&&!ikedayaReinforcing&&p?.t==="玉"&&g.check(g.board,p.s))btn.classList.add("king-in-check");
   if(defendingPieces?.has(y+":"+x))btn.classList.add("check-defender");
   if(attackers.attackers.has(y+":"+x))btn.classList.add("compact-check-attacker");
@@ -1273,10 +1273,10 @@ function square(y,x){
       options.forEach(button=>button.disabled=true);
       playStoryClip(kabukiVoice.promotion,"voice",()=>{if(!modal.classList.contains("hidden"))options.forEach(button=>button.disabled=false)});
      };
-     const captive=stage===0?g.board[m.Y][m.X]:null;
+     const captive=!m.drop?g.board[m.Y][m.X]:null;
      const sourceKey=compactFighterKey(unit);
      const capturePlan=captive?window.ShinsengumiBattleRules.captureResult({captured:true,drop:false,previous:compactCaptures[sourceKey]||0,hitokiri:true}):null;
-     if(captive&&!capturePlan.lethal){
+     if(captive&&!capturePlan.lethal&&!(stage===2&&g.oilPhase===1&&captive.king==='ito')){
       // The actual board move waits for the user's promotion choice, but the
       // capture escort and 「捕えた！」 must finish before showing that choice.
       const game=epoch;busy=true;selected=null;
@@ -1443,18 +1443,18 @@ function makeMove(m,prom,capturePreplayed=false){
  const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
  const oilItoCapture=stage===2&&g.oilPhase===1&&!m.drop&&g.board[m.Y][m.X]?.king==="ito";
  const willKill=capturePlan.lethal||oilItoCapture;
- const prePromotionPiece=stage===0&&prom&&!m.drop?{...source,p:false}:null;
+ const prePromotionPiece=prom&&!m.drop?{...source,p:false}:null;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(prePromotionPiece)promotionVisualHold={y:m.Y,x:m.X,piece:prePromotionPiece};
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
- if(compactMode()&&!(stage===0&&prom))compactArrival={y:m.Y,x:m.X};
+ if(compactMode()&&!prom)compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=capturePlan.next;
   justAwakened=capturePlan.awakened;
  }
  const gaveCheck=g.check(g.board,1-actor);
- const deferCheck=stage===0&&prom&&gaveCheck;
+ const deferCheck=prom&&gaveCheck;
  if(deferCheck)deferredCheckVisualEpoch=epoch;
  const delayedCheck=compactClosingHoles.length>0&&gaveCheck;
  const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck});
@@ -1470,7 +1470,7 @@ function makeMove(m,prom,capturePreplayed=false){
   // purging and weapon casualties; the finished match does not stack both.
   if(actor===0)collect(captured);banner(1-actor,captured);
  }else{
-  if(!(stage===0&&prom))sfx("move");
+  if(!prom)sfx("move");
   const nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
@@ -1490,13 +1490,13 @@ function makeMove(m,prom,capturePreplayed=false){
   const afterFx=()=>moveVoiceDone.then(async()=>{
    if(id!==epoch||ended)return;
    // Serialize complete capture escort + 「捕えた！」 voice before promotion.
-   if(stage===0&&prom){
+   if(prom){
     await later(220); // A deliberate breath between two distinct beats.
     if(id!==epoch||ended)return;
-    promotionVisualHold=null;ikedayaPromotionRise={y:m.Y,x:m.X};render();
-    await Promise.all([later(1050),playIkedayaPromotionRise()]);
+    promotionVisualHold=null;promotionRise={y:m.Y,x:m.X};render();
+    await Promise.all([later(1050),playPromotionRise()]);
     if(id!==epoch||ended)return;
-    ikedayaPromotionRise=null;render();
+    promotionRise=null;render();
    }
    if(justAwakened){
     compactCalligraphy(false);
@@ -1511,7 +1511,7 @@ function makeMove(m,prom,capturePreplayed=false){
     await new Promise(resolve=>compactSound("check",resolve));
     if(id!==epoch||ended)return;
    }
-   deferredCheckVisualEpoch=-1;compactArrival=null;ikedayaPromotionRise=null;
+   deferredCheckVisualEpoch=-1;compactArrival=null;promotionRise=null;
    if(oilFirstActVictory){
     // An explicit final blow before the ambush replaces the routine victory.
     compactCalligraphy(true);
@@ -1550,7 +1550,7 @@ function makeMove(m,prom,capturePreplayed=false){
      if(id===epoch&&!ended){render();afterFx()}
     }
    })();
-  }else setTimeout(afterFx,stage===0&&prom?350:prom?800:850);
+  }else setTimeout(afterFx,prom?350:850);
   return;
  }
  if(oilFirstActVictory){storyBannerMessage("伊東甲子太郎、斬殺！",0);oilAmbushReveal();return}
