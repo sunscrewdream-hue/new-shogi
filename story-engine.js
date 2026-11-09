@@ -141,19 +141,24 @@ class StoryEngine{
      }
     }
     if(replaced!==3)throw Error("Invalid Kinmon historical casualties");
-    // Reserve one existing Gold, Rook and Bishop, rather than adding
-    // additional major pieces on top of the standard shogi complement.
-    // Saigo=Gold (commander), Oyama=Rook (artillery), Yoshii=Bishop.
+    // Kinmon posts: Hijikata remains the Rook. Harada leaves his Knight post
+    // and takes the Bishop role. Do not create a second instance of either.
+    const hijikata=B[7][7],haradaKnight=B[8][7],bishop=B[7][1];
+    if(hijikata?.t!=="飛"||hijikata.cid!==1||haradaKnight?.t!=="桂"||haradaKnight.cid!==8||bishop?.t!=="角")
+     throw Error("Invalid Kinmon officer assignment");
+    bishop.cid=8;bishop.uid="kinmon:harada:bishop";bishop.mob=haradaKnight.mob;
+    // Three standard posts are empty until the Satsuma reinforcement arrives:
+    // Saigo=Gold, Oyama=Lance, Yoshii=Knight.
     const satsumaPosts=[
      {y:8,x:3,t:"金",satsumaId:0},
-     {y:7,x:7,t:"飛",satsumaId:1},
-     {y:7,x:1,t:"角",satsumaId:2}
+     {y:8,x:0,t:"香",satsumaId:1},
+     {y:8,x:7,t:"桂",satsumaId:2}
     ];
     this.kinmonSatsumaReserve=satsumaPosts.map(post=>{
      const p=B[post.y][post.x];
      if(!p||p.s!==0||p.t!==post.t)throw Error("Invalid Kinmon reserve post");
      B[post.y][post.x]=null;
-     return{piece:{...p,cid:null,origin:1,uid:"satsuma:kinmon:"+post.satsumaId,satsumaId:post.satsumaId,p:false}};
+     return{y:post.y,x:post.x,piece:{...p,cid:null,origin:1,uid:"satsuma:kinmon:"+post.satsumaId,satsumaId:post.satsumaId,p:false}};
     });
     this.kinmonSatsumaReinforced=false;
    }
@@ -166,8 +171,9 @@ class StoryEngine{
    const candidates=[];
    for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
     if(next[y][x]||this.isHole(y,x))continue;
-    // Prefer friendly home ranks, then neighbouring clear squares.
-    const score=(y<5?1000:0)+Math.abs(y-7)*10+Math.abs(x-4);
+    // Enter at the piece's original shogi post if it is clear. If occupied
+    // by the time the army arrives, choose the nearest free allied square.
+    const score=(y<5?1000:0)+Math.abs(y-entry.y)*10+Math.abs(x-entry.x);
     candidates.push({y,x,score});
    }
    candidates.sort((a,b)=>a.score-b.score||b.y-a.y||a.x-b.x);
