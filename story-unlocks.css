@@ -1,7 +1,7 @@
 /* Victory-gated battlefield selector for the finished regular match. */
 #storyUnlockPicker{width:min(95vw,520px);margin:13px auto 16px;padding:12px 9px;background:#142b32e8;color:#f4ddad;border:1px solid #b99760;border-radius:9px;box-sizing:border-box}
 /* Center the wider battlefield panel within the narrower desktop title column. */
-@media (min-width:700px){#storyUnlockPicker{position:relative;left:50%;transform:translateX(-50%);margin-left:0;margin-right:0}}
+@media (min-width:700px){#storyUnlockPicker{position:relative;left:50%;transform:translateX(calc(-50% - clamp(12px,3vw,24px)));margin-left:0;margin-right:0}}
 #storyUnlockPicker h2{margin:0 0 9px;font-size:clamp(17px,4vw,21px);color:#ffe3a9}
 #storyUnlockPicker h2 small{display:inline;font-size:11px;color:#e6cf9e;font-weight:normal}
 #storyUnlockChoices{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:5px}
