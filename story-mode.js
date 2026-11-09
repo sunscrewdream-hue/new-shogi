@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,ikedayaPromotionRise=null,promotionCapturePreview=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,ikedayaPromotionRise=null,promotionCapturePreview=null,promotionVisualHold=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -201,7 +201,7 @@ function hideCompactFx(){
  compactTurnLocked=false;
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
- compactArrival=null;ikedayaPromotionRise=null;promotionCapturePreview=null;
+ compactArrival=null;ikedayaPromotionRise=null;promotionCapturePreview=null;promotionVisualHold=null;
  compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
@@ -752,13 +752,19 @@ function animateCompactEscort(side,y,x,captive,done,onContact=null){
  const dx=targetX-startX,dy=goalY-targetY;
  let carried=null,contactTimer=null;
  if(onContact){
-  carried=document.createElement("span");
-  carried.className="compact-captive-token"+(captive.s?" enemy":"");
-  carried.textContent=label(captive);carried.setAttribute("aria-hidden","true");
-  Object.assign(carried.style,{left:(rect.left+rect.width*.17)+"px",top:(rect.top+rect.height*.1)+"px",width:(rect.width*.66)+"px",height:(rect.height*.82)+"px",fontSize:Math.max(13,rect.width*.3)+"px"});
-  layer.append(carried);
-  const travelX=goal.left+goal.width/2-(rect.left+rect.width/2),travelY=goal.top+goal.height/2-(rect.top+rect.height/2);
-  carried.animate([{offset:0,opacity:0},{offset:.299,opacity:0},{offset:.3,opacity:1,transform:"translate(0,0) scale(1)"},{offset:.48,opacity:1,transform:"translate(0,0) scale(1)"},{offset:.88,opacity:1,transform:`translate(${travelX}px,${travelY}px) scale(.8)`},{offset:1,opacity:0,transform:`translate(${travelX}px,${travelY}px) scale(.65)`}],{duration,easing:"ease-in-out",fill:"forwards"});
+  // Clone the actual board token, preserving the precise art, typography and orientation.
+  // Show the identical overlay before hiding the underlying token, avoiding a blink.
+  const original=cell.querySelector(".story-token"),tokenRect=original?.getBoundingClientRect(),style=original?getComputedStyle(original):null;
+  if(original&&tokenRect&&style){
+   carried=document.createElement("span");
+   carried.setAttribute("aria-hidden","true");
+   Object.assign(carried.style,{position:"fixed",zIndex:"161",pointerEvents:"none",left:tokenRect.left+"px",top:tokenRect.top+"px",width:tokenRect.width+"px",height:tokenRect.height+"px",display:"block"});
+   const replica=original.cloneNode(true);
+   Object.assign(replica.style,{position:"absolute",inset:"0",margin:"0",width:"100%",height:"100%",maxWidth:"none",maxHeight:"none",fontSize:style.fontSize,color:style.color,backgroundImage:style.backgroundImage,backgroundSize:style.backgroundSize,backgroundPosition:style.backgroundPosition,backgroundRepeat:style.backgroundRepeat,transform:style.transform,animation:"none",filter:style.filter});
+   carried.append(replica);layer.append(carried);
+   const travelX=goal.left+goal.width/2-(tokenRect.left+tokenRect.width/2),travelY=goal.top+goal.height/2-(tokenRect.top+tokenRect.height/2);
+   carried.animate([{offset:0,opacity:1,transform:"translate(0,0)"},{offset:.3,opacity:1,transform:"translate(0,0)"},{offset:.48,opacity:1,transform:"translate(0,0)"},{offset:.88,opacity:1,transform:`translate(${travelX}px,${travelY}px)`},{offset:1,opacity:0,transform:`translate(${travelX}px,${travelY}px)`}],{duration,easing:"ease-in-out",fill:"forwards"});
+  }
   contactTimer=setTimeout(()=>{if(game===epoch)onContact()},contactMs);
  }
  guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{
@@ -1186,7 +1192,8 @@ function render(){
   const preview=stage===0&&promotionCapturePreview?.showMover?promotionCapturePreview:null;
   const previewDestination=preview?.y===y&&preview?.x===x;
   const previewOrigin=preview?.fromY===y&&preview?.fromX===x;
-  const shown=previewDestination?preview.piece:previewOrigin?null:p;
+  const held=stage===0&&promotionVisualHold?.y===y&&promotionVisualHold.x===x?promotionVisualHold.piece:null;
+  const shown=previewDestination?preview.piece:previewOrigin?null:held||p;
   btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(shown?person(shown).name+" "+label(shown):"空きマス"));
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
@@ -1433,8 +1440,10 @@ function makeMove(m,prom,capturePreplayed=false){
  const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
  const oilItoCapture=stage===2&&g.oilPhase===1&&!m.drop&&g.board[m.Y][m.X]?.king==="ito";
  const willKill=capturePlan.lethal||oilItoCapture;
+ const prePromotionPiece=stage===0&&prom&&!m.drop?{...source,p:false}:null;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
+ if(prePromotionPiece)promotionVisualHold={y:m.Y,x:m.X,piece:prePromotionPiece};
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
  if(compactMode()&&!(stage===0&&prom))compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
@@ -1481,7 +1490,7 @@ function makeMove(m,prom,capturePreplayed=false){
    if(stage===0&&prom){
     await later(220); // A deliberate breath between two distinct beats.
     if(id!==epoch||ended)return;
-    ikedayaPromotionRise={y:m.Y,x:m.X};render();
+    promotionVisualHold=null;ikedayaPromotionRise={y:m.Y,x:m.X};render();
     await Promise.all([later(1050),playIkedayaPromotionRise()]);
     if(id!==epoch||ended)return;
     ikedayaPromotionRise=null;render();
