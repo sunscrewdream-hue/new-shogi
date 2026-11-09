@@ -1,0 +1,89 @@
+/* Shared visual contract: use the completed normal-match layout in story battles.
+   Keep board rules and effects mode-specific. Do not distort portrait artwork. */
+#storyBattle .person-banner {
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  width: min(96vw, 520px);
+  max-width: 520px;
+  height: auto;
+  max-height: none !important;
+  min-height: 0;
+  aspect-ratio: 5.05 / 1;
+  margin: 2px auto;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #a47b4a;
+  border-radius: 3px;
+  background: #d8c4a3;
+  box-shadow: 0 2px 7px #211a18a6;
+}
+#storyBattle .person-banner > img:not(.hitokiri-stamp) {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+#storyBattle .person-banner .banner-text {
+  position: absolute;
+  z-index: 2;
+  inset: 8% auto 8% 4%;
+  width: 48%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 3px;
+  overflow: hidden;
+  text-shadow: none;
+}
+#storyBattle .person-banner .banner-name {
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: clamp(19px, 6.2vw, 34px);
+  font-weight: 900;
+  line-height: 1.07;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  color: #171512;
+}
+#storyBattle .person-banner .banner-role {
+  font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif;
+  font-size: clamp(11px, 2.8vw, 15px);
+  font-weight: 850;
+  line-height: 1.1;
+  margin-top: 0;
+  color: #202326;
+  white-space: nowrap;
+}
+#storyBattle .hand-container {
+  position: relative;
+  box-sizing: border-box;
+  width: min(96vw, 520px);
+  max-width: 520px;
+  min-height: 58px;
+  margin: 2px auto;
+  padding: 17px 5px 3px;
+  overflow: hidden;
+  border: 2px solid #775436;
+  border-radius: 5px;
+  background: linear-gradient(#1b0f0966, #1b0f095c), url("assets/neutral_edo_jail.webp") center 54% / cover no-repeat;
+  box-shadow: inset 0 0 0 1px #d3af7955, 0 2px 6px #0005;
+}
+#storyBattle .hand-container > span {
+  position: absolute;
+  z-index: 2;
+  top: 2px;
+  left: 8px;
+  font-family: system-ui, sans-serif;
+  font-size: clamp(10px, 2.65vw, 13px);
+  font-weight: 800;
+  color: #ffe6bd;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000;
+}
+#storyBattle .story-hand {
+  min-height: 35px;
+  gap: 2px;
+}
