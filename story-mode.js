@@ -734,14 +734,15 @@ function compactIntro(){
   setTimeout(()=>{if(game===epoch&&!ended){busy=false;compactTurn(0,null,true)}},450);
  },2600);
 }
-function animateCompactEscort(side,y,x,captive,done){
- // Adapted from the finished 9x9 game's animateCaptureEscort; board coordinates use g.w.
+function animateCompactEscort(side,y,x,captive,done,onContact=null){
+ // The escort arrives at 30% of this motion, then carries the token to jail.
  const cell=$("storyBoard").children[y*g.w+x],jail=$("storyHand"+side)?.closest(".hand-container");
  const rect=cell?.getBoundingClientRect(),goal=jail?.getBoundingClientRect(),layer=$("compactActionLayer"),game=epoch;
- if(!rect||!goal||!Element.prototype.animate||window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){setTimeout(done,180);return}
- // One capture = one officer illustration, owned by the capturing side only.
- // Remove any previous animation before starting a new one.
+ if(!rect||!goal||!Element.prototype.animate||window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+  onContact?.();setTimeout(done,180);return;
+ }
  layer.replaceChildren();
+ const duration=1450,contactMs=duration*.3;
  const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
  const targetX=rect.left+rect.width/2-width/2,targetY=rect.top+rect.height/2-height/2;
  const goalX=goal.left+goal.width/2-width/2,goalY=goal.top+goal.height/2-height/2;
@@ -749,7 +750,20 @@ function animateCompactEscort(side,y,x,captive,done){
  function sprite(src,left,top){const img=document.createElement("img");img.src=src;img.alt="";Object.assign(img.style,{left:left+"px",top:top+"px",width:width+"px",height:height+"px"});layer.append(img);return img}
  const guard=sprite("assets/sprites/figures/"+(side===0?"shinsengumi_back":"saccho_front")+".webp",startX,targetY);
  const dx=targetX-startX,dy=goalY-targetY;
- guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration:1450,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{guard.remove();if(game===epoch)done()});
+ let carried=null,contactTimer=null;
+ if(onContact){
+  carried=document.createElement("span");
+  carried.className="compact-captive-token"+(captive.s?" enemy":"");
+  carried.textContent=label(captive);carried.setAttribute("aria-hidden","true");
+  Object.assign(carried.style,{left:(rect.left+rect.width*.17)+"px",top:(rect.top+rect.height*.1)+"px",width:(rect.width*.66)+"px",height:(rect.height*.82)+"px",fontSize:Math.max(13,rect.width*.3)+"px"});
+  layer.append(carried);
+  const travelX=goal.left+goal.width/2-(rect.left+rect.width/2),travelY=goal.top+goal.height/2-(rect.top+rect.height/2);
+  carried.animate([{offset:0,opacity:0},{offset:.299,opacity:0},{offset:.3,opacity:1,transform:"translate(0,0) scale(1)"},{offset:.48,opacity:1,transform:"translate(0,0) scale(1)"},{offset:.88,opacity:1,transform:`translate(${travelX}px,${travelY}px) scale(.8)`},{offset:1,opacity:0,transform:`translate(${travelX}px,${travelY}px) scale(.65)`}],{duration,easing:"ease-in-out",fill:"forwards"});
+  contactTimer=setTimeout(()=>{if(game===epoch)onContact()},contactMs);
+ }
+ guard.animate([{offset:0,opacity:0,transform:"scale(.8)"},{offset:.3,opacity:1,transform:`translateX(${dx}px)`},{offset:.48,opacity:1,transform:`translateX(${dx}px)`},{offset:.88,opacity:1,transform:`translate(${goalX-startX}px,${dy}px)`},{offset:1,opacity:0,transform:`translate(${goalX-startX}px,${dy}px) scale(.8)`}],{duration,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{
+  clearTimeout(contactTimer);guard.remove();carried?.remove();if(game===epoch)done();
+ });
 }
 function compactTurn(side,after,opening=false){
  if(!compactMode()||ended)return after?.();
@@ -1257,10 +1271,11 @@ function square(y,x){
       // capture escort and 「捕えた！」 must finish before showing that choice.
       const game=epoch;busy=true;selected=null;
       promotionCapturePreview={y:m.Y,x:m.X,hide:false};render();
-      // Keep the enemy token on the board until the escort actually reaches it.
-      setTimeout(()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}},430);
+      // Hide the original token exactly as the escort touches it; the floating
+      // captive then travels alongside the guard into our hand area.
+      const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}};
       Promise.all([
-       new Promise(resolve=>animateCompactEscort(0,m.Y,m.X,captive,resolve)),
+       new Promise(resolve=>animateCompactEscort(0,m.Y,m.X,captive,resolve,takeCaptive)),
        new Promise(resolve=>sfx("capture",resolve))
       ]).then(async()=>{
        await later(300);
@@ -1421,7 +1436,7 @@ function makeMove(m,prom,capturePreplayed=false){
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
- if(compactMode())compactArrival={y:m.Y,x:m.X};
+ if(compactMode()&&!(stage===0&&prom))compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=capturePlan.next;
   justAwakened=capturePlan.awakened;
