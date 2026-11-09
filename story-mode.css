@@ -328,8 +328,6 @@
 @media(prefers-reduced-motion:reduce){#storyBoard .sq.compact-check-attacker,#storyBoard .sq.compact-arrival .story-token{animation:none!important}}
 #compactActionLayer{position:fixed;inset:0;z-index:160;pointer-events:none;overflow:visible}
 #compactActionLayer img{position:fixed;display:block;object-fit:contain;filter:drop-shadow(0 3px 7px #000c);will-change:transform,opacity}
-.compact-captive-token{position:fixed;z-index:161;display:grid;place-items:center;pointer-events:none;clip-path:polygon(50% 0,100% 23%,95% 100%,5% 100%,0 23%);background:#28617c;color:#fff2d1;border:2px solid #133b54;font-weight:900;filter:drop-shadow(0 3px 6px #000b)}
-.compact-captive-token.enemy{background:#9b4146;transform:none}
 #storyBoard{position:relative}
 #storyBoard .sq.compact-check-ray{background:#ec324044!important;box-shadow:inset 0 0 0 2px #ec344888}
 #storyBoard .compact-check-lines{position:absolute;inset:0;width:100%;height:100%;z-index:12;pointer-events:none;overflow:visible}
