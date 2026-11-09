@@ -1199,7 +1199,7 @@ function showTurnNotice(side){
  const n=el('turnNotice'),id=++noticeSerial,e=epoch;
  const positionTurnArt=()=>{if(n.classList.contains('on'))window.ShinsengumiTurnPresentation.place(board,n,'absolute')};
  const title=gameMode==='local'?(side===0?'先手の番！':'後手の番！'):(side===0?'新選組の手番！':'敵軍の手番！'),banner=el('turnBanner'),backup=el('turnBannerFallback');
- banner.src=side===0?'assets/turn-notice/turn_shinsengumi_illustrated.png':'assets/turn-notice/turn_enemy_illustrated.png';
+ banner.src=gameMode==='local'?(side===0?'assets/turn-notice/turn_sente_illustrated.png':'assets/turn-notice/turn_gote_illustrated.png'):(side===0?'assets/turn-notice/turn_shinsengumi_illustrated.png':'assets/turn-notice/turn_enemy_illustrated.png');
  banner.alt=title;banner.style.display='block';backup.textContent=title;backup.style.display='none';
  banner.onerror=()=>{banner.style.display='none';backup.style.display='block'};
  n.className='on '+(side===0?'blue':'red');
