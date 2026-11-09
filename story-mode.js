@@ -78,12 +78,30 @@ function playStoryClip(path,channel="fx",onDone=null){
  if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish);watchdog=setTimeout(()=>{console.warn("音声終了通知タイムアウト",path);finish()},9000)}
  a.play().catch(finish);return a;
 }
-const ikedayaPromotionRiseSound=new Audio('assets/audio/story/promotion_rise_wallet_20261109.mp3');
+const ikedayaPromotionRiseSound=new Audio('assets/audio/story/promotion_rise_shakiin_20261109.mp3');
 ikedayaPromotionRiseSound.preload='auto';ikedayaPromotionRiseSound.playsInline=true;
 function playIkedayaPromotionRise(){
- if(!fxEnabled||document.hidden)return;
- try{ikedayaPromotionRiseSound.pause();ikedayaPromotionRiseSound.currentTime=0;ikedayaPromotionRiseSound.volume=fxLevel();
- const play=ikedayaPromotionRiseSound.play();if(play?.catch)play.catch(()=>{});}catch(error){console.warn('池田屋・成り演出音声',error)}
+ if(!fxEnabled||document.hidden)return Promise.resolve();
+ return new Promise(resolve=>{
+  let finished=false,watchdog;
+  const finish=()=>{
+   if(finished)return;
+   finished=true;clearTimeout(watchdog);
+   ikedayaPromotionRiseSound.removeEventListener('ended',finish);
+   ikedayaPromotionRiseSound.removeEventListener('error',finish);
+   resolve();
+  };
+  try{
+   ikedayaPromotionRiseSound.pause();
+   ikedayaPromotionRiseSound.currentTime=0;
+   ikedayaPromotionRiseSound.volume=fxLevel();
+   ikedayaPromotionRiseSound.addEventListener('ended',finish,{once:true});
+   ikedayaPromotionRiseSound.addEventListener('error',finish,{once:true});
+   watchdog=setTimeout(finish,2400);
+   const playback=ikedayaPromotionRiseSound.play();
+   if(playback?.catch)playback.catch(finish);
+  }catch(error){console.warn('池田屋・成り演出音声',error);finish();}
+ });
 }
 const kabukiVoice={promotion:"assets/audio/story/master_kabuki_promotion_v1.mp3",cannon:"assets/audio/story/master_kabuki_cannon_v1.mp3",rifle:"assets/audio/story/master_kabuki_rifle_v1.mp3",awakening:"assets/audio/story/master_kabuki_awakening_v1.mp3",kill:"assets/audio/story/master_kabuki_kill_v1.mp3"};
 function playKabukiVoice(kind){return new Promise(resolve=>{
@@ -1437,8 +1455,8 @@ function makeMove(m,prom,capturePreplayed=false){
    if(stage===0&&prom){
     await later(220); // A deliberate breath between two distinct beats.
     if(id!==epoch||ended)return;
-    ikedayaPromotionRise={y:m.Y,x:m.X};render();playIkedayaPromotionRise();
-    await later(1050);
+    ikedayaPromotionRise={y:m.Y,x:m.X};render();
+    await Promise.all([later(1050),playIkedayaPromotionRise()]);
     if(id!==epoch||ended)return;
     ikedayaPromotionRise=null;render();
    }
