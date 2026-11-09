@@ -1067,3 +1067,31 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
 #storyPromotionHeadlines .story-promotion-naranu{filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))}
 .popup.promotion-calligraphy .popup-buttons{margin:0 auto 2px}
 @media(max-height:600px){#storyPromotionHeadlines img{max-height:90px}.popup.promotion-calligraphy #storyPromotionHeadlines{margin-bottom:8px}}
+
+/* Ikedaya-only test: understated 1.05s rise/flip when choosing 成る. */
+#storyBoard .sq.ikedaya-promotion-rise{isolation:isolate;perspective:520px}
+#storyBoard .sq.ikedaya-promotion-rise .story-token{
+ animation:ikedayaRiseToken 1.05s cubic-bezier(.2,.62,.2,1) both;
+ backface-visibility:hidden;transform-origin:50% 50%;z-index:2
+}
+#storyBoard .sq.ikedaya-promotion-rise::after{
+ content:"";position:absolute;inset:6%;border-radius:50%;pointer-events:none;z-index:1;
+ background:radial-gradient(ellipse,#fff9d9b8 0%,#f8e4a36b 32%,transparent 72%);
+ animation:ikedayaRiseGlow 1.05s ease-out both
+}
+@keyframes ikedayaRiseToken{
+ 0%{transform:rotateY(-80deg) scale(.86);filter:brightness(1.18) drop-shadow(0 2px 2px #0008);opacity:.85}
+ 30%{transform:rotateY(0deg) scale(1.10);filter:brightness(1.9) drop-shadow(0 0 12px #fff1b3);opacity:1}
+ 65%{transform:rotateY(9deg) scale(1.04);filter:brightness(1.35) drop-shadow(0 0 8px #ecd18b)}
+ 100%{transform:rotateY(0deg) scale(1);filter:brightness(1) drop-shadow(0 2px 2px #0008)}
+}
+@keyframes ikedayaRiseGlow{
+ 0%{opacity:0;transform:scale(.65)}
+ 25%{opacity:1;transform:scale(1.16)}
+ 70%{opacity:.42;transform:scale(1.06)}
+ 100%{opacity:0;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ #storyBoard .sq.ikedaya-promotion-rise .story-token,
+ #storyBoard .sq.ikedaya-promotion-rise::after{animation:none!important}
+}
