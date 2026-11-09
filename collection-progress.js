@@ -41,7 +41,6 @@
  for(const row of rows){
   if(adoptedArt[row.name])row.art=adoptedArt[row.name];
   if(row.element)continue;
-  row.art=fallback;
   const card=document.createElement('details');card.className='card';card.dataset.side=row.side;
   const summary=document.createElement('summary');
   const portrait=document.createElement('span');portrait.className='portrait';portrait.setAttribute('aria-hidden','true');portrait.textContent=row.name.slice(0,1);
@@ -64,8 +63,9 @@
  main.querySelector('.eyebrow').textContent='HISTORICAL CHARACTER COLLECTION';
  main.querySelector('.intro').textContent='幕末を生きた104名。対局で駒を取ると人物カードを獲得できます。全104名の正式採用カードを収録しています。';
  document.title='人物コレクション｜新選組将棋';
+ let testMode=false;
  const panel=document.createElement('section');panel.className='collection-progress';
- panel.innerHTML='<strong id="collectionTotal">0 / 104</strong><div>人物カードを収集中</div><div class="collection-bar" aria-hidden="true"><div id="collectionFill"></div></div><p id="collectionStatus" role="status" aria-live="polite"></p><button type="button" id="resetCollection">収集データをリセット</button>';
+ panel.innerHTML='<strong id="collectionTotal">0 / 104</strong><div>人物カードを収集中</div><div class="collection-bar" aria-hidden="true"><div id="collectionFill"></div></div><p id="collectionStatus" role="status" aria-live="polite"></p><button type="button" id="collectionDevToggle" aria-pressed="false">🛠 開発テスト：全104名を表示</button><button type="button" id="resetCollection">収集データをリセット</button>';
  main.append(panel);
  const keys=[primaryKey,...legacy.map(x=>x[0]),oilKey];
  const readArray=key=>{try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch{return[]}};
@@ -93,7 +93,7 @@
  document.body.append(viewer);
  viewer.querySelector('.viewer-close').onclick=()=>viewer.close();
  viewer.onclick=e=>{if(e.target===viewer)viewer.close()};
- function showCard(row){if(!owned().has(row.name))return;viewer.querySelector('img').src=row.art;viewer.querySelector('img').alt=row.name+'の人物カード';viewer.querySelector('.viewer-name').textContent=row.name;viewer.showModal()}
+ function showCard(row){if(!testMode&&!owned().has(row.name))return;viewer.querySelector('img').src=row.art;viewer.querySelector('img').alt=row.name+'の人物カード';viewer.querySelector('.viewer-name').textContent=row.name;viewer.showModal()}
  rows.forEach((row,index)=>{
   const card=row.element;card.dataset.characterIndex=String(index);
   card.dataset.search=[row.name,row.role,...row.chapters].join(' ');
@@ -110,16 +110,18 @@
  const normalize=value=>value.normalize('NFKC').toLocaleLowerCase('ja').replace(/\s+/g,'');
  function filter(){
   const query=normalize(search.value),matches=rows.filter(row=>(filterSide==='all'||row.side===filterSide)&&normalize(row.element.dataset.search).includes(query));
-  const visible=new Set(matches.slice(0,query?matches.length:shownLimit));
+  const visible=new Set(matches.slice(0,testMode||query?matches.length:shownLimit));
   for(const row of rows)row.element.hidden=!visible.has(row);
   document.getElementById('count').textContent=visible.size+'名を表示 ／ 該当'+matches.length+'名 ／ 全104名';
   document.getElementById('empty').hidden=matches.length>0;
-  more.hidden=!!query||matches.length<=shownLimit;
+  more.hidden=testMode||!!query||matches.length<=shownLimit;
   if(!more.hidden)more.textContent='さらに'+Math.min(pageSize,matches.length-shownLimit)+'名を表示';
  }
- function refresh(){const found=owned();for(const row of rows){const card=row.element,unlocked=found.has(row.name);card.classList.toggle('unlocked',unlocked);card.classList.toggle('locked',!unlocked);card.querySelector('summary h3').textContent=unlocked?row.name:'未収録';const portrait=card.querySelector('.portrait'),img=portrait.querySelector('img');if(!unlocked){card.open=false;img.hidden=true;portrait.dataset.locked='？'}else{img.hidden=false;delete portrait.dataset.locked}}const total=rows.filter(row=>found.has(row.name)).length;document.getElementById('collectionTotal').textContent=total+' / '+rows.length;document.getElementById('collectionFill').style.width=total/rows.length*100+'%';document.getElementById('collectionStatus').textContent=total===rows.length?'全人物を収集しました！':total===0?'まだ人物を収集していません。対局で駒を取りましょう。':(rows.length-total)+'名が未収録です。';filter()}
+ function refresh(){const found=owned();for(const row of rows){const card=row.element,unlocked=testMode||found.has(row.name);card.classList.toggle('unlocked',unlocked);card.classList.toggle('locked',!unlocked);card.querySelector('summary h3').textContent=unlocked?row.name:'未収録';const portrait=card.querySelector('.portrait'),img=portrait.querySelector('img');if(!unlocked){card.open=false;img.hidden=true;portrait.dataset.locked='？'}else{img.hidden=false;delete portrait.dataset.locked}}const total=rows.filter(row=>found.has(row.name)).length;document.getElementById('collectionTotal').textContent=total+' / '+rows.length;document.getElementById('collectionFill').style.width=total/rows.length*100+'%';document.getElementById('collectionStatus').textContent=total===rows.length?'全人物を収集しました！':total===0?'まだ人物を収集していません。対局で駒を取りましょう。':(rows.length-total)+'名が未収録です。';filter()}
  const sides={0:rows.filter(x=>x.side==='0').length,1:rows.filter(x=>x.side==='1').length};
  for(const button of buttons){if(button.dataset.filter==='0')button.textContent='新選組・会津 '+sides[0]+'名';if(button.dataset.filter==='1')button.textContent='その他の人物 '+sides[1]+'名';button.onclick=()=>{filterSide=button.dataset.filter;shownLimit=pageSize;for(const item of buttons)item.setAttribute('aria-pressed',String(item===button));filter()}}
+ const devButton=document.getElementById('collectionDevToggle');
+ devButton.onclick=()=>{testMode=!testMode;devButton.setAttribute('aria-pressed',String(testMode));devButton.textContent=testMode?'🛠 開発テストを終了（通常表示へ）':'🛠 開発テスト：全104名を表示';shownLimit=pageSize;refresh()};
  more.onclick=()=>{shownLimit+=pageSize;filter()};
  search.oninput=()=>{shownLimit=pageSize;filter()};
  document.getElementById('resetCollection').onclick=()=>{
