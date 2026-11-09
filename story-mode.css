@@ -1096,5 +1096,5 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
  #storyBoard .sq.ikedaya-promotion-rise::after{animation:none!important}
 }
 
-/* Hide the captive during the pre-choice capture escort; the engine move still waits for the choice. */
+/* Hide the captive only when the escort reaches the board square; the engine move waits for the choice. */
 #storyBoard .sq.promotion-capture-preview .story-token{visibility:hidden}
