@@ -11,3 +11,5 @@ body[data-unlocked-field]:not([data-unlocked-field="classic"])::before{backgroun
 /* These two grounds are 9x9 by design; no pseudo-frame can cover the pieces. */
 #board[data-unlocked-field="kinmon"],#board[data-unlocked-field="tobafushimi"]{border:3px solid #69452b;padding:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;overflow:hidden}
 #board[data-unlocked-field="kinmon"] .sq,#board[data-unlocked-field="tobafushimi"] .sq{border:0}
+
+#storyUnlockPicker[hidden]{display:none!important}
