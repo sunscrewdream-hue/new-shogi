@@ -265,10 +265,6 @@ body.quake-world::before{animation:kyotoWorldQuake 1.65s ease-out both;will-chan
 #promotionActions button{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:18px;font-weight:900;min-width:110px;padding:12px 15px;border:1px solid #c6a06a;
  background:linear-gradient(#efce91,#c28b48);color:#24190f;border-radius:6px}
 #promotionActions button:last-child{background:linear-gradient(#c6c6c6,#8c8c94)}
-#promotionOverlay.promote-shine #promotionPanel:after{content:"";position:absolute;inset:-60%;
- transform:rotate(30deg);background:linear-gradient(90deg,transparent 38%,#fff7d677 49%,transparent 57%);
- pointer-events:none;animation:promoteBlade .45s ease-out both}
-@keyframes promoteBlade{from{transform:translateX(-70%) rotate(30deg)}to{transform:translateX(70%) rotate(30deg)}}
 /* Outcome portraits bounce from above (winner) and below (defeated). */
 #endPanel{padding:12px 10px 17px!important}
 .endIllustration{display:block;width:min(78vw,410px);max-height:27dvh;object-fit:contain;margin:0 auto}
@@ -293,8 +289,6 @@ body.quake-world::before{animation:kyotoWorldQuake 1.65s ease-out both;will-chan
 @media(prefers-reduced-motion:reduce){
  #introClash.show .introUpper,#introClash.show .introLower{animation-duration:.5s}
  #introClash.show #introFlash,#endWinnerImage,#endLoserImage{animation:none}
-
- #promotionOverlay.promote-shine #promotionPanel:after{animation:none}
 }
 /* Incident card face: preserve the illustration and its painted title, while
    placing the real game effect in an elegant, legible lower caption. */
@@ -1050,7 +1044,7 @@ function askPromotion(move,preplayedCapture=false){
  normalPromotionPreview={m:move,piece:{...b[move.y][move.x]}};
  playerTurnReady=false;
  const overlay=el('promotionOverlay');
- overlay.classList.remove('promote-shine');
+ 
  overlay.classList.toggle('enemy-turn',gameMode==='local'&&turn===1);
  overlay.classList.add('show');
  render();
