@@ -1401,9 +1401,7 @@ function makeMove(m,prom){
   else if(dedicated)announce(dedicated);
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
- if(stage===0&&prom)ikedayaPromotionRise={y:m.Y,x:m.X};
  if(unit)banner(actor,unit);selected=null;render();
- if(stage===0&&prom)playIkedayaPromotionRise();
  const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
  // Being cornered without legal moves is not Ito's death.
  const rawResult=g.state();
@@ -1413,6 +1411,15 @@ function makeMove(m,prom){
   // Capture and the awakening seal must finish before the next turn or verdict.
   const afterFx=()=>moveVoiceDone.then(async()=>{
    if(id!==epoch||ended)return;
+   // Serialize complete capture escort + 「捕えた！」 voice before promotion.
+   if(stage===0&&prom){
+    await later(220); // A deliberate breath between two distinct beats.
+    if(id!==epoch||ended)return;
+    ikedayaPromotionRise={y:m.Y,x:m.X};render();playIkedayaPromotionRise();
+    await later(1050);
+    if(id!==epoch||ended)return;
+    ikedayaPromotionRise=null;render();
+   }
    if(justAwakened){
     compactCalligraphy(false);
     await playKabukiVoice("awakening");
@@ -1465,7 +1472,7 @@ function makeMove(m,prom){
      if(id===epoch&&!ended){render();afterFx()}
     }
    })();
-  }else setTimeout(afterFx,stage===0&&prom?1100:prom?800:850);
+  }else setTimeout(afterFx,stage===0&&prom?350:prom?800:850);
   return;
  }
  if(oilFirstActVictory){storyBannerMessage("伊東甲子太郎、斬殺！",0);oilAmbushReveal();return}
