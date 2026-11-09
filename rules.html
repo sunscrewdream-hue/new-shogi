@@ -26,6 +26,18 @@ table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;bor
 .tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
 .tile .move{margin-top:auto}
 @media(max-width:440px){.real-piece{width:60px;height:69px}.real-piece__ink{font-size:26px}.real-piece__ink.long{font-size:24px}.real-piece-label{font-size:.73rem}}
+
+.promote-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.promote-pair{background:#292b2f;border:1px solid #9c805f;border-radius:9px;padding:10px 5px;text-align:center}
+.promote-pair__row{display:flex;align-items:center;justify-content:center;gap:6px}
+.promote-pair__face{min-width:0;flex:0 1 92px}
+.promote-pair .real-piece{width:58px;height:69px;margin:3px auto}
+.promote-pair .real-piece__ink{font-size:25px}
+.promote-pair .real-piece__ink.long{font-size:22px}
+.promote-pair .real-piece.is-promoted .real-piece__ink{color:#aa2020;text-shadow:0 .2px #541010}
+.promote-pair__arrow{color:#ecd28f;font-size:20px}
+.promote-pair__caption{font-size:.86rem;line-height:1.4;color:#e8d6b4}
+@media(max-width:440px){.promote-grid{gap:8px}.promote-pair__row{gap:2px}.promote-pair .real-piece{width:48px;height:57px}.promote-pair .real-piece__ink{font-size:21px}.promote-pair .real-piece__ink.long{font-size:19px}.promote-pair__face{flex-basis:60px}.promote-pair__caption{font-size:.75rem}}
 </style><link rel="stylesheet" href="page-navigation.css?v=20261108a"></head>
 <body><main><nav class="page-nav" aria-label="ページ案内"><a class="page-nav-link" href="card-ai-test.html">タイトルへ戻る</a><a class="page-nav-link" href="collection.html">人物コレクション</a><a class="page-nav-link" href="history.html">新選組の歴史</a><a class="page-nav-link" href="manual.html">新選組将棋の遊び方</a><a class="page-nav-link" href="rules.html" aria-current="page">将棋の基本ルール</a></nav><header><img src="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" alt="新選組将棋" loading="eager"><h1>将棋の基本ルール</h1><p>初めての方にも分かる、盤上の戦いの基本</p></header>
 <section><h2>1. 将棋はどうすれば勝ち？</h2><p class="lead">相手の<strong>王（玉）</strong>を逃げられない状態にする「<strong>詰み</strong>」を目指すゲームです。</p>
@@ -41,7 +53,10 @@ table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;bor
 <tr><td>角</td><td>馬</td><td>角の動き＋縦横1マス</td></tr>
 <tr><td>飛</td><td>龍</td><td>飛車の動き＋斜め1マス</td></tr>
 <tr><td>金・玉（王）</td><td>成らない</td><td>元の動きのまま</td></tr></tbody></table>
-<p>歩・香が一番奥に進む場合、桂が奥2段に進む場合は、進める場所を失うため<strong>必ず成ります</strong>。</p></section>
+<h3 style="color:#f8db9e;margin:21px 0 5px">成る前と成った後の駒</h3>
+<p class="mini">裏返すと赤い文字の成り駒になります。下の図は木製の将棋駒を模したものです。</p>
+<div id="promotions" class="promote-grid" aria-label="成り駒のビジュアル比較"></div>
+<p class="mini">金将と王将（玉将）は成りません。</p><p>歩・香が一番奥に進む場合、桂が奥2段に進む場合は、進める場所を失うため<strong>必ず成ります</strong>。</p></section>
 <section><h2>5. 注意したい反則</h2><p><strong>二歩：</strong>同じ縦列に、成っていない自分の歩を2枚置くことはできません。<br>
 <strong>打ち歩詰め：</strong>持ち駒の歩を打ったその手で、相手を即詰みにすることは禁止です。<br>
 <strong>王を危険にさらす手：</strong>王手がかかったままになる手や、自分の王に王手をかけられる手は指せません。<br>
@@ -95,5 +110,19 @@ for(const [name,description,arr,knight] of data){
   }
  }
  card.append(title,visual,label,grid,text);container.append(card)
+}
+
+const promotionData=[['歩兵','と','と金'],['香車','杏','成香'],['桂馬','圭','成桂'],['銀将','全','成銀'],['角行','馬','龍馬'],['飛車','龍','龍王']];
+const promotions=document.getElementById('promotions');
+for(const [before,after,reading] of promotionData){
+ const pair=document.createElement('div');pair.className='promote-pair';
+ const row=document.createElement('div');row.className='promote-pair__row';
+ for(const [glyph,promoted] of [[before,false],[after,true]]){
+  if(promoted){const arrow=document.createElement('span');arrow.className='promote-pair__arrow';arrow.textContent='→';row.append(arrow)}
+  const face=document.createElement('div');face.className='promote-pair__face';
+  const piece=document.createElement('div');piece.className='real-piece'+(promoted?' is-promoted':'');piece.setAttribute('role','img');piece.setAttribute('aria-label',(promoted?'成り駒 ':'元の駒 ')+glyph);
+  const ink=document.createElement('span');ink.className='real-piece__ink'+(glyph.length>2?' long':'');ink.textContent=glyph;piece.append(ink);face.append(piece);row.append(face)
+ }
+ const caption=document.createElement('div');caption.className='promote-pair__caption';caption.textContent=before+' → '+reading;pair.append(row,caption);promotions.append(pair)
 }
 </script></body></html>
