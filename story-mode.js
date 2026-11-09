@@ -1167,7 +1167,13 @@ function render(){
  const attackers=deferredCheckVisualEpoch===epoch||oilAmbushAnimating||ikedayaReinforcing?{attackers:new Set(),rays:new Set(),paths:[]}:compactCheckSources();
  for(let y=0;y<g.h;y++)for(let x=0;x<g.w;x++){
   const p=g.board[y][x],btn=document.createElement("button");btn.type="button";btn.className="sq";btn.setAttribute("role","gridcell");
-  btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(p?person(p).name+" "+label(p):"空きマス"));
+  // During a promotion choice, show the moving piece on the captured square
+  // without committing the engine move or displaying it twice.
+  const preview=stage===0&&promotionCapturePreview?.showMover?promotionCapturePreview:null;
+  const previewDestination=preview?.y===y&&preview?.x===x;
+  const previewOrigin=preview?.fromY===y&&preview?.fromX===x;
+  const shown=previewDestination?preview.piece:previewOrigin?null:p;
+  btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(shown?person(shown).name+" "+label(shown):"空きマス"));
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
   if(targets.some(m=>m.Y===y&&m.X===x))btn.classList.add(p&&p.s===1?"capture-hint":"hint");
@@ -1191,7 +1197,7 @@ function render(){
   if(compactClosingHoles.some(hole=>hole.y===y&&hole.x===x))btn.classList.add("compact-hole-closing",...(compactHoleFading?["compact-hole-fading"]:[]));
   if(compactBloodMarks.includes(y+":"+x))btn.classList.add("compact-blood");
   if(compactArrival?.y===y&&compactArrival.x===x)btn.classList.add("compact-arrival");
-  if(p){const token=document.createElement("span");token.className="story-token"+(p.s?" enemy":"")+(p.p?" promoted":"");token.textContent=label(p);token.setAttribute("aria-hidden","true");btn.append(token);if(ikedayaPendingPositions.has(y+":"+x))token.style.opacity="0"}
+  if(shown){const token=document.createElement("span");token.className="story-token"+(shown.s?" enemy":"")+(shown.p?" promoted":"");token.textContent=label(shown);token.setAttribute("aria-hidden","true");btn.append(token);if(ikedayaPendingPositions.has(y+":"+x))token.style.opacity="0"}
   btn.onclick=()=>square(y,x);root.append(btn);
  }
  if(attackers.paths.length){
@@ -1259,6 +1265,7 @@ function square(y,x){
       ]).then(async()=>{
        await later(300);
        if(game!==epoch||ended||$("storyBattle").classList.contains("hidden"))return;
+       promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,hide:false,showMover:true,piece:unit};
        busy=false;render();showPromotionChoice(true);
       });return;
      }
