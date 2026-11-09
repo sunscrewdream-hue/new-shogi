@@ -773,7 +773,7 @@ function compactCheckSources(){
  return result;
 }
 function popup(title,text,options,img){
- const modal=$("storyPopup");$("popupTitle").textContent=title;$("popupText").textContent=text;
+ const modal=$("storyPopup");modal.classList.toggle("promotion-calligraphy",title==="成るか、成らぬか");$("popupTitle").textContent=title;$("popupText").textContent=text;
  modal.querySelectorAll(".story-verdict-art,.story-final-loser").forEach(node=>node.remove());
  const image=$("popupArt");image.classList.toggle("hidden",!img);
  if(img){image.onerror=()=>image.classList.add("hidden");image.src=img}
