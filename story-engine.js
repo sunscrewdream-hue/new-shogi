@@ -82,6 +82,10 @@ class StoryEngine{
     }
     if(officer!==10)throw Error("Invalid Aburanokoji defender count");
    }
+   // Ikedaya: Okita protects Kondo from the front as a Gold.
+   // Hijikata's Rook is withheld for the turn-three reinforcement.
+   // Reuse the existing slots; do not introduce a second Rook or duplicate an officer.
+   if(this.stage===0){B[4][2].t="金";B[4][0].t="飛"}
    // Six historical officers enter Ikedaya; four more arrive on turn three.
    for(const [y,x,cid] of [[5,0,9],[5,1,5],[5,2,0],[5,3,7],[5,4,18],[4,2,2],[4,0,1],[4,1,3],[4,3,8],[4,4,6]])if(this.stage===0)B[y][x].cid=cid;
    // Ikedaya identities occupy four existing enemy slots; preserve battle balance.
@@ -126,16 +130,31 @@ class StoryEngine{
     leader.kinmonId=0;
     let next=1;
     for(const piece of occupied)if(piece!==leader)piece.kinmonId=next++;
-    // Three historical casualties cannot appear in the later Kinmon chapter.
-    // Their slots become a separate Satsuma cavalry reserve, never hand pieces.
+    // Three Ikedaya casualties must not reappear at Kinmon. Keep their basic
+    // Pawn slots occupied by anonymous soldiers, not by the deceased officers.
     const retired=new Set([15,18,19]);
-    const released=[];
+    let replaced=0;
     for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){
-     const p=B[y][x];if(p?.s===0&&retired.has(p.cid)){released.push(p);B[y][x]=null}
+     const p=B[y][x];
+     if(p?.s===0&&retired.has(p.cid)){
+      p.cid=null;p.uid="kinmon:anonymous:"+replaced;p.mob=replaced;replaced++;
+     }
     }
-    if(released.length!==3)throw Error("Invalid Kinmon friendly reserve");
-    const types=["飛","角","金"];
-    this.kinmonSatsumaReserve=released.map((p,i)=>({piece:{...p,t:types[i],s:0,cid:null,origin:1,uid:"satsuma:kinmon:"+i,satsumaId:i,p:false}}));
+    if(replaced!==3)throw Error("Invalid Kinmon historical casualties");
+    // Reserve one existing Gold, Rook and Bishop, rather than adding
+    // additional major pieces on top of the standard shogi complement.
+    // Saigo=Gold (commander), Oyama=Rook (artillery), Yoshii=Bishop.
+    const satsumaPosts=[
+     {y:8,x:3,t:"金",satsumaId:0},
+     {y:7,x:7,t:"飛",satsumaId:1},
+     {y:7,x:1,t:"角",satsumaId:2}
+    ];
+    this.kinmonSatsumaReserve=satsumaPosts.map(post=>{
+     const p=B[post.y][post.x];
+     if(!p||p.s!==0||p.t!==post.t)throw Error("Invalid Kinmon reserve post");
+     B[post.y][post.x]=null;
+     return{piece:{...p,cid:null,origin:1,uid:"satsuma:kinmon:"+post.satsumaId,satsumaId:post.satsumaId,p:false}};
+    });
     this.kinmonSatsumaReinforced=false;
    }
   }
