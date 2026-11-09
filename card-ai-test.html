@@ -1481,7 +1481,7 @@ function revealCard(){
 function finishCardClose(){
  if(pendingCardSide===null)return;
  pendingCardSide=null;cardCloseRequested=false;
- el('cardOverlay').classList.remove('show');runIncidentEffect();
+ el('cardFace').blur();el('cardOverlay').classList.remove('show');runIncidentEffect();
 }
 function flipCard(){
  if(pendingCardSide===null)return;
