@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),D=window.StoryData;
 const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",COL="shinsengumi-shogi-collection-v1";
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
-let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,promotionRise=null,promotionCapturePreview=null,promotionVisualHold=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,reinforcementSerial=0,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
+let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,promotionRise=null,promotionCapturePreview=null,promotionVisualHold=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
 const voiceLevel=()=>Math.min(.75,storyVolume/100*4.3);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
@@ -212,6 +212,7 @@ function compactPickCard(side){
  // Do not draw a card that cannot affect the current legal position.
  // A silent no-op was especially confusing for defection on small boards.
  const deck=base.filter(([kind])=>{
+  if(kind==="援軍")return g.fallen[side].length>0;
   if(kind==="寝返り")return compactEligible(1-side).length>0;
   if(kind==="脱走")return compactEligible(side).length>0;
   if(kind==="粛清")return compactEligible(side,["歩","香","桂","銀"]).length>0;
@@ -298,8 +299,8 @@ function compactCardReveal(){
  }
  else if(kind==="援軍"){
   const fallen=g.fallen[side];
-  if(fallen.length){const revived=fallen[Math.floor(Math.random()*fallen.length)];compactIncidentEffect={kind,side,uid:revived.uid};detail="援軍！ 戦死した"+revived.t+"が持ち駒に復活する"}
-  else{compactIncidentEffect={kind,side,reserve:true};detail="援軍到着！ 新たな銀将が持ち駒に加わる"}
+  if(fallen.length){const revived=fallen[Math.floor(Math.random()*fallen.length)];compactIncidentEffect={kind,side,uid:revived.uid};detail="援軍！ 離脱した"+revived.t+"が持ち駒に復帰する"}
+  else{compactIncidentEffect=null;detail="援軍を必要とする隊士はいない"}
  }
  else{
   const owner=kind==="寝返り"?1-side:side,options=compactEligible(owner,kind==="粛清"?["歩","香","桂","銀"]:null);
@@ -503,11 +504,9 @@ function compactResumeTurn(){
  },side===1?1400:1800);
 }
 function compactGrantReinforcement(effect){
- const fallen=g.fallen[effect.side],i=effect.reserve?-1:fallen.findIndex(p=>p.uid===effect.uid);
- if(i<0&&!effect.reserve)return null;
- const revived=effect.reserve
-  ?{t:"銀",s:effect.side,origin:effect.side,uid:`reinforcement:${effect.side}:${++reinforcementSerial}`,cid:null,mob:reinforcementSerial%8,p:false}
-  :fallen.splice(i,1)[0];
+ const fallen=g.fallen[effect.side],i=fallen.findIndex(p=>p.uid===effect.uid);
+ if(i<0)return null;
+ const revived=fallen.splice(i,1)[0];
  g.hands[effect.side].push({...revived,s:effect.side,p:false});
  return revived;
 }
@@ -520,11 +519,14 @@ function compactApplyIncident(effect){
   fire(weaponKind,side);return;
  }
  if(effect.kind==="援軍"){
-  const candidate=effect.reserve?{t:"銀",s:effect.side,origin:effect.side}:g.fallen[effect.side].find(p=>p.uid===effect.uid);
+  const candidate=g.fallen[effect.side].find(p=>p.uid===effect.uid);
   if(!candidate){compactResumeTurn();return}
-  banner(effect.side,candidate,true);render();
+  // The reinforcement presentation is an anonymous rank-and-file banner;
+  // the actual returning unit keeps its original identity and piece type.
+  const mobCandidate={t:candidate.t,s:effect.side,cid:null,origin:effect.side,mob:candidate.mob||0};
+  banner(effect.side,mobCandidate,true);render();
   const hand=$("storyHand"+effect.side);
-  storyBannerMessage("援軍！ "+person(candidate).name+"が到着する！",effect.side);
+  storyBannerMessage("援軍！ 離脱していた隊士が戻る！",effect.side);
   // A returning officer runs in from outside the screen and lands in the hand.
   // Reuse the desertion footsteps; the sortie voice starts after the run.
   const goal=hand.closest(".hand-container")?.getBoundingClientRect(),layer=$("compactActionLayer");
@@ -545,7 +547,7 @@ function compactApplyIncident(effect){
    if(!revived){compactResumeTurn();return}
    render();
    for(const button of hand.querySelectorAll(".story-hand-piece"))if(button.dataset.piece===revived.t)button.classList.add("story-reinforcement-glow");
-   storyBannerMessage("援軍！ "+person(revived).name+"が持ち駒に加わった！",effect.side);
+   storyBannerMessage("援軍！ 隊士が持ち駒に復帰した！",effect.side);
    setTimeout(()=>{if(game!==epoch)return;hand.querySelectorAll(".story-reinforcement-glow").forEach(b=>b.classList.remove("story-reinforcement-glow"));if(!(compactCaptures[compactFighterKey(revived)]>=3))$(effect.side?"enemyStoryBanner":"playerStoryBanner").classList.remove("show-character");compactResumeTurn()},450);
   });
   return;
@@ -654,7 +656,7 @@ function compactApplyIncident(effect){
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
   g.board[y][x]=null;
-  if(kind==="粛清")g.fallen[p.s].push({...p,p:false});
+  if(kind==="粛清"||kind==="脱走")g.fallen[p.s].push({...p,p:false});
   if(kind==="寝返り"){
    // Keep the gravel footsteps audible; the later drum used to cut them short.
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
@@ -1122,7 +1124,7 @@ function battle(i,oilFormation=null,retry=false){
  if(i===2&&oilFormation===null)oilFormation=2;
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
- hideCompactFx();compactCaptures={};reinforcementSerial=0;oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();kinmonSatsumaReinforcing=false;kinmonSatsumaPendingPositions.clear();
+ hideCompactFx();compactCaptures={};oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();kinmonSatsumaReinforcing=false;kinmonSatsumaPendingPositions.clear();
  window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
  // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
  if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
@@ -1819,7 +1821,8 @@ $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
 $("debugRevival").onclick=()=>storyDebugRun(()=>{
  const fallen=g.fallen[g.side];
- compactApplyIncident(fallen.length?{kind:"援軍",side:g.side,uid:fallen[fallen.length-1].uid}:{kind:"援軍",side:g.side,reserve:true});
+ if(!fallen.length){popup("援軍の対象なし","粛清・脱走・斬殺などで離脱した隊士がまだいません。",[["閉じる",()=>{}]]);return}
+ compactApplyIncident({kind:"援軍",side:g.side,uid:fallen[fallen.length-1].uid});
 },true);
 $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
