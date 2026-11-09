@@ -19,6 +19,17 @@
  panel.setAttribute('aria-label','通常対戦の戦場を選択');
  panel.innerHTML='<h2>対戦する戦場 <small>物語で勝利すると解放</small></h2><div id="storyUnlockChoices" role="group" aria-label="戦場一覧"></div><p id="storyUnlockExplanation">通常盤で対局できます。物語の戦場は各章の勝利後に解放されます。</p>';
  anchor.before(panel);
+ // Center against the actual normal-match panel, regardless of desktop title padding.
+ // Do not alter the established mobile layout.
+ function centerBattlefieldPanel(){
+  panel.style.transform='';
+  if(!window.matchMedia('(min-width:700px)').matches)return;
+  const target=anchor.getBoundingClientRect(),current=panel.getBoundingClientRect();
+  const delta=(target.left+target.width/2)-(current.left+current.width/2);
+  panel.style.transform='translateX('+delta.toFixed(2)+'px)';
+ }
+ requestAnimationFrame(centerBattlefieldPanel);
+ window.addEventListener('resize',()=>requestAnimationFrame(centerBattlefieldPanel),{passive:true});
  const choices=panel.querySelector('#storyUnlockChoices');
  const explanation=panel.querySelector('#storyUnlockExplanation');
  const cleared=()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
