@@ -656,7 +656,7 @@ function compactApplyIncident(effect){
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
   g.board[y][x]=null;
-  if(kind==="粛清"||kind==="脱走")g.fallen[p.s].push({...p,p:false});
+  if(kind==="粛清")g.fallen[p.s].push({...p,p:false});
   if(kind==="寝返り"){
    // Keep the gravel footsteps audible; the later drum used to cut them short.
    g.hands[side].push({...p,s:side,p:false});banner(side,p);
@@ -692,7 +692,7 @@ function compactApplyIncident(effect){
    ghost=document.createElement("img");ghost.src="assets/sprites/figures/"+(owner===0?"shinsengumi_back":"saccho_front")+".webp";ghost.alt="";
    Object.assign(ghost.style,{left:rect.left+rect.width/2-width/2+"px",top:rect.top+rect.height/2-height/2+"px",width:width+"px",height:height+"px"});layer.replaceChildren(ghost);
   }
-  const depart=()=>{if(game!==epoch)return;g.board[y][x]=null;render()};
+  const depart=()=>{if(game!==epoch||g.board[y]?.[x]!==p)return;g.board[y][x]=null;g.fallen[p.s].push({...p,p:false});render()};
   if(!ghost){depart();setTimeout(finish,180);return}
   setTimeout(depart,120);
   const travel=owner===0?-innerWidth:innerWidth;
