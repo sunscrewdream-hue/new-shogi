@@ -922,7 +922,14 @@ function banner(s,p,hold=false){
  const caption=document.createElement('span');caption.className='story-role-caption';caption.textContent=a.role;
  const piece=document.createElement('span');piece.className='story-role-piece';piece.textContent=label(p);
  $(prefix+"StoryRole").replaceChildren(caption,piece);
- image.style.display="block";image.onerror=()=>image.style.display="none";image.src=a.img;
+ // Prevent the previous officer art from flashing while the new image decodes.
+ const imageRequest=String((Number(image.dataset.portraitRequest)||0)+1);
+ image.dataset.portraitRequest=imageRequest;
+ image.style.opacity="0";image.style.display="block";
+ image.onload=()=>{if(image.dataset.portraitRequest===imageRequest)image.style.opacity="1"};
+ image.onerror=()=>{if(image.dataset.portraitRequest===imageRequest)image.style.display="none"};
+ image.src=a.img;
+ if(image.complete&&image.naturalWidth)image.style.opacity="1";
  const panel=$(prefix+"StoryBanner"),currentEpoch=epoch;
  panel.classList.add("show-character");
  clearTimeout(storyBannerTimers[s]);
@@ -984,7 +991,14 @@ function restoreStoryHover(){
  clearTimeout(storyBannerTimers[side]);$(prefix+"StoryBanner").classList.remove("show-character");
  if(!saved)return;
  $(prefix+"StoryName").textContent=saved.name;$(prefix+"StoryRole").textContent=saved.role;
- const art=$(prefix+"StoryArt");if(saved.src)art.src=saved.src;
+ const art=$(prefix+"StoryArt");
+ if(saved.src){
+  const request=String((Number(art.dataset.portraitRequest)||0)+1);
+  art.dataset.portraitRequest=request;art.style.opacity="0";art.style.display="block";
+  art.onload=()=>{if(art.dataset.portraitRequest===request)art.style.opacity="1"};
+  art.onerror=()=>{if(art.dataset.portraitRequest===request)art.style.display="none"};
+  art.src=saved.src;if(art.complete&&art.naturalWidth)art.style.opacity="1";
+ }
 }
 const storyPieceHover=window.ShinsengumiPieceHover.bind({
  root:$("storyBoard"),
