@@ -24,6 +24,11 @@
  group.style.cssText='display:flex;flex-direction:column;align-items:center;width:min(95vw,520px);min-width:0;position:relative;left:50%;transform:translateX(-50%)';
  anchor.before(group);
  group.append(panel,anchor);
+ // The battlefield is a local two-player choice, not an AI difficulty setting.
+ const syncModeVisibility=()=>{panel.hidden=!document.getElementById('modeLocal')?.classList.contains('selected')};
+ document.getElementById('modeAi')?.addEventListener('click',syncModeVisibility);
+ document.getElementById('modeLocal')?.addEventListener('click',syncModeVisibility);
+ syncModeVisibility();
  const choices=panel.querySelector('#storyUnlockChoices');
  const explanation=panel.querySelector('#storyUnlockExplanation');
  const cleared=()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
@@ -73,10 +78,10 @@
  }
  render();
  // Pages restored from browser history must show the latest story victory.
- window.addEventListener('pageshow',render);
+ window.addEventListener('pageshow',()=>{render();syncModeVisibility()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
  if(typeof window.returnToTitle==='function'){
   const original=window.returnToTitle;
-  window.returnToTitle=function(...args){const result=original.apply(this,args);render();return result};
+  window.returnToTitle=function(...args){const result=original.apply(this,args);render();syncModeVisibility();return result};
  }
 })();
