@@ -899,10 +899,14 @@ function banner(s,p,hold=false){
  const imageRequest=String((Number(image.dataset.portraitRequest)||0)+1);
  image.dataset.portraitRequest=imageRequest;
  image.style.opacity="0";image.style.display="block";
- image.onload=()=>{if(image.dataset.portraitRequest===imageRequest)image.style.opacity="1"};
- image.onerror=()=>{if(image.dataset.portraitRequest===imageRequest)image.style.display="none"};
- image.src=a.img;
- if(image.complete&&image.naturalWidth)image.style.opacity="1";
+ // Load each portrait off-screen first; do not reveal the previous character.
+ const portraitLoader=new Image();
+ portraitLoader.onload=()=>{
+  if(image.dataset.portraitRequest!==imageRequest)return;
+  image.src=a.img;image.style.opacity="1";
+ };
+ portraitLoader.onerror=()=>{if(image.dataset.portraitRequest===imageRequest)image.style.display="none"};
+ portraitLoader.src=a.img;
  const panel=$(prefix+"StoryBanner"),currentEpoch=epoch;
  panel.classList.add("show-character");
  clearTimeout(storyBannerTimers[s]);
@@ -962,16 +966,11 @@ function restoreStoryHover(){
  const side=storyHoverSide,saved=storyHoverBase[side],prefix=side?"enemy":"player";
  storyHoverSide=null;storyHoverBase[side]=null;
  clearTimeout(storyBannerTimers[side]);$(prefix+"StoryBanner").classList.remove("show-character");
- if(!saved)return;
- $(prefix+"StoryName").textContent=saved.name;$(prefix+"StoryRole").textContent=saved.role;
+ // Closing the hover must not restore an old portrait while a new
+ // officer is loading. The next banner() supplies the correct image.
  const art=$(prefix+"StoryArt");
- if(saved.src){
-  const request=String((Number(art.dataset.portraitRequest)||0)+1);
-  art.dataset.portraitRequest=request;art.style.opacity="0";art.style.display="block";
-  art.onload=()=>{if(art.dataset.portraitRequest===request)art.style.opacity="1"};
-  art.onerror=()=>{if(art.dataset.portraitRequest===request)art.style.display="none"};
-  art.src=saved.src;if(art.complete&&art.naturalWidth)art.style.opacity="1";
- }
+ art.dataset.portraitRequest=String((Number(art.dataset.portraitRequest)||0)+1);
+ art.style.opacity="0";
 }
 const storyPieceHover=window.ShinsengumiPieceHover.bind({
  root:$("storyBoard"),
