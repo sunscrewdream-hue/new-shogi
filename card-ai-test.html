@@ -547,6 +547,14 @@ body.local-match #enemyOfficerPanel .dialogue-status{transform:none}
 @keyframes finishedPageReveal{from{transform:rotateY(-85deg)}to{transform:rotateY(0deg)}}
 #cardFace #cardEffectPanel{pointer-events:none}
 @media(prefers-reduced-motion:reduce){#cardFace{transition-duration:.01ms!important}}
+</style><style id="shared-battle-presentation">
+.sq.capture-piece-ghost{box-sizing:border-box;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.sq.capture-piece-ghost .piece-layer{pointer-events:none}
+#board .sq.normal-promotion-rise{isolation:isolate}
+#board .sq.normal-promotion-rise .piece-layer{animation:normalPromotionLight 1.05s ease-out both}
+#board .sq.normal-promotion-rise::after{content:"";position:absolute;inset:4%;pointer-events:none;z-index:1;background:radial-gradient(ellipse,#fff7c9b0 0%,#e8ba6a61 38%,transparent 75%);animation:normalPromotionGlow 1.05s ease-out both}
+@keyframes normalPromotionLight{0%{filter:brightness(1)}25%{filter:brightness(2.1) drop-shadow(0 0 7px #ffebae)}65%{filter:brightness(1.5) drop-shadow(0 0 9px #f8d88c)}100%{filter:brightness(1)}}
+@keyframes normalPromotionGlow{0%{opacity:0;transform:scale(.8)}38%{opacity:1;transform:scale(1.07)}100%{opacity:0;transform:scale(1.2)}}
 </style><style id="unified-dev-style">.unified-debug-tools{max-width:520px;margin:18px auto 4px;padding:12px;border:1px dashed #b38b54;border-radius:8px;background:#151c20e8;box-sizing:border-box;color:#f3ddb2}.unified-debug-tools h3{margin:0 0 5px;font:800 15px system-ui;color:#f4d18d}.unified-debug-tools p{margin:0 0 12px;font:12px/1.6 system-ui;color:#c7c2b6}.unified-debug-buttons{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.unified-debug-buttons button{font:700 12px/1.3 system-ui;padding:9px 10px;background:#34434b;color:#f3ddb2;border:1px solid #8d7959;border-radius:6px;min-height:36px;cursor:pointer}.unified-debug-buttons button:disabled{opacity:.38;cursor:default}@media(max-width:430px){.unified-debug-tools{padding:10px 7px}.unified-debug-buttons button{flex:1 1 42%;font-size:11px}}</style><style id="mobile-title-fit-20261106">
 @media (max-width:600px) and (orientation:portrait){
  #titleScreen{align-items:flex-start!important;justify-content:center!important;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px calc(env(safe-area-inset-bottom,0px) + 12px)!important;overflow-y:auto!important;overflow-x:hidden!important}
@@ -809,7 +817,19 @@ function playSampleSfx(kind){
  return true;
 }
 function playFx(name){playSampleSfx(name)}
-const back=['香','桂','銀','金','玉','金','銀','桂','香'],clone=x=>JSON.parse(JSON.stringify(x));let b,h,turn,sel,left,ended,busy,epoch=0,ply=0,used=[false,false];let playerTurnReady=false,pendingPromotion=null,portraitSerial=0;const el=id=>document.getElementById(id),inside=(y,x)=>y>=0&&y<9&&x>=0&&x<9;
+const normalPromotionAudio=new Audio('assets/audio/story/promotion_rise_shakiin_20261109.mp3');
+normalPromotionAudio.preload='auto';
+function playNormalPromotionRise(){
+ if(!sampleSfxEnabled||document.hidden)return Promise.resolve();
+ return new Promise(resolve=>{
+ const clip=normalPromotionAudio;let done=false;
+ const finish=()=>{if(done)return;done=true;clearTimeout(timer);clip.removeEventListener('ended',finish);clip.removeEventListener('error',finish);resolve()};
+ const timer=setTimeout(finish,2400);
+ clip.pause();clip.currentTime=0;clip.volume=Math.min(.5,Math.max(0,Number(el('volume').value)/100*2.1));
+ clip.addEventListener('ended',finish,{once:true});clip.addEventListener('error',finish,{once:true});clip.play().catch(finish);
+ });
+}
+const back=['香','桂','銀','金','玉','金','銀','桂','香'],clone=x=>JSON.parse(JSON.stringify(x));let b,h,turn,sel,left,ended,busy,epoch=0,ply=0,used=[false,false];let playerTurnReady=false,pendingPromotion=null,portraitSerial=0;let normalCaptureHidden=null,normalPromotionPreview=null,normalPromotionHold=null,normalPromotionRise=null,normalDeferCheck=false;const el=id=>document.getElementById(id),inside=(y,x)=>y>=0&&y<9&&x>=0&&x<9;
 /* Opening cue uses one mastered sound file to avoid iOS restrictions on a delayed second play. */
 const titleIntroAudio=new Audio('assets/audio/title_intro_new.mp3');
 titleIntroAudio.preload='auto';titleIntroAudio.playsInline=true;titleIntroAudio.loop=false;
@@ -962,34 +982,43 @@ function animateSprite(node,frames,duration,done){
  const finish=()=>{if(settled)return;settled=true;motion.cancel();node.remove();done?.()};
  motion.onfinish=finish;motion.oncancel=finish;
 }
-function animateCaptureEscort(side,Y,X,captive,finished){
+function animateCaptureEscort(side,Y,X,captive,finished,onContact){
  const rect=spriteRect(Y,X),jail=el(side===0?'playerHandShell':'enemyHandShell')?.getBoundingClientRect(),ep=epoch,serial=++actionSerial;
  if(!rect||!jail||rulePreset==='traditional'){finished?.();return}
+ const sq=el('board').children[Y*9+X];
+ const ghost=sq?.cloneNode(true);
+ if(!ghost){finished?.();return}
+ ghost.className='sq capture-piece-ghost';
+ ghost.removeAttribute('aria-label');
+ Object.assign(ghost.style,{position:'fixed',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'1200',transformOrigin:'center center'});
+ document.body.append(ghost);
  const width=Math.min(72,Math.max(42,rect.width*1.15)),height=width*1.4;
  const startX=side===0?-width-16:innerWidth+width,startY=rect.top-height*.25;
  const targetX=rect.left+rect.width/2-width/2,targetY=rect.top+rect.height/2-height/2;
  const jailX=jail.left+jail.width/2-width/2,jailY=jail.top+jail.height/2-height/2;
- const entering=side===0?-1:1;
+ const entering=side===0?-1:1,dx=targetX-startX,dy=targetY-startY,ex=jailX-startX,ey=jailY-startY;
  const guard=createActionSprite('assets/sprites/figures/'+(side===0?'shinsengumi_back':'saccho_front')+'.webp',startX,startY,width,height);
- const dx=targetX-startX,dy=targetY-startY,ex=jailX-startX,ey=jailY-startY;
- const unit=createActionSprite('assets/sprites/figures/'+(captive?.s===0?'shinsengumi_back':'saccho_front')+'.webp',rect.left+rect.width/2-width/2,rect.top+rect.height/2-height/2,width,height);
- let remaining=2;
- const done=()=>{if(--remaining===0&&ep===epoch&&serial===actionSerial)finished?.()};
+ let contacted=false;
+ const contact=()=>{if(contacted)return;contacted=true;if(ep===epoch&&serial===actionSerial)onContact?.()};
+ let ghostFinished=false;
+ const finish=()=>{if(ghostFinished)return;ghostFinished=true;ghost.remove();if(ep===epoch&&serial===actionSerial){contact();finished?.()}};
  animateSprite(guard,[
  {offset:0,opacity:0,transform:'translate(0,0) scale(.8)'},
- {offset:.27,opacity:1,transform:`translate(${dx}px,${dy}px) scale(1.07)`},
+ {offset:.30,opacity:1,transform:`translate(${dx}px,${dy}px) scale(1.04)`},
  {offset:.43,opacity:1,transform:`translate(${dx+entering*4}px,${dy+4}px) rotate(${entering*7}deg)`},
- {offset:.83,opacity:1,transform:`translate(${ex}px,${ey}px) scale(.96)`},
+ {offset:.85,opacity:1,transform:`translate(${ex}px,${ey}px) scale(.96)`},
  {offset:1,opacity:0,transform:`translate(${ex}px,${ey}px) scale(.8)`}
- ],1380,done);
- const carryX=jail.left+jail.width/2-(rect.left+rect.width*.5),carryY=jail.top+jail.height/2-(rect.top+rect.height*.5);
- animateSprite(unit,[
- {offset:0,opacity:0,transform:'scale(1)'},
- {offset:.30,opacity:0,transform:'scale(1)'},
- {offset:.44,opacity:1,transform:'translate(0,0) rotate(-11deg)'},
- {offset:.84,opacity:1,transform:`translate(${carryX}px,${carryY}px) scale(.65) rotate(12deg)`},
- {offset:1,opacity:0,transform:`translate(${carryX}px,${carryY}px) scale(.55)`}
- ],1380,done);
+ ],1450,()=>{});
+ const motion=ghost.animate([
+ {offset:0,transform:'translate(0,0) scale(1)',opacity:1},
+ {offset:.30,transform:'translate(0,0) scale(1)',opacity:1},
+ {offset:.43,transform:'translate(0,0) rotate(-8deg)',opacity:1},
+ {offset:.84,transform:`translate(${jail.left+jail.width/2-(rect.left+rect.width/2)}px,${jail.top+jail.height/2-(rect.top+rect.height/2)}px) scale(.7) rotate(10deg)`,opacity:1},
+ {offset:1,transform:`translate(${jail.left+jail.width/2-(rect.left+rect.width/2)}px,${jail.top+jail.height/2-(rect.top+rect.height/2)}px) scale(.6)`,opacity:0}
+ ],{duration:1450,easing:'ease-in-out',fill:'forwards'});
+ setTimeout(contact,Math.round(1450*.30));
+ motion.onfinish=finish;
+ setTimeout(finish,1750);
 }
 function animateDesertion(y,x,piece,finished){
  const rect=spriteRect(y,x),ep=epoch,serial=++actionSerial;
@@ -1008,9 +1037,17 @@ function animateDesertion(y,x,piece,finished){
  {offset:1,opacity:0,transform:`translate(${exitX}px,${exitY}px) rotate(16deg) scale(.5)`}
  ],1450,()=>{node?.classList.remove('sprite-departing');if(ep===epoch&&serial===actionSerial)finished?.()});
 }
-function askPromotion(move){
+function askPromotion(move,preplayedCapture=false){
+ if(!preplayedCapture&&rulePreset!=='traditional'&&!move.drop&&b[move.Y][move.X]){
+  const cap=b[move.Y][move.X],side=turn;
+  const key=window.ShinsengumiBattleRules.fighterKey(b[move.y][move.x]);
+  const plan=window.ShinsengumiBattleRules.captureResult({captured:true,drop:false,previous:Number(captureCounts[key]||0),hitokiri:ruleSettings.hitokiri});
+  if(!plan.lethal){playerTurnReady=false;animateCaptureEscort(side,move.Y,move.X,cap,()=>askPromotion(move,true),()=>{normalCaptureHidden={y:move.Y,x:move.X};render()});return}
+ }
+
  if(pendingPromotion||ended)return;
- const request=pendingPromotion={...move};
+ const request=pendingPromotion={...move,capturePreplayed:preplayedCapture};
+ normalPromotionPreview={m:move,piece:{...b[move.y][move.x]}};
  playerTurnReady=false;
  const overlay=el('promotionOverlay');
  overlay.classList.remove('promote-shine');
@@ -1030,15 +1067,9 @@ function askPromotion(move){
 function choosePromotion(yes){
  if(!pendingPromotion||ended)return;
  const m=pendingPromotion;pendingPromotion=null;
- const overlay=el('promotionOverlay'),e=epoch;
- if(!yes){overlay.classList.remove('show','promote-shine');commit(m,false);return}
- overlay.classList.add('promote-shine');
- playFx('slash1');
- setTimeout(()=>{
-  if(e!==epoch||ended)return;
-  overlay.classList.remove('show','promote-shine');
-  commit(m,true);
- },440);
+ el('promotionOverlay').classList.remove('show');
+ normalPromotionPreview=null;
+ commit(m,!!yes,!!m.capturePreplayed);
 }
 
 function updateDialogueBanner(side,p){
@@ -1075,7 +1106,7 @@ function playMoveBattleVoice(kind,side,onCompleted){
  setTimeout(finish,15000);
 }
 function showOfficer(p){if(p)setCharacterBanner(p.s??turn,p,'',2600)}
-let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;actionSerial++;el('actionLayer').replaceChildren();bloodMarks=[];captureCounts=[0,0];positionHistory=[];el('hitokiriNotice').classList.remove('show');el('promotionOverlay').classList.remove('show','promote-shine');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];quakeCracks=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];positionHistory=[{key:positionKey(b,h,0),mover:null,gaveCheck:false}];ended=false;busy=false;el('event').textContent='';updateDialogueBanner(0,{s:0,cid:0,t:'玉'});updateDialogueBanner(1,{s:1,cid:0,t:'玉'});setBannerStatus(0,'新選組、出陣を待つ');setBannerStatus(1,'薩長同盟、出陣を待つ');render()}
+let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;normalCaptureHidden=null;normalPromotionPreview=null;normalPromotionHold=null;normalPromotionRise=null;normalDeferCheck=false;actionSerial++;el('actionLayer').replaceChildren();bloodMarks=[];captureCounts=[0,0];positionHistory=[];el('hitokiriNotice').classList.remove('show');el('promotionOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];quakeCracks=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];positionHistory=[{key:positionKey(b,h,0),mover:null,gaveCheck:false}];ended=false;busy=false;el('event').textContent='';updateDialogueBanner(0,{s:0,cid:0,t:'玉'});updateDialogueBanner(1,{s:1,cid:0,t:'玉'});setBannerStatus(0,'新選組、出陣を待つ');setBannerStatus(1,'薩長同盟、出陣を待つ');render()}
 function moves(B,y,x,attack=false){let p=B[y][x];if(!p)return[];let d=p.s?1:-1,out=[];function add(dy,dx,slide=false){let Y=y+dy,X=x+dx;while(inside(Y,X)){if(isQuakeHole(Y,X))break;let q=B[Y][X];if(q&&q.s===p.s)break;if(q?.t==='玉'&&!attack)break;out.push([Y,X]);if(q||!slide)break;Y+=dy;X+=dx}}let gold=[[d,-1],[d,0],[d,1],[0,-1],[0,1],[-d,0]],silver=[[d,-1],[d,0],[d,1],[-d,-1],[-d,1]];if(p.t==='玉')[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v));else if(p.t==='金'||p.p&&['歩','香','桂','銀'].includes(p.t))gold.forEach(v=>add(...v));else if(p.t==='銀')silver.forEach(v=>add(...v));else if(p.t==='歩')add(d,0);else if(p.t==='桂'){add(2*d,-1);add(2*d,1)}else if(p.t==='香')add(d,0,true);else if(p.t==='飛'){[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v,true));if(p.p)[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v))}else if(p.t==='角'){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v,true));if(p.p)[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v))}return out}
 function check(B,s){let king;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===s&&B[y][x].t==='玉')king=[y,x];if(!king)return true;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===1-s&&moves(B,y,x,true).some(v=>v[0]===king[0]&&v[1]===king[1]))return true;return false}
 function promote(p,y,Y){return !p.p&&['歩','香','桂','銀','飛','角'].includes(p.t)&&(p.s?y>=6||Y>=6:y<=2||Y<=2)}
@@ -1243,7 +1274,13 @@ function queueTurnNotice(side){
  };
  setTimeout(revealWhenReady,side===1?1400:1800);
 }
-let noticeQueue=0;function commit(m,prom=false){
+let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
+ if(!preplayedCapture&&rulePreset!=='traditional'&&!m.drop&&b[m.Y][m.X]){
+ const cap=b[m.Y][m.X],speaker=b[m.y][m.x],key=window.ShinsengumiBattleRules.fighterKey(speaker);
+ const plan=window.ShinsengumiBattleRules.captureResult({captured:true,drop:false,previous:Number(captureCounts[key]||0),hitokiri:ruleSettings.hitokiri});
+ if(!plan.lethal){playerTurnReady=false;animateCaptureEscort(turn,m.Y,m.X,cap,()=>{normalCaptureHidden=null;commit(m,prom,true)},()=>{normalCaptureHidden={y:m.Y,x:m.X};render()});return}
+ }
+ normalCaptureHidden=null;normalPromotionPreview=null;
  const speakerSide=turn,capturedPiece=!m.drop?b[m.Y][m.X]:null,captured=!!capturedPiece;
  const movingPiece=!m.drop?b[m.y]?.[m.x]:(handIdentities[turn][m.t]||[])[0];
  const originSide=movingPiece?.originSide??movingPiece?.s??turn,officer=movingPiece?.cid;
@@ -1254,11 +1291,11 @@ let noticeQueue=0;function commit(m,prom=false){
  const forcedKill=capturePlan.lethal;
  if(rulePreset!=='traditional')setCharacterBanner(speakerSide,speaker,'',0);
  if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
- apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});
+ apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});normalPromotionHold=prom&&!m.drop?{y:m.Y,x:m.X,piece:{...movingPiece,p:false}}:null;
  lastMove={y:m.Y,x:m.X};
  if(forcedKill)captureCounts[capturerKey]=capturePlan.next;
  else{if(!captured)sound(false);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=capturePlan.next;if(capturePlan.awakened)flashHitokiri('人斬り覚醒');}}
- const gaveCheck=check(b,1-speakerSide);
+ const gaveCheck=check(b,1-speakerSide);normalDeferCheck=gaveCheck;
  const actor=originSide===0
   ?(officer===0?'kondoIsami':officer===1?'hijikataToshizo':chooseMoveVoice(speakerSide,captured,prom,gaveCheck))
   :(officer===0?'saigoTakamori':officer===2?'kidoTakayoshi':chooseMoveVoice(speakerSide,captured,prom,gaveCheck));
@@ -1272,48 +1309,37 @@ let noticeQueue=0;function commit(m,prom=false){
  if(quakeHoles.length){const oldCount=quakeHoles.length;quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(quakeHoles.length<oldCount){playFx('cliffcollapse');if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}}
  if(speakerSide===1){aiMoveSpot={y:m.Y,x:m.X};const e=epoch;setTimeout(()=>{if(e===epoch){aiMoveSpot=null;render()}},1400)}
  render();
- let voiceCompleted=false,animationCompleted=!captured||rulePreset==='traditional';
- const thisEpoch=epoch;
+ let voiceCompleted=false,animationCompleted=!forcedKill||rulePreset==='traditional',thisEpoch=epoch;
+ const valid=()=>thisEpoch===epoch&&!ended&&!el('titleScreen').classList.contains('hidden');
  const resume=()=>{
-  if(!voiceCompleted||!animationCompleted||thisEpoch!==epoch||ended||!el('titleScreen').classList.contains('hidden'))return;
-  if(rulePreset==='traditional'){
-   const repetition=repetitionVerdict();
-   if(repetition){if(repetition.loser===null)showRepetitionDraw();else showVictory(1-repetition.loser,'連続王手の千日手');return}
-  }
-  if(gameEnd())return;
-  if(ruleSettings.cards&&ply%8===(speakerSide===0?7:0)){
-   pendingCardSide=speakerSide;const e=epoch;
-   setTimeout(()=>{if(e===epoch&&pendingCardSide===speakerSide)startIncident(speakerSide,true)},250);
-  }else if(pendingCardSide===null)queueTurnNotice(turn);
+ if(!voiceCompleted||!animationCompleted||!valid())return;
+ if(rulePreset==='traditional'){const repetition=repetitionVerdict();if(repetition){if(repetition.loser===null)showRepetitionDraw();else showVictory(1-repetition.loser,'連続王手の千日手');return}}
+ if(gameEnd())return;
+ if(ruleSettings.cards&&ply%8===(speakerSide===0?7:0)){pendingCardSide=speakerSide;const e=epoch;setTimeout(()=>{if(e===epoch&&pendingCardSide===speakerSide)startIncident(speakerSide,true)},250)}
+ else if(pendingCardSide===null)queueTurnNotice(turn);
  };
- if(captured&&!forcedKill&&rulePreset!=='traditional'){
-  const e=epoch;
-  setTimeout(()=>{if(e!==epoch)return;animateCaptureEscort(speakerSide,m.Y,m.X,capturedPiece,()=>{animationCompleted=true;resume()})},160);
- }
+ const speak=key=>new Promise(resolve=>{if(!valid()){resolve();return}playMoveBattleVoice(key,speakerSide,resolve)});
+ const voiceStart=async()=>{
+ if(!valid())return;
+ for(const key of voiceKeys.filter(key=>key!=='oute')){await speak(key);if(!valid())return}
+ if(prom&&rulePreset!=='traditional'){
+ await new Promise(resolve=>setTimeout(resolve,220));if(!valid())return;
+ normalPromotionHold=null;normalPromotionRise={y:m.Y,x:m.X};render();
+ await Promise.all([new Promise(resolve=>setTimeout(resolve,1050)),playNormalPromotionRise()]);
+ if(!valid())return;normalPromotionRise=null;
+ }else normalPromotionHold=null;
+ normalDeferCheck=false;render();
+ if(gaveCheck){await new Promise(resolve=>setTimeout(resolve,180));await speak('oute')}
+ if(!valid())return;voiceCompleted=true;resume();
+ };
  if(forcedKill&&rulePreset!=='traditional'){
-  window.ShinsengumiBattleRules.runOrderedEffect({
-   valid:()=>thisEpoch===epoch&&!ended,
-   attack:()=>{animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！')},
-   impact:()=>new Promise(resolve=>{
-    const clip=sampleSfx.purge;let finished=false;
-    const finish=()=>{if(finished)return;finished=true;clip?.removeEventListener('ended',finish);clip?.removeEventListener('pause',finish);resolve()};
-    clip?.addEventListener('ended',finish);clip?.addEventListener('pause',finish);
-    if(!playSampleSfx('purge'))finish();else setTimeout(finish,1800);
-   }),
-   cry:()=>new Promise(resolve=>{
-    if(!playBattleVoice('casualtyCry',resolve))resolve();
-    else setTimeout(resolve,3600);
-   }),
-   result:()=>new Promise(resolve=>setTimeout(resolve,450))
-  }).then(()=>{if(thisEpoch!==epoch)return;animationCompleted=true;resume()});
- }
- const voiceStart=()=>{if(thisEpoch!==epoch||ended)return;
-  const queue=[...voiceKeys];const next=()=>{if(thisEpoch!==epoch||ended)return;
-   const key=queue.shift();if(!key){voiceCompleted=true;resume();return}
-   playMoveBattleVoice(key,speakerSide,next);
-  };next();
- };
- if(captured&&rulePreset!=='traditional')setTimeout(voiceStart,420);else voiceStart();
+ window.ShinsengumiBattleRules.runOrderedEffect({
+ valid,attack:()=>{animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！')},
+ impact:()=>new Promise(resolve=>{const clip=sampleSfx.purge;let finished=false;const finish=()=>{if(finished)return;finished=true;clip?.removeEventListener('ended',finish);clip?.removeEventListener('pause',finish);resolve()};clip?.addEventListener('ended',finish);clip?.addEventListener('pause',finish);if(!playSampleSfx('purge'))finish();else setTimeout(finish,1800)}),
+ cry:()=>new Promise(resolve=>{if(!playBattleVoice('casualtyCry',resolve))resolve();else setTimeout(resolve,3600)}),
+ result:()=>new Promise(resolve=>setTimeout(resolve,450))
+ }).then(()=>{if(!valid())return;animationCompleted=true;voiceStart()});
+ }else voiceStart();
 }
 function tap(y,x){if(!playerTurnReady||ended||busy||incidentRunning||pendingCardSide!==null||(gameMode==='ai'&&turn!==0))return;let p=b[y][x],all=legalMoves(b,h,turn);if(sel){let m=all.find(m=>m.Y===y&&m.X===x&&(sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x));if(m){if(!m.drop&&promote(b[m.y][m.x],m.y,m.Y)&&!forced(b[m.y][m.x],m.Y)){askPromotion(m);return}commit(m,false);return}}sel=p?.s===turn?{y,x}:null;if(sel)showOfficer(p);render()}
 function aiValue(p){const v={玉:200,飛:13,角:11,金:8,銀:6,桂:4,香:4,歩:1.5}[p.t]||1;return v+(p.p?({飛:3,角:3,銀:2,桂:2,香:2,歩:2}[p.t]||0):0)}
@@ -1693,17 +1719,21 @@ function makeHandPiece(s,t,count){
  btn.onclick=()=>{if(btn.disabled)return;sel={drop:true,t};render()};
  return btn;
 }
-function render(){let ownTurns=Math.floor(ply/2)+(turn===0?1:0);let next=4-((ownTurns-1+400)%4);el('cardCountdown').textContent=!ruleSettings.cards?'':pendingCardSide!==null?'🎴 事件札が出現！':('🎴 '+(gameMode==='local'?(turn?'後手':'先手'):(turn?'AI':'新選組'))+'：札まで'+(next===4?4:next)+'手');el('status').textContent=(gameMode==='local'?(turn?'後手':'先手'):(turn?'敵軍':'新撰組'))+'の手番'+(check(b,turn)?'【王手】':'')+(busy?'　🤔 思考中…':'');el('status').className=busy?'thinking':'';
+function render(){let ownTurns=Math.floor(ply/2)+(turn===0?1:0);let next=4-((ownTurns-1+400)%4);el('cardCountdown').textContent=!ruleSettings.cards?'':pendingCardSide!==null?'🎴 事件札が出現！':('🎴 '+(gameMode==='local'?(turn?'後手':'先手'):(turn?'AI':'新選組'))+'：札まで'+(next===4?4:next)+'手');el('status').textContent=(gameMode==='local'?(turn?'後手':'先手'):(turn?'敵軍':'新撰組'))+'の手番'+((!normalDeferCheck&&check(b,turn))?'【王手】':'')+(busy?'　🤔 思考中…':'');el('status').className=busy?'thinking':'';
 const statusFor=side=>ended?'勝負あり':pendingCardSide!==null?'事件札を確認中':incidentRunning?'事件発生中…':turn===side
- ?check(b,side)?'王手！ 防御してください':(gameMode==='local'?(side===0?'先手の手番':'後手の手番'):(side===1?'敵軍、思案中…':'あなたの手番'))
+ ?(!normalDeferCheck&&check(b,side))?'王手！ 防御してください':(gameMode==='local'?(side===0?'先手の手番':'後手の手番'):(side===1?'敵軍、思案中…':'あなたの手番'))
  :(gameMode==='local'?(side===0?'後手の手番':'先手の手番'):(side===0?'薩長同盟の手番':'新選組の手番'));
 setBannerStatus(0,statusFor(0));setBannerStatus(1,statusFor(1));
 el('quakeHoleHint').textContent=quakeCracks.length?'⚠ 地面に亀裂が入った！':quakeHoles.length?'⚠ 崩落マスは進入・駒打ち不可（あと'+Math.max(0,quakeHoles[0].expiresPly-ply)+'手）':'';
- let threats=ended?{kings:new Set(),attackers:new Set(),rays:new Set()}:getCheckThreats(b);
+ let threats=ended||normalDeferCheck?{kings:new Set(),attackers:new Set(),rays:new Set()}:getCheckThreats(b);
 el('checkHint').textContent=threats.kings.size
  ?'⚠ 王手！ 王の移動・攻め駒の捕獲・合駒で防いでください。'
  :'';
-let hints=[];if(sel)hints=legalMoves(b,h,turn).filter(m=>sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x).map(m=>m.Y+','+m.X);let root=el('board');root.classList.toggle('input-locked',!playerTurnReady);root.setAttribute('aria-disabled',String(!playerTurnReady));root.innerHTML='';for(let y=0;y<9;y++)for(let x=0;x<9;x++){let d=document.createElement('div'),p=b[y][x];d.className='sq'+(threats.kings.has(y+','+x)?' check-king':'')+(threats.attackers.has(y+','+x)?' check-attacker':'')+(threats.rays.has(y+','+x)?' check-ray':'')+(quakeMarks.includes(y+','+x)?' quake-mark':'')+(quakeCracks.some(v=>v.y===y&&v.x===x)?' quake-crack':'')+(isQuakeHole(y,x)?' quake-hole':'')+(quakeMove&&quakeMove.y===y&&quakeMove.x===x?' quake-origin':'')+(quakeMove&&quakeMove.Y===y&&quakeMove.X===x?' quake-destination':'')+(quakeLanding&&quakeLanding.y===y&&quakeLanding.x===x?' quake-landing':'')+(sel&&!sel.drop&&sel.y===y&&sel.x===x?' sel':'')+(hints.includes(y+','+x)?(p&&p.s===1?' capture-hint':' hint'):'')+(lastMove&&lastMove.y===y&&lastMove.x===x?' last-move':'')+(incidentTarget&&incidentTarget.y===y&&incidentTarget.x===x?' incident-target':'')+(bloodMarks.includes(y+','+x)?' blood-mark':'');if(quakeMove&&quakeMove.y===y&&quakeMove.x===x){d.style.setProperty('--quake-dx',(quakeMove.X-x)*100+'%');d.style.setProperty('--quake-dy',(quakeMove.Y-y)*100+'%')}if(p){
+let hints=[];if(sel)hints=legalMoves(b,h,turn).filter(m=>sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x).map(m=>m.Y+','+m.X);let root=el('board');root.classList.toggle('input-locked',!playerTurnReady);root.setAttribute('aria-disabled',String(!playerTurnReady));root.innerHTML='';for(let y=0;y<9;y++)for(let x=0;x<9;x++){let d=document.createElement('div'),p=b[y][x];
+ if(normalCaptureHidden?.y===y&&normalCaptureHidden.x===x)p=null;
+ if(normalPromotionPreview){const m=normalPromotionPreview.m;if(m.y===y&&m.x===x)p=null;if(m.Y===y&&m.X===x)p=normalPromotionPreview.piece}
+ if(normalPromotionHold?.y===y&&normalPromotionHold.x===x)p=normalPromotionHold.piece;
+ d.className='sq'+(threats.kings.has(y+','+x)?' check-king':'')+(threats.attackers.has(y+','+x)?' check-attacker':'')+(threats.rays.has(y+','+x)?' check-ray':'')+(quakeMarks.includes(y+','+x)?' quake-mark':'')+(quakeCracks.some(v=>v.y===y&&v.x===x)?' quake-crack':'')+(isQuakeHole(y,x)?' quake-hole':'')+(quakeMove&&quakeMove.y===y&&quakeMove.x===x?' quake-origin':'')+(quakeMove&&quakeMove.Y===y&&quakeMove.X===x?' quake-destination':'')+(quakeLanding&&quakeLanding.y===y&&quakeLanding.x===x?' quake-landing':'')+(sel&&!sel.drop&&sel.y===y&&sel.x===x?' sel':'')+(hints.includes(y+','+x)?(p&&p.s===1?' capture-hint':' hint'):'')+(lastMove&&lastMove.y===y&&lastMove.x===x?' last-move':'')+(incidentTarget&&incidentTarget.y===y&&incidentTarget.x===x?' incident-target':'')+(bloodMarks.includes(y+','+x)?' blood-mark':'');if(quakeMove&&quakeMove.y===y&&quakeMove.x===x){d.style.setProperty('--quake-dx',(quakeMove.X-x)*100+'%');d.style.setProperty('--quake-dy',(quakeMove.Y-y)*100+'%')}if(normalPromotionRise?.y===y&&normalPromotionRise.x===x)d.classList.add('normal-promotion-rise');if(p){
  const label=p.p?({歩:'と',香:'杏',桂:'圭',銀:'全',飛:'龍',角:'馬'}[p.t]||p.t):p.t;
  const figure=p.s===0?'shinsengumi_back':'saccho_front';
  const types={歩:'fu',香:'kyosha',桂:'keima',銀:'gin',金:'kin',角:'kaku',飛:'hisha',玉:'ou',王:'ou'};
