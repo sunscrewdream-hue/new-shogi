@@ -19,6 +19,7 @@
   '人物コレクション ›':'Character Collection ›','新選組の歴史 ›':'History of the Shinsengumi ›',
   '将棋の遊び方 ›':'How to Play Shogi ›','事件札が戦局を変える':'Events Can Turn the Tide',
   '敵軍の持ち駒':'Opponent’s Captured Pieces','あなたの持ち駒':'Your Captured Pieces',
+  '先手の持ち駒':'First Player’s Captured Pieces','後手の持ち駒':'Second Player’s Captured Pieces',
   '最初から':'New Game','降参':'Resign','タイトルへ戻る':'Back to Title',
   '将棋の遊び方':'Shogi Rules','🎴 カード演出テスト':'🎴 Test Event Card','🌋 地震演出テスト':'🌋 Test Earthquake',
   '♪ 効果音テスト':'♪ Test Sound','効果音：ON':'SFX: ON','効果音：OFF':'SFX: OFF',
@@ -54,6 +55,9 @@
  const replacements=[
   [/🎴\s*事件札が出現！/g,'🎴 Event card is ready!'],
   [/あなたの手番/g,'Your Turn'],
+  [/先手の番/g,'First Player’s Turn'],[/後手の番/g,'Second Player’s Turn'],
+  [/先手の手番/g,'First Player’s Turn'],[/後手の手番/g,'Second Player’s Turn'],
+  [/先手/g,'First Player'],[/後手/g,'Second Player'],
   [/敵軍の手番/g,"Opponent's Turn"],
   [/薩長同盟の手番/g,"Satcho Alliance's Turn"],
   [/薩長の手番/g,"Satcho's Turn"],
