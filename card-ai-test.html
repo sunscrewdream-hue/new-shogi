@@ -1076,10 +1076,14 @@ function updateDialogueBanner(side,p){
  const portraitSrc='assets/dialogue_banners/person_'+String(idx).padStart(2,'0')+'.webp?v=face-final-20261107';
  const portraitRequest=String((Number(img.dataset.portraitRequest)||0)+1);
  img.dataset.portraitRequest=portraitRequest;img.style.opacity='0';
- img.onload=()=>{if(img.dataset.portraitRequest===portraitRequest)img.style.opacity='1'};
- img.onerror=()=>{if(img.dataset.portraitRequest===portraitRequest)img.style.opacity='0'};
- img.src=portraitSrc;
- if(img.complete&&img.naturalWidth)img.style.opacity='1';
+ // Preload separately: prevent a stale officer from flashing during fades.
+ const portraitLoader=new Image();
+ portraitLoader.onload=()=>{
+  if(img.dataset.portraitRequest!==portraitRequest)return;
+  img.src=portraitSrc;img.style.opacity='1';
+ };
+ portraitLoader.onerror=()=>{if(img.dataset.portraitRequest===portraitRequest)img.style.opacity='0'};
+ portraitLoader.src=portraitSrc;
  img.alt=data[0]+'・'+data[1]+'・'+(p.t||'玉');
  title.textContent=data[0];
  const opponentClan=['薩摩藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','長州藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','薩摩藩','長州藩','長州藩','長州藩','長州藩','長州藩'];
