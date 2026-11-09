@@ -760,7 +760,10 @@ function animateCompactEscort(side,y,x,captive,done,onContact=null){
    carried.setAttribute("aria-hidden","true");
    Object.assign(carried.style,{position:"fixed",zIndex:"161",pointerEvents:"none",left:tokenRect.left+"px",top:tokenRect.top+"px",width:tokenRect.width+"px",height:tokenRect.height+"px",display:"block"});
    const replica=original.cloneNode(true);
-   Object.assign(replica.style,{position:"absolute",inset:"0",margin:"0",width:"100%",height:"100%",maxWidth:"none",maxHeight:"none",fontSize:style.fontSize,color:style.color,backgroundImage:style.backgroundImage,backgroundSize:style.backgroundSize,backgroundPosition:style.backgroundPosition,backgroundRepeat:style.backgroundRepeat,transform:style.transform,animation:"none",filter:style.filter});
+   // The board has container-relative font sizing and board-scoped enemy styles.
+   // Copy every computed visual property so the transported glyph matches exactly.
+   for(const property of style)replica.style.setProperty(property,style.getPropertyValue(property),style.getPropertyPriority(property));
+   Object.assign(replica.style,{position:"absolute",left:"0",top:"0",right:"auto",bottom:"auto",inset:"auto",margin:"0",width:tokenRect.width+"px",height:tokenRect.height+"px",maxWidth:"none",maxHeight:"none",animation:"none",transition:"none"});
    carried.append(replica);layer.append(carried);
    const travelX=goal.left+goal.width/2-(tokenRect.left+tokenRect.width/2),travelY=goal.top+goal.height/2-(tokenRect.top+tokenRect.height/2);
    carried.animate([{offset:0,opacity:1,transform:"translate(0,0)"},{offset:.3,opacity:1,transform:"translate(0,0)"},{offset:.48,opacity:1,transform:"translate(0,0)"},{offset:.88,opacity:1,transform:`translate(${travelX}px,${travelY}px)`},{offset:1,opacity:0,transform:`translate(${travelX}px,${travelY}px)`}],{duration,easing:"ease-in-out",fill:"forwards"});
