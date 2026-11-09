@@ -361,6 +361,25 @@ $("compactCardFace").onclick=()=>{
  if(!compactIncident)return;if(!compactIncident.revealed)compactCardReveal();else compactCardClose();
 };
 function faceIsWeaponReady(){return $("compactCardFace").classList.contains("card-text-ready")}
+// Use the exact same .story-token element and board CSS as every normal piece.
+// Only its outer square flies in; no duplicate lettering/font/material is drawn.
+function createStoryReinforcementRunner(entry){
+ const board=$("storyBoard"),cellWidth=board.clientWidth/g.w,cellHeight=board.clientHeight/g.h;
+ const runner=document.createElement("div");
+ runner.className="sq story-reinforcement-runner";
+ runner.setAttribute("aria-hidden","true");
+ Object.assign(runner.style,{
+  position:"absolute",zIndex:"25",pointerEvents:"none",boxSizing:"border-box",border:"0",
+  background:"transparent",boxShadow:"none",display:"grid",placeItems:"center",
+  left:(entry.x*cellWidth)+"px",top:(entry.y*cellHeight)+"px",
+  width:cellWidth+"px",height:cellHeight+"px"
+ });
+ const token=document.createElement("span");
+ token.className="story-token"+(entry.piece.s?" enemy":"")+(entry.piece.p?" promoted":"");
+ token.textContent=label(entry.piece);token.setAttribute("aria-hidden","true");
+ runner.append(token);board.append(runner);
+ return{runner,boardHeight:board.clientHeight,cellHeight,width:cellWidth};
+}
 async function ikedayaReinforcementArrival(){
  const game=epoch;ikedayaReinforcing=true;busy=true;compactTurnLocked=true;selected=null;
  const arrivals=g.deployIkedayaReinforcements();
@@ -378,31 +397,7 @@ async function ikedayaReinforcementArrival(){
   playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
-   const board=$("storyBoard");
-   const cell=board.children[entry.y*g.w+entry.x];
-   const boardWidth=board.clientWidth,boardHeight=board.clientHeight;
-   const cellWidth=boardWidth/g.w,cellHeight=boardHeight/g.h;
-   const width=Math.max(22,Math.min(cellWidth*.78,cellHeight*.78));
-   let runner=null;
-   if(cell){
-    // Board-local coordinates stay aligned when Safari scrolls or resizes.
-    runner=document.createElement("div");
-    runner.textContent=label(entry.piece);
-    runner.setAttribute("aria-hidden","true");
-    runner.className="ikedaya-board-runner";
-    Object.assign(runner.style,{
-     position:"absolute",zIndex:"25",pointerEvents:"none",display:"grid",placeItems:"center",
-     left:(entry.x*cellWidth+(cellWidth-width)/2)+"px",
-     top:(entry.y*cellHeight+(cellHeight-width*1.16)/2)+"px",
-     width:width+"px",height:(width*1.16)+"px",
-     // Match the visible board tokens exactly, including mobile container-query sizing.
-     fontSize:getComputedStyle(board.querySelector(".story-token:not(.enemy)")||board.querySelector(".story-token")||board).fontSize,
-     fontFamily:"system-ui,sans-serif",fontWeight:"900",
-     color:"#fff",textShadow:"0 1px 3px #123",boxSizing:"border-box",
-     background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'
-    });
-    board.append(runner);
-   }
+   const {runner,boardHeight,cellHeight,width}=createStoryReinforcementRunner(entry);
    let feet=true;
    const active=()=>feet&&game===epoch&&!ended;
    const foot=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,active);
@@ -457,31 +452,7 @@ async function kinmonSatsumaArrival(){
   playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
-   const board=$("storyBoard");
-   const cell=board.children[entry.y*g.w+entry.x];
-   const boardWidth=board.clientWidth,boardHeight=board.clientHeight;
-   const cellWidth=boardWidth/g.w,cellHeight=boardHeight/g.h;
-   const width=Math.max(22,Math.min(cellWidth*.78,cellHeight*.78));
-   let runner=null;
-   if(cell){
-    // Board-local coordinates stay aligned when Safari scrolls or resizes.
-    runner=document.createElement("div");
-    runner.textContent=label(entry.piece);
-    runner.setAttribute("aria-hidden","true");
-    runner.className="ikedaya-board-runner";
-    Object.assign(runner.style,{
-     position:"absolute",zIndex:"25",pointerEvents:"none",display:"grid",placeItems:"center",
-     left:(entry.x*cellWidth+(cellWidth-width)/2)+"px",
-     top:(entry.y*cellHeight+(cellHeight-width*1.16)/2)+"px",
-     width:width+"px",height:(width*1.16)+"px",
-     // Match the visible board tokens exactly, including mobile container-query sizing.
-     fontSize:getComputedStyle(board.querySelector(".story-token:not(.enemy)")||board.querySelector(".story-token")||board).fontSize,
-     fontFamily:"system-ui,sans-serif",fontWeight:"900",
-     color:"#fff",textShadow:"0 1px 3px #123",boxSizing:"border-box",
-     background:'url("assets/pieces/shinsengumi_token.png") center/100% 100% no-repeat'
-    });
-    board.append(runner);
-   }
+   const {runner,boardHeight,cellHeight,width}=createStoryReinforcementRunner(entry);
    let feet=true;
    const active=()=>feet&&game===epoch&&!ended;
    const foot=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,active);
@@ -1389,30 +1360,35 @@ async function oilAmbushReveal(){
   if(game!==epoch||ended){layer.replaceChildren();return}
   const cell=board.children[i],token=cell?.querySelector(".story-token.enemy");
   if(!token)continue;
-  const rect=cell.getBoundingClientRect(),width=Math.max(22,rect.width*.8),height=Math.max(27,rect.height*.84);
-  // A fixed overlay runner is not clipped by the board's square or perimeter layers.
-  const runner=document.createElement("div");runner.textContent=token.textContent;
+  // Clone the exact board piece; preserve the glyph, token image, text position,
+  // 180-degree enemy orientation and all responsive computed styles.
+  const tokenRect=token.getBoundingClientRect(),style=getComputedStyle(token);
+  const runner=document.createElement("span");
   runner.className="oil-ambush-runner";runner.setAttribute("aria-hidden","true");
   Object.assign(runner.style,{
-   position:"fixed",zIndex:"170",pointerEvents:"none",display:"grid",placeItems:"center",
-   left:(rect.left+(rect.width-width)/2)+"px",top:(rect.top+(rect.height-height)/2)+"px",
-   width:width+"px",height:height+"px",boxSizing:"border-box",fontSize:getComputedStyle(token).fontSize,
-   fontFamily:"system-ui,sans-serif",fontWeight:"900",color:"#fffaf0",
-   textShadow:"0 1px 3px #1b0b10",background:'url("assets/pieces/saccho_token.png") center/100% 100% no-repeat',
-   filter:"drop-shadow(0 4px 6px #000b)"
+   position:"fixed",zIndex:"170",pointerEvents:"none",display:"block",
+   left:tokenRect.left+"px",top:tokenRect.top+"px",
+   width:tokenRect.width+"px",height:tokenRect.height+"px"
   });
-  layer.append(runner);
+  const replica=token.cloneNode(true);
+  for(const property of style)replica.style.setProperty(property,style.getPropertyValue(property),style.getPropertyPriority(property));
+  Object.assign(replica.style,{
+   position:"absolute",left:"0",top:"0",right:"auto",bottom:"auto",inset:"auto",
+   width:tokenRect.width+"px",height:tokenRect.height+"px",maxWidth:"none",maxHeight:"none",
+   margin:"0",opacity:"1",animation:"none",transition:"none"
+  });
+  runner.append(replica);layer.append(runner);
   // Two distinct footfalls per arriving piece; unlocked Web Audio also works on iOS.
   let runningFootsteps=true;
   const footstep=()=>playGestureAudio("assets/audio/sfx/step_soil.mp3",null,"fx",2.5,()=>runningFootsteps&&game===epoch&&!ended);
   footstep();
   const secondStep=setTimeout(()=>{if(runningFootsteps&&game===epoch&&!ended)footstep()},390);
-  const startY=-Math.max(160,Math.min(340,rect.top+100));
+  const startY=-Math.max(160,Math.min(340,tokenRect.top+100));
   if(runner.animate&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
    const animation=runner.animate([
-    {opacity:0,transform:`translate(65px,${startY}px) rotate(180deg) scale(.76)`},
-    {opacity:1,offset:.18,transform:`translate(45px,${startY*.7}px) rotate(180deg) scale(.9)`},
-    {opacity:1,transform:"translate(0,0) rotate(180deg) scale(1)"}
+    {opacity:0,transform:`translate(65px,${startY}px) scale(.76)`},
+    {opacity:1,offset:.18,transform:`translate(45px,${startY*.7}px) scale(.9)`},
+    {opacity:1,transform:"translate(0,0) scale(1)"}
    ],{duration:820,easing:"ease-out",fill:"forwards"});
    await Promise.race([animation.finished.catch(()=>{}),later(1050)]);
    animation.cancel();
