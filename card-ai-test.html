@@ -917,7 +917,23 @@ function animateLethalSlash(y,x){
  ],900);
 }
 
-function selectGameMode(mode){gameMode=mode==="local"?"local":"ai";el("modeAi").classList.toggle("selected",gameMode==="ai");el("modeLocal").classList.toggle("selected",gameMode==="local");el("difficultyPicker").style.display=gameMode==="ai"?"block":"none";}
+function selectGameMode(mode){
+ gameMode=mode==="local"?"local":"ai";
+ el("modeAi").classList.toggle("selected",gameMode==="ai");
+ el("modeLocal").classList.toggle("selected",gameMode==="local");
+ el("difficultyPicker").style.display=gameMode==="ai"?"block":"none";
+ const storyLink=el("storyModeStart"),storyChoice=storyLink.closest(".storyChoice");
+ const storyInfo=storyChoice.querySelector(".modeInfo");
+ if(gameMode==="local"){
+  storyLink.removeAttribute("href");storyLink.setAttribute("aria-disabled","true");storyLink.tabIndex=-1;
+  storyChoice.style.opacity=".45";storyChoice.style.cursor="not-allowed";
+  storyInfo.textContent="ストーリーモードは一人プレイ専用です";
+ }else{
+  storyLink.setAttribute("href","story-mode.html");storyLink.removeAttribute("aria-disabled");storyLink.removeAttribute("tabindex");
+  storyChoice.style.opacity="";storyChoice.style.cursor="";
+  storyInfo.textContent="池田屋から鳥羽・伏見まで、全4章";
+ }
+}
 function startGame(){
  unlockAudio();stopTitleIntro();stopSortieVoice();
  el('titleScreen').classList.add('hidden');document.body.classList.toggle('local-match',gameMode==='local');document.body.classList.toggle('traditional-match',rulePreset==='traditional');el('enemyHandLabel').textContent=gameMode==='local'?'後手の持ち駒':'敵軍の持ち駒';el('playerHandLabel').textContent=gameMode==='local'?'先手の持ち駒':'あなたの持ち駒';aiLevel=Number(el('aiLevel').value);reset();window.scrollTo(0,0);
