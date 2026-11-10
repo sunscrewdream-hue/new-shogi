@@ -263,3 +263,16 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
  #titleModeActions #titleExtras button{width:20px!important;min-width:20px!important;max-width:20px!important;font-size:9px!important;padding:7px 2px!important}
  #titleModeActions .modeCaption,#titleModeActions .modeInfo{right:2px}
 }
+
+/* ロゴ自体は透過済み。和紙の矩形背景を外し、墨文字に柔らかな縁光と影を添える。 */
+#titleScreen #titleMain{
+ background:transparent!important;border:0!important;border-radius:0!important;
+ padding:0!important;box-shadow:none!important;
+}
+#titleScreen #titleLogo{
+ filter:drop-shadow(0 0 5px rgba(246,229,191,.68)) drop-shadow(0 5px 4px rgba(0,9,16,.72))!important;
+}
+#titleScreen #titleSub{
+ margin:0 auto 8px!important;
+ line-height:1.25!important;
+}
