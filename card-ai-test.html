@@ -1105,7 +1105,7 @@ function playMoveBattleVoice(kind,side,onCompleted){
  if(rulePreset==='traditional'){clearCharacterBanner(side);if(onCompleted)onCompleted();return}
  panel.classList.add('has-portrait','speaking');label.textContent='⚔ 掛け声を再生中';
  let done=false;
- const finish=()=>{if(done)return;done=true;if(e===epoch&&id===portraitSerial){clearCharacterBanner(side);if(onCompleted)onCompleted();}};
+ const finish=()=>{if(done)return;done=true;if(e===epoch&&id===portraitSerial)clearCharacterBanner(side);if(onCompleted)onCompleted();};
  const clip=playBattleVoice(kind,finish);
  if(!clip){finish();return}
  setTimeout(finish,15000);
@@ -1282,7 +1282,7 @@ function queueTurnNotice(side){
   if(e!==epoch||id!==noticeQueue||pendingCardSide!==null||ended)return;
   // Move voices and character portraits finish BEFORE the next-turn artwork.
   // A long capture clip may need longer than the usual turn pause.
-  if(Date.now()-started<17000&&[el('officerPanel'),el('enemyOfficerPanel')].some(panel=>panel.classList.contains('has-portrait')||panel.classList.contains('speaking'))){
+  if(Date.now()-started<17000&&[el('officerPanel'),el('enemyOfficerPanel')].some(panel=>panel.classList.contains('speaking'))){
    setTimeout(revealWhenReady,120);return;
   }
   showTurnNotice(side);
