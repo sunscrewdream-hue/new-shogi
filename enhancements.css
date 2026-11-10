@@ -502,3 +502,37 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
 #titleModeActions .titleModeChoice:first-child .modeInfo{left:65px!important}
 @media(max-width:400px){#titleModeActions .titleModeChoice:first-child .modeInfo{left:58px!important}}
 @media(max-width:360px){#titleModeActions .titleModeChoice:first-child .modeInfo{left:44px!important}}
+
+/* スマホ向け：縦組みの余白を維持しつつ文字の視認性を上げる。 */
+@media(max-width:600px){
+ #titleScreen #titleLinks a{
+  font-size:14px!important;font-weight:900!important;line-height:1.15!important;
+ }
+ #titleModeActions .modeCaption{
+  font-size:14px!important;font-weight:900!important;letter-spacing:.04em!important;
+ }
+ #titleModeActions .modeInfo{
+  font-size:12.5px!important;font-weight:700!important;line-height:1.35!important;
+  height:240px!important;max-height:240px!important;max-width:34px!important;
+  letter-spacing:0!important;
+ }
+ #titleScreen #titleExtras button{
+  font-size:14px!important;font-weight:800!important;
+  min-height:42px!important;height:42px!important;
+ }
+ #titleMatchSettings #difficultyPicker label,
+ #titleMatchSettings #ruleModePicker label{font-size:14px!important;font-weight:800!important}
+ #titleMatchSettings #difficultyPicker select,
+ #titleMatchSettings #ruleModePicker select{font-size:12.5px!important;font-weight:800!important}
+ body.local-title-mode #storyUnlockPicker h2{font-size:14px!important;font-weight:900!important}
+ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+  font-size:12px!important;font-weight:900!important;
+ }
+ body.local-title-mode #storyUnlockExplanation{font-size:11.5px!important;font-weight:700!important}
+}
+@media(max-width:380px){
+ #titleScreen #titleLinks a{font-size:13px!important}
+ #titleModeActions .modeInfo{font-size:12px!important;max-width:30px!important}
+ #titleScreen #titleExtras button{font-size:12.5px!important}
+ body.local-title-mode #storyUnlockChoices .story-unlock-choice{font-size:11px!important}
+}
