@@ -152,3 +152,58 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 #titleLinks a:hover{filter:brightness(1.12)}
 #titleLinks a:active{filter:brightness(.92)}
 #titleLinks a:focus-visible{outline:3px solid #f3d39b !important;outline-offset:3px}
+
+/* 縦巻物メニュー。装飾画像のみ90度回転し、日本語は本来の縦書きで描画する。 */
+#titleScreen #titleLinks{
+ display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ width:min(96vw,390px)!important;gap:4px!important;
+}
+#titleScreen #titleLinks a{
+ --scroll-width:56px;--scroll-height:188px;
+ position:relative;isolation:isolate;overflow:visible;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ height:var(--scroll-height)!important;min-height:0!important;min-width:0!important;
+ padding:12px 4px!important;margin:0!important;
+ box-sizing:border-box!important;
+ writing-mode:vertical-rl;text-orientation:mixed;
+ font:700 13px/1.25 serif!important;letter-spacing:.04em;
+ background:none!important;border:0!important;box-shadow:none!important;
+ color:#fff0d0!important;text-shadow:0 1px 2px #43170ec9;
+}
+#titleScreen #titleLinks a::before,
+#titleModeActions #startGame::before,
+#titleModeActions #storyModeStart::before{
+ content:"";position:absolute;z-index:-1;left:50%;top:50%;
+ width:var(--scroll-height);height:var(--scroll-width);
+ background:url('assets/ui/makimono_red_button.webp') center / 100% 100% no-repeat;
+ transform:translate(-50%,-50%) rotate(90deg);
+ pointer-events:none;
+}
+#titleScreen #titleLinks a > span{display:none!important}
+#titleModeActions{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ width:min(96vw,400px)!important;gap:8px!important;
+}
+#titleModeActions .titleModeChoice{min-width:0!important;display:flex;flex-direction:column;align-items:center}
+#titleModeActions #startGame,
+#titleModeActions #storyModeStart{
+ --scroll-height:160px;
+ position:relative;isolation:isolate;display:flex!important;
+ align-items:center!important;justify-content:center!important;
+ width:76px!important;max-width:76px!important;height:var(--scroll-height)!important;
+ min-height:0!important;margin:0 auto!important;padding:12px 8px!important;
+ writing-mode:vertical-rl;text-orientation:upright;
+ font:900 20px/1.25 serif!important;letter-spacing:.12em!important;
+ background:none!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;color:#fff0d0!important;
+ text-shadow:0 1px 2px #43170ec9;
+}
+#titleModeActions #startGame::before,
+#titleModeActions #storyModeStart::before{height:76px}
+#titleModeActions .modeInfo{max-width:175px;min-height:34px}
+#titleModeActions #startGame:hover,#titleModeActions #storyModeStart:hover{filter:brightness(1.12)}
+@media(max-width:400px){
+ #titleScreen #titleLinks a{--scroll-height:174px;font-size:12px!important;letter-spacing:0}
+ #titleModeActions #startGame,#titleModeActions #storyModeStart{--scroll-height:148px;width:70px!important;max-width:70px!important;font-size:18px!important}
+ #titleModeActions #startGame::before,#titleModeActions #storyModeStart::before{height:70px}
+}
