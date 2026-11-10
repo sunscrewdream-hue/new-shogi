@@ -538,7 +538,7 @@ body.local-match #enemyOfficerPanel .dialogue-status{transform:none}
 @keyframes finishedPageReveal{from{transform:rotateY(-85deg)}to{transform:rotateY(0deg)}}
 #cardFace #cardEffectPanel{pointer-events:none}
 @media(prefers-reduced-motion:reduce){#cardFace{transition-duration:.01ms!important}}
-</style><link rel="stylesheet" href="enhancements.css?v=title-layout-refine-20261110"><style id="shared-battle-presentation">
+</style><script>document.addEventListener('DOMContentLoaded',()=>{const extras=document.getElementById('titleExtras'),settings=document.getElementById('titleMatchSettings');if(extras&&settings)settings.before(extras);});</script><link rel="stylesheet" href="enhancements.css?v=local-battlefields-20261110"><style id="shared-battle-presentation">
 .sq.capture-piece-ghost{box-sizing:border-box;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important}
 .sq.capture-piece-ghost .piece-layer{pointer-events:none}
 #board .sq.normal-promotion-rise{isolation:isolate}
@@ -938,12 +938,14 @@ function selectGameMode(mode){
  el("difficultyPicker").style.display=gameMode==="ai"?"block":"none";
  const storyLink=el("storyModeStart"),storyChoice=storyLink.closest(".storyChoice");
  const storyInfo=storyChoice.querySelector(".modeInfo");
+ document.body.classList.toggle("local-title-mode",gameMode==="local");
  if(gameMode==="local"){
   storyLink.removeAttribute("href");storyLink.setAttribute("aria-disabled","true");storyLink.tabIndex=-1;
-  storyChoice.style.opacity=".45";storyChoice.style.cursor="not-allowed";
+  storyChoice.hidden=true;storyChoice.style.opacity="";storyChoice.style.cursor="";
   storyInfo.textContent="ストーリーモードは一人プレイ専用です";
  }else{
   storyLink.setAttribute("href","story-mode.html");storyLink.removeAttribute("aria-disabled");storyLink.removeAttribute("tabindex");
+  storyChoice.hidden=false;
   storyChoice.style.opacity="";storyChoice.style.cursor="";
   storyInfo.textContent="池田屋から鳥羽・伏見まで、全4章";
  }
