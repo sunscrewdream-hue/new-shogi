@@ -423,3 +423,27 @@ body.local-title-mode #storyUnlockExplanation{
  body.local-title-mode #titleModeActions .titleModeChoice:first-child #startGame{transform:translateX(20px)!important}
  body.local-title-mode #titleModeActions .titleModeChoice:first-child .modeInfo{left:7px!important}
 }
+
+/* 2026-11-10: 紐のない筒巻物へ統一。白ラベル上には墨色の縦書き。 */
+#titleScreen #titleLinks a,
+#titleModeActions #startGame,
+#titleModeActions #storyModeStart,
+body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+ color:#261c17!important;text-shadow:0 1px 0 #fffbef88!important;
+}
+#titleScreen #titleLinks a::before,
+#titleModeActions #startGame::before,
+#titleModeActions #storyModeStart::before,
+body.local-title-mode #storyUnlockChoices .story-unlock-choice::before{
+ left:50%!important;top:50%!important;
+ width:100%!important;height:100%!important;
+ transform:translate(-50%,-50%)!important;
+ background: url('assets/ui/makimono_red_rolled.webp') center / 100% 100% no-repeat!important;
+}
+#titleScreen #titleLinks a{font-size:clamp(12px,3.3vw,15px)!important;padding:22px 8px!important}
+#titleModeActions #startGame,#titleModeActions #storyModeStart{font-size:clamp(19px,5vw,23px)!important}
+body.local-title-mode #storyUnlockChoices .story-unlock-choice{font-size:11px!important}
+#titleScreen #titleLinks a:hover,
+#titleModeActions #startGame:hover,#titleModeActions #storyModeStart:hover,
+body.local-title-mode #storyUnlockChoices .story-unlock-choice:hover{filter:brightness(1.08)}
+body.local-title-mode #storyUnlockChoices .story-unlock-choice.selected{filter:drop-shadow(0 0 5px #efca7d)!important;color:#261c17!important}
