@@ -26,3 +26,17 @@
  .page-nav .page-nav-link{min-width:0;font-size:12px;padding:10px 6px}
  .page-nav .page-nav-link:first-child{grid-column:1/-1}
 }
+
+/* 共通の歴史・解説ナビゲーションにも同じ巻物を使用する。 */
+.page-nav .page-nav-link,
+.page-return,
+.links .button-link{
+ background:#863522 url('assets/ui/makimono_red_button.webp') center / 100% 100% no-repeat;
+ border:0;border-radius:0;
+ color:#fff0d0!important;
+ text-shadow:0 1px 2px #43170ec9;
+ box-shadow:none;
+ padding-inline:20px;
+}
+.page-nav .page-nav-link:hover,.page-return:hover,.links .button-link:hover{filter:brightness(1.12);background:#863522 url('assets/ui/makimono_red_button.webp') center / 100% 100% no-repeat}
+.page-nav .page-nav-link[aria-current="page"]{background:#863522 url('assets/ui/makimono_red_button.webp') center / 100% 100% no-repeat;color:#fff0d0!important;filter:saturate(.65);box-shadow:none}

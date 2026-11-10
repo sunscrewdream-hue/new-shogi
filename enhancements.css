@@ -137,3 +137,18 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
 
 /* Mobile seal fine alignment: stop just before the portrait. */
 @media(max-width:600px){.dialogue-panel .hitokiri-stamp{left:-7%;}}
+/* 朱漆の巻物：タイトル画面の案内リンク共通素材 */
+#titleLinks a{
+  background: #863522 url('assets/ui/makimono_red_button.webp') center / 100% 100% no-repeat !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #fff0d0 !important;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #43170ec9;
+  box-shadow: none !important;
+  min-height: 48px;
+  padding-inline: 20px !important;
+}
+#titleLinks a:hover{filter:brightness(1.12)}
+#titleLinks a:active{filter:brightness(.92)}
+#titleLinks a:focus-visible{outline:3px solid #f3d39b !important;outline-offset:3px}
