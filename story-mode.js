@@ -980,7 +980,7 @@ const storyPieceHover=window.ShinsengumiPieceHover.bind({
 });
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
 function screenHome(){
- storyPieceHover.reset();
+ stopStoryVictoryBgm();storyPieceHover.reset();
  stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  hideCompactFx();compactCaptures={};restoreStoryHover();window.StoryBgm?.stop();
@@ -1688,6 +1688,16 @@ async function fire(kind,ownerSide=1){
  busy=false;render();const status=g.state();if(status)finish(status.winner,status.why);
  else{await later(1200);if(id===epoch&&!ended)compactResumeTurn()}
 }
+const storyVictoryBgmClip=new Audio('assets/audio/bgm/victory_thunder_pass_4s.mp3');
+storyVictoryBgmClip.preload='auto';
+function stopStoryVictoryBgm(){storyVictoryBgmClip.pause();storyVictoryBgmClip.currentTime=0}
+function playStoryVictoryBgm(){
+ if(soundOff||document.hidden||!ended||$("storyEndOverlay").classList.contains("hidden"))return;
+ stopStoryVictoryBgm();
+ storyVictoryBgmClip.volume=Math.min(.7,storyVolume/100*2.1);
+ storyVictoryBgmClip.play().catch(()=>{});
+}
+
 function finish(winner,reason){
  if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage,null,true)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
  if(win&&!devPreview&&!debugModified){
@@ -1715,9 +1725,11 @@ function finish(winner,reason){
   actions.append(button);
  }
  overlay.classList.remove("hidden");
- // Finished game: taiko 'finish' impact followed by shobuAtta voice.
+ // 勝利音楽は「勝負あった！」の声の後。敗北には鳴らさない。
+ window.StoryBgm?.stop();
  playStoryClip("assets/audio/sfx/taiko_dodon.mp3","fx");
- sfx("win");
+ if(win)sfx("win",()=>{if(ended&&overlay.classList.contains('hidden')===false)playStoryVictoryBgm()});
+ else sfx("loss");
 }
 function leave(){
  if(ended){screenHome();return}
