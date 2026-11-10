@@ -758,6 +758,32 @@ input,textarea,select{user-select:text;-webkit-user-select:text;caret-color:auto
 .scene-tobafushimi.tobafushimi-shinsengumi-ensemble-pages .scene-overlay{
  background:linear-gradient(transparent 15%,#1c1a197a 100%);
 }
+/* Keep the ensemble faces unobstructed: put this page's caption in the sky. */
+#storyDialogue .scene-art.scene-tobafushimi.tobafushimi-shinsengumi-ensemble-pages .scene-overlay{
+ position:absolute;
+ top:4%;
+ right:3%;
+ width:60%;
+ padding:0;
+ text-align:right;
+ background:none;
+ pointer-events:none;
+}
+#storyDialogue .scene-art.scene-tobafushimi.tobafushimi-shinsengumi-ensemble-pages .scene-overlay span{
+ display:block;
+ color:#2b211c;
+ font-size:clamp(10px,2.6vw,15px);
+ line-height:1.2;
+ text-shadow:0 1px 3px #f6e7d5,0 0 6px #f6e7d5;
+}
+#storyDialogue .scene-art.scene-tobafushimi.tobafushimi-shinsengumi-ensemble-pages .scene-overlay h2{
+ color:#201a18;
+ font-size:clamp(16px,4.1vw,27px);
+ line-height:1.2;
+ margin:3px 0 0;
+ white-space:nowrap;
+ text-shadow:0 1px 3px #f6e7d5,0 0 7px #f6e7d5;
+}
 /* Epilogue: four pages of the tattered Makoto banner in rain, then Yagi residence. */
 .scene-tobafushimi.epilogue-rain-flag-pages,
 .scene-tobafushimi.epilogue-yagi-dinner-page{
