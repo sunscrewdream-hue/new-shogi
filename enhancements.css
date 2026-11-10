@@ -566,3 +566,34 @@ body.local-title-mode #storyUnlockChoices button{
  #titleScreen #titleMain{width:min(88vw,380px)!important}
  #titleScreen #titleLogo{max-height:109px!important}
 }
+
+/* 戦場選択の巻物を密に並べ、ラベル文字を上余白付きで大きく表示する。 */
+body.local-title-mode #storyUnlockChoices{
+ justify-content:center!important;gap:1px!important;
+ padding-inline:0!important;
+}
+body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+ flex:0 0 47px!important;width:47px!important;min-width:47px!important;max-width:47px!important;
+ padding:65px 4px 12px!important;
+ justify-content:flex-start!important;
+ font-size:14px!important;font-weight:900!important;line-height:1.15!important;
+ letter-spacing:0!important;
+}
+body.local-title-mode #storyUnlockExplanation{
+ font:800 13px/1.5 "Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif!important;
+ letter-spacing:0!important;
+ margin:7px 5px 1px!important;
+}
+@media(max-width:400px){
+ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+  flex-basis:40px!important;width:40px!important;min-width:40px!important;max-width:40px!important;
+  padding-top:58px!important;font-size:13px!important;
+ }
+ body.local-title-mode #storyUnlockExplanation{font-size:12px!important}
+}
+@media(max-width:350px){
+ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+  flex-basis:37px!important;width:37px!important;min-width:37px!important;max-width:37px!important;
+  padding-top:52px!important;font-size:12px!important;
+ }
+}
