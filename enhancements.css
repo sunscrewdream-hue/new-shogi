@@ -276,3 +276,66 @@ body:not(.local-match) #hand1 .shogi-token.enemy-token{transform:none}
  margin:0 auto 8px!important;
  line-height:1.25!important;
 }
+
+/* 枠なしの縦巻物と、巻物の左右に沿う縦書きの見出し・説明。 */
+#titleModeActions{gap:2px!important;width:min(98vw,440px)!important}
+#titleModeActions .titleModeChoice{
+ background:transparent!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;overflow:visible!important;padding:0!important;
+}
+#titleModeActions .titleModeChoice:first-child #startGame{transform:translateX(36px)}
+#titleModeActions .titleModeChoice:first-child .modeCaption{right:5px!important;top:9px!important}
+#titleModeActions .titleModeChoice:first-child .modeInfo{
+ left:85px!important;right:auto!important;bottom:12px!important;
+}
+#titleModeActions .storyChoice .modeCaption{right:35px!important;top:9px!important}
+#titleModeActions .storyChoice .modeInfo{
+ left:32px!important;right:auto!important;bottom:12px!important;
+}
+#titleModeActions #titleExtras{
+ left:0!important;top:50%!important;transform:translateY(-50%);
+ gap:3px!important;
+}
+#titleModeActions #titleExtras button{height:146px!important;min-height:146px!important}
+/* 対局設定は横一列。項目名は選択欄の直上。 */
+#titleMatchSettings{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:8px!important;align-items:start!important;
+ width:min(96vw,440px)!important;max-width:440px!important;
+}
+#titleMatchSettings #difficultyPicker,
+#titleMatchSettings #ruleModePicker{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:5px!important;min-width:0!important;width:100%!important;
+ margin:0!important;padding:0!important;
+}
+#titleMatchSettings #difficultyPicker label,
+#titleMatchSettings #ruleModePicker label{
+ display:block!important;text-align:center!important;white-space:nowrap!important;
+ font:700 12px/1.3 serif!important;color:#f3d7a2!important;
+}
+#titleMatchSettings #difficultyPicker select,
+#titleMatchSettings #ruleModePicker select{
+ display:block!important;box-sizing:border-box!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ margin:0!important;padding:7px 17px 7px 5px!important;
+ font:700 11px/1.4 serif!important;letter-spacing:-.04em!important;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#titleMatchSettings #customRules{grid-column:1/-1}
+@media(max-width:400px){
+ #titleModeActions .titleModeChoice:first-child #startGame{transform:translateX(30px)}
+ #titleModeActions .titleModeChoice:first-child .modeInfo{left:78px!important}
+ #titleModeActions .storyChoice .modeCaption{right:24px!important}
+ #titleModeActions .storyChoice .modeInfo{left:24px!important}
+ #titleMatchSettings{gap:5px!important}
+ #titleMatchSettings #ruleModePicker select{font-size:10px!important}
+}
+@media(max-width:360px){
+ #titleModeActions .titleModeChoice:first-child #startGame{transform:translateX(20px)}
+ #titleModeActions .titleModeChoice:first-child .modeInfo{left:64px!important}
+ #titleModeActions .storyChoice .modeCaption{right:15px!important}
+ #titleModeActions .storyChoice .modeInfo{left:14px!important}
+ #titleModeActions #titleExtras{left:0!important;gap:2px!important}
+ #titleMatchSettings #ruleModePicker select{font-size:9px!important}
+}
