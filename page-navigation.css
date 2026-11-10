@@ -1,4 +1,5 @@
 /* Identical navigation for all four pages opened from the title screen. */
+/* Makimono navigation design approved 2026-11-10. */
 .page-nav{
  display:flex;flex-wrap:wrap;align-items:stretch;justify-content:center;
  gap:9px;max-width:1060px;margin:0 auto 22px;padding:12px 0;
