@@ -137,7 +137,7 @@ function sfx(t,onDone=null){
 // awakening and check paths on the Kinmon and Toba-Fushimi 9x9 boards.
 function compactMode(){return stage>=0&&stage<D.chapters.length}
 const compactCardFaces={"何事もなし":"assets/cards/events/calm.webp?v=20261104d","寝返り":"assets/cards/events/defection-v2.webp","援軍":"assets/cards/events/reinforcement.webp","脱走":"assets/cards/events/desertion.webp","粛清":"assets/cards/events/purge.webp","大地震":"assets/cards/events/earthquake.webp","大砲":"assets/cards/weapons/cannon-v2.webp","鉄砲":"assets/cards/weapons/rifle-v2.webp"};
-const compactCardWeights=[["何事もなし",45],["寝返り",15],["援軍",10],["脱走",15],["粛清",10],["大地震",5]];
+const compactCardWeights=[["何事もなし",45],["寝返り",15],["脱走",15],["粛清",10],["大地震",5]];
 const compactCardVoices={"何事もなし":"assets/audio/events/incident_voice_calm.mp3","寝返り":"assets/audio/story/master_samurai_defection_v1.mp3","援軍":"assets/audio/events/incident_voice_reinforcement.mp3","脱走":"assets/audio/events/incident_voice_desertion.mp3","粛清":"assets/audio/events/incident_voice_purge.mp3","大地震":"assets/audio/events/incident_voice_earthquake.mp3","大砲":kabukiVoice.cannon,"鉄砲":kabukiVoice.rifle};
 // Awakening counts belong to a person, even after capture and redeployment.
 function compactFighterKey(p){
@@ -212,7 +212,6 @@ function compactPickCard(side){
  // Do not draw a card that cannot affect the current legal position.
  // A silent no-op was especially confusing for defection on small boards.
  const deck=base.filter(([kind])=>{
-  if(kind==="援軍")return g.fallen[side].length>0;
   if(kind==="寝返り")return compactEligible(1-side).length>0;
   if(kind==="脱走")return compactEligible(side).length>0;
   if(kind==="粛清")return compactEligible(side,["歩","香","桂","銀"]).length>0;
@@ -1239,7 +1238,7 @@ function render(){
  $("storyStatus").classList.toggle("check-status",!oilAmbushAnimating&&!ikedayaReinforcing&&!ended&&g.check(g.board,g.side));
  $("compactCardCountdown").textContent=countdown;
  const canTest=!ended&&!busy&&!compactTurnLocked&&!compactIncident&&!pendingWeaponDisplay&&g.side===0;
- for(const id of ["debugCard","debugOilAmbush","debugQuake","debugReinforce","debugRevival","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
+ for(const id of ["debugCard","debugOilAmbush","debugQuake","debugReinforce","debugDesert","debugPurge","debugKill","debugAwaken","debugCannon","debugRifle","debugTurn","debugWin","debugLose","debugFx","debugVoice0","debugVoice1"]){
   $(id).disabled=!canTest||((id==="debugCannon"||id==="debugRifle")&&stage!==3)||(id==="debugOilAmbush"&&(stage!==2||g.oilPhase!==1));
  }
 }
@@ -1818,11 +1817,7 @@ $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
 },true,false);
 $("debugQuake").onclick=()=>storyDebugRun(()=>compactApplyIncident({kind:"大地震"}),true);
 $("debugReinforce").onclick=()=>storyDebugRun(()=>storyDebugIncident("寝返り"),true);
-$("debugRevival").onclick=()=>storyDebugRun(()=>{
- const fallen=g.fallen[g.side];
- if(!fallen.length){popup("援軍の対象なし","粛清・脱走・斬殺などで離脱した隊士がまだいません。",[["閉じる",()=>{}]]);return}
- compactApplyIncident({kind:"援軍",side:g.side,uid:fallen[fallen.length-1].uid});
-},true);
+
 $("debugDesert").onclick=()=>storyDebugRun(()=>storyDebugIncident("脱走"),true);
 $("debugPurge").onclick=()=>storyDebugRun(()=>storyDebugIncident("粛清"),true);
 async function storyDebugHitokiri(kill){
