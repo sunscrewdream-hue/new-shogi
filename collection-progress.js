@@ -61,7 +61,7 @@
  const notice=main.querySelector('.notice');if(notice)notice.remove();
  main.querySelector('h1').textContent='幕末人物コレクション';
  main.querySelector('.eyebrow').textContent='HISTORICAL CHARACTER COLLECTION';
- main.querySelector('.intro').textContent='幕末を生きた104名。対局で駒を取ると人物カードを獲得できます。全104名の正式採用カードを収録しています。';
+ main.querySelector('.intro').textContent='幕末を生きた104名。人物を選ぶと、カードとプロフィールを一緒に確認できます。対局で駒を取ると人物カードを獲得できます。';
  document.title='人物コレクション｜新選組将棋';
  let testMode=false;
  const panel=document.createElement('section');panel.className='collection-progress';
@@ -89,20 +89,40 @@
   return names;
  };
  const viewer=document.createElement('dialog');viewer.className='collection-viewer';
- viewer.innerHTML='<button type="button" class="viewer-close" aria-label="閉じる">×</button><img alt=""><p class="viewer-name"></p>';
+ viewer.innerHTML='<button type="button" class="viewer-close" aria-label="閉じる">×</button><h2 class="viewer-name"></h2><div class="viewer-layout"><img class="viewer-art" alt=""><div class="viewer-profile" aria-label="人物のプロフィール"></div></div>';
  document.body.append(viewer);
- viewer.querySelector('.viewer-close').onclick=()=>viewer.close();
- viewer.onclick=e=>{if(e.target===viewer)viewer.close()};
- function showCard(row){if(!testMode&&!owned().has(row.name))return;viewer.querySelector('img').src=row.art;viewer.querySelector('img').alt=row.name+'の人物カード';viewer.querySelector('.viewer-name').textContent=row.name;viewer.showModal()}
+ let lastFocused=null;
+ const closeViewer=()=>{if(viewer.open)viewer.close()};
+ viewer.querySelector('.viewer-close').onclick=closeViewer;
+ viewer.onclick=e=>{if(e.target===viewer)closeViewer()};
+ viewer.addEventListener('close',()=>{lastFocused?.focus?.();lastFocused=null});
+ function showCard(row){
+  if(!testMode&&!owned().has(row.name))return;
+  lastFocused=document.activeElement;
+  const art=viewer.querySelector('.viewer-art');
+  art.src=row.art;art.alt=row.name+'の人物カード';
+  art.onerror=()=>{if(!art.src.includes('card-back-saccho'))art.src=fallback};
+  viewer.querySelector('.viewer-name').textContent=row.name;
+  const profile=row.element.querySelector('.profile');
+  viewer.querySelector('.viewer-profile').replaceChildren(...Array.from(profile.childNodes,child=>child.cloneNode(true)));
+  viewer.showModal();
+ }
  rows.forEach((row,index)=>{
   const card=row.element;card.dataset.characterIndex=String(index);
   card.dataset.search=[row.name,row.role,...row.chapters].join(' ');
   const heading=card.querySelector('summary h3');heading.dataset.originalName=row.name;
   const portrait=card.querySelector('.portrait');portrait.replaceChildren();
   const img=document.createElement('img');img.loading='lazy';img.alt='';img.width=768;img.height=1152;img.src=row.art;img.onerror=()=>{if(img.src.indexOf('card-back-saccho')<0)img.src=fallback};portrait.append(img);
-  const button=document.createElement('button');button.type='button';button.className='view-collection-card';button.textContent='カードを大きく見る';button.onclick=()=>showCard(row);
-  card.querySelector('.profile').prepend(button);
-  card.addEventListener('toggle',()=>{if(card.classList.contains('locked')&&card.open)card.open=false});
+  const summary=card.querySelector('summary');
+  summary.setAttribute('aria-label',row.name+'のカードとプロフィールを開く');
+  const hint=summary.querySelector('.open-hint');if(hint)hint.textContent='カードと略歴を見る ＋';
+  summary.addEventListener('click',event=>{
+   event.preventDefault();
+   card.open=false;
+   if(card.classList.contains('locked'))return;
+   showCard(row);
+  });
+  card.addEventListener('toggle',()=>{if(card.open)card.open=false});
  });
  let filterSide='all',shownLimit=24;const pageSize=24,search=document.getElementById('search'),buttons=Array.from(document.querySelectorAll('[data-filter]'));
  const more=document.createElement('button');more.type='button';more.className='collection-show-more';more.textContent='さらに24名を表示';
