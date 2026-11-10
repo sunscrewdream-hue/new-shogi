@@ -455,3 +455,13 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice.selected{filter:d
 body.local-title-mode #storyUnlockChoices .story-unlock-choice::before{
  background-size:300% 100%!important;
 }
+
+/* 長い案内名を省略せず、縦一行のまま白ラベルに収める。 */
+#titleScreen #titleLinks a{
+ --scroll-height:252px!important;
+ height:252px!important;min-height:252px!important;
+ white-space:nowrap!important;overflow-wrap:normal!important;word-break:keep-all!important;
+ font-size:13px!important;letter-spacing:0!important;
+ padding-block:27px!important;
+}
+@media(max-width:380px){#titleScreen #titleLinks a{--scroll-height:240px!important;height:240px!important;min-height:240px!important;font-size:12px!important}}
