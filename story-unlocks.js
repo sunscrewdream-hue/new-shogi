@@ -62,7 +62,7 @@
    const button=document.createElement('button');button.type='button';
    button.className='story-unlock-choice'+(field.id===selected?' selected':'');
    button.disabled=!allowed;button.setAttribute('aria-pressed',String(field.id===selected));
-   button.textContent=(allowed?'⚔ ':'🔒 ')+field.name;
+   button.textContent=field.name;
    button.title=allowed?'この戦場を選ぶ':field.hint;
    button.addEventListener('click',()=>{
     if(!allowed)return;

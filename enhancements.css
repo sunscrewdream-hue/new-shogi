@@ -465,3 +465,35 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice::before{
  padding-block:27px!important;
 }
 @media(max-width:380px){#titleScreen #titleLinks a{--scroll-height:240px!important;height:240px!important;min-height:240px!important;font-size:12px!important}}
+
+/* 二人対戦：出陣側の説明を巻物に近づけ、空いた横幅を戦場選択へ。 */
+body.local-title-mode #battlefieldModeGroup{
+ grid-template-columns:minmax(0,1.32fr) minmax(0,.68fr)!important;
+ gap:2px!important;
+}
+body.local-title-mode #titleModeActions .titleModeChoice:first-child .modeInfo{
+ left:30px!important;
+}
+body.local-title-mode #storyUnlockChoices{
+ justify-content:space-between!important;
+ gap:5px!important;
+ overflow-x:auto!important;
+}
+body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+ flex:0 0 42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+ display:flex!important;justify-content:flex-start!important;align-items:center!important;
+ padding:49px 4px 12px!important;
+ white-space:nowrap!important;
+}
+@media(max-width:400px){
+ body.local-title-mode #storyUnlockChoices{gap:3px!important}
+ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
+  flex-basis:38px!important;width:38px!important;min-width:38px!important;max-width:38px!important;
+  padding-top:43px!important;
+ }
+ body.local-title-mode #titleModeActions .titleModeChoice:first-child .modeInfo{left:25px!important}
+}
+@media(max-width:350px){
+ body.local-title-mode #battlefieldModeGroup{grid-template-columns:minmax(0,1.27fr) minmax(0,.73fr)!important}
+ body.local-title-mode #storyUnlockChoices .story-unlock-choice{flex-basis:35px!important;width:35px!important;min-width:35px!important;max-width:35px!important}
+}
