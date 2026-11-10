@@ -676,3 +676,48 @@ body.local-title-mode #storyUnlockExplanation{
   font-size:12px!important;line-height:1.45!important;
  }
 }
+
+
+/* 2026-11-11: タイトルの二つの縦巻物を見出し・説明ごと中央にまとめる。 */
+@media(max-width:600px){
+ body:not(.local-title-mode) #titleModeActions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:min(96vw,390px)!important;max-width:390px!important;
+  gap:6px!important;margin:0 auto!important;
+  position:relative!important;left:auto!important;transform:none!important;
+  align-items:center!important;justify-content:center!important;
+ }
+ body:not(.local-title-mode) #titleModeActions .titleModeChoice{
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:minmax(24px,1fr) 84px minmax(24px,1fr)!important;
+  grid-template-rows:1fr!important;align-items:center!important;justify-items:center!important;
+  gap:0!important;width:100%!important;min-width:0!important;
+  height:360px!important;min-height:360px!important;
+  position:relative!important;padding:0!important;overflow:visible!important;
+ }
+ body:not(.local-title-mode) #titleModeActions .titleModeChoice .modeCaption{
+  grid-column:3!important;grid-row:1!important;
+  position:static!important;inset:auto!important;
+  display:block!important;align-self:start!important;
+  width:24px!important;margin:12px auto 0!important;
+  writing-mode:vertical-rl!important;text-orientation:upright!important;
+  font-size:14px!important;line-height:1.25!important;
+ }
+ body:not(.local-title-mode) #titleModeActions .titleModeChoice .modeInfo{
+  grid-column:1!important;grid-row:1!important;
+  position:static!important;inset:auto!important;
+  display:block!important;align-self:end!important;
+  width:30px!important;max-width:30px!important;
+  height:240px!important;max-height:240px!important;min-height:0!important;
+  margin:0 auto 8px!important;
+  writing-mode:vertical-rl!important;text-orientation:mixed!important;
+  font-size:12px!important;line-height:1.35!important;text-align:start!important;
+ }
+ body:not(.local-title-mode) #titleModeActions .titleModeChoice #startGame,
+ body:not(.local-title-mode) #titleModeActions .titleModeChoice #storyModeStart{
+  grid-column:2!important;grid-row:1!important;justify-self:center!important;
+  transform:none!important;margin:0!important;
+  width:76px!important;max-width:76px!important;
+  height:332px!important;min-height:332px!important;--scroll-height:332px!important;
+ }
+}
