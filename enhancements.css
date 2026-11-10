@@ -497,3 +497,8 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
  body.local-title-mode #battlefieldModeGroup{grid-template-columns:minmax(0,1.27fr) minmax(0,.73fr)!important}
  body.local-title-mode #storyUnlockChoices .story-unlock-choice{flex-basis:35px!important;width:35px!important;min-width:35px!important;max-width:35px!important}
 }
+
+/* 通常対局の説明は物語側の説明と同じ距離だけ巻物から離す。 */
+#titleModeActions .titleModeChoice:first-child .modeInfo{left:65px!important}
+@media(max-width:400px){#titleModeActions .titleModeChoice:first-child .modeInfo{left:58px!important}}
+@media(max-width:360px){#titleModeActions .titleModeChoice:first-child .modeInfo{left:44px!important}}
