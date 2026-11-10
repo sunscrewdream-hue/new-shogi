@@ -17,7 +17,7 @@
  let selected='classic';
  const panel=document.createElement('section');panel.id='storyUnlockPicker';
  panel.setAttribute('aria-label','通常対戦の戦場を選択');
- panel.innerHTML='<h2>対戦する戦場 <small>物語で勝利すると解放</small></h2><div id="storyUnlockChoices" role="group" aria-label="戦場一覧"></div><p id="storyUnlockExplanation">通常盤で対局できます。物語の戦場は各章の勝利後に解放されます。</p>';
+ panel.innerHTML='<h2>対戦する戦場 <small>物語で勝利すると解放</small></h2><div id="storyUnlockChoices" role="group" aria-label="戦場一覧"></div><p id="storyUnlockExplanation">未解放の戦場は物語の各章で勝利すると選べます。</p>';
  // Both choices share one layout center; no viewport-specific offset calculations.
  const group=document.createElement('div');
  group.id='battlefieldModeGroup';
@@ -72,7 +72,7 @@
   }
   const current=battlefields.find(f=>f.id===selected);
   explanation.textContent=current.id==='classic'
-   ?'完成版の通常盤で対戦します。未解放の戦場は物語で勝利すると選べます。'
+   ?'未解放の戦場は物語の各章で勝利すると選べます。'
    :current.name+'の戦場を選択中。通常対戦の9×9ルールと駒配置は維持します。';
   updateAppearance();
  }
