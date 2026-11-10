@@ -447,3 +447,11 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice{font-size:11px!im
 #titleModeActions #startGame:hover,#titleModeActions #storyModeStart:hover,
 body.local-title-mode #storyUnlockChoices .story-unlock-choice:hover{filter:brightness(1.08)}
 body.local-title-mode #storyUnlockChoices .story-unlock-choice.selected{filter:drop-shadow(0 0 5px #efca7d)!important;color:#261c17!important}
+
+/* 朱色の巻物は画像に広い透明余白があるため、横幅だけ元のボタンの太さに補正。 */
+#titleScreen #titleLinks a::before,
+#titleModeActions #startGame::before,
+#titleModeActions #storyModeStart::before,
+body.local-title-mode #storyUnlockChoices .story-unlock-choice::before{
+ background-size:300% 100%!important;
+}
