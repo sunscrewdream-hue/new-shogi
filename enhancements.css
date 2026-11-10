@@ -536,3 +536,33 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice{
  #titleScreen #titleExtras button{font-size:12.5px!important}
  body.local-title-mode #storyUnlockChoices .story-unlock-choice{font-size:11px!important}
 }
+
+/* タイトル画面は小さな画面でも判読しやすいゴシック体に統一。 */
+#titleScreen,
+#titleScreen button,
+#titleScreen a,
+#titleScreen select,
+#titleScreen label,
+#titleScreen .modeCaption,
+#titleScreen .modeInfo,
+#titleScreen small,
+body.local-title-mode #storyUnlockPicker,
+body.local-title-mode #storyUnlockChoices button{
+ font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif!important;
+}
+#titleScreen #titleSub{display:none!important}
+#titleScreen #titleMain{width:min(96%,510px)!important;max-width:510px!important;margin:2px auto 8px!important}
+#titleScreen #titleLogo{width:100%!important;max-height:146px!important;object-fit:contain!important}
+#titleScreen #titleFoot{
+ font:600 12px/1.5 "Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif!important;
+ letter-spacing:.06em!important;color:#d9d6ca!important;
+ margin:14px auto max(12px,env(safe-area-inset-bottom))!important;
+}
+@media(max-width:600px){
+ #titleScreen #titleMain{width:min(94vw,420px)!important;margin:0 auto 7px!important}
+ #titleScreen #titleLogo{max-height:127px!important}
+}
+@media(max-width:600px) and (max-height:740px){
+ #titleScreen #titleMain{width:min(88vw,380px)!important}
+ #titleScreen #titleLogo{max-height:109px!important}
+}
