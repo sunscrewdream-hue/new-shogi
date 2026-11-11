@@ -118,6 +118,7 @@ function playCasualtyCry(){return new Promise(resolve=>{
 const later=ms=>new Promise(r=>setTimeout(r,ms));
 // Never leave battle input locked if mobile Safari omits an audio-ended event.
 function playBloodImpact(){return Promise.race([new Promise(resolve=>compactSound("blood",resolve)),later(1700)])}
+function playLethalSword(){return Promise.race([new Promise(resolve=>compactSound("slash",resolve)),later(1300)])}
 function hideStoryEndOverlay(){const node=$("storyEndOverlay");if(node)node.classList.add("hidden")}
 function chooseView(active){hideStoryEndOverlay();["storyHome","storyDialogue","storyBattle"].forEach(id=>$(id).classList.toggle("hidden",id!==active));window.scrollTo(0,0)}
 function sfx(t,onDone=null){
@@ -671,12 +672,9 @@ function compactApplyIncident(effect){
   }else if(kind==="粛清"){
    window.ShinsengumiBattleRules.runOrderedEffect({
     valid:()=>game===epoch&&!ended,
-    attack:()=>{render();board.children[y*g.w+x]?.classList.add("compact-blood")},
-    impact:()=>new Promise(resolve=>{compactSound("kill",resolve);setTimeout(resolve,1800)}),
-    cry:()=>new Promise(resolve=>{
-     if(p.s===0)sfx("loss",resolve);else compactSound("sacchoLoss",resolve);
-     setTimeout(resolve,3800);
-    }),
+    attack:async()=>{render();board.children[y*g.w+x]?.classList.add("compact-blood");await playLethalSword()},
+    impact:playBloodImpact,
+    cry:playCasualtyCry,
     result:finish
    });
   }else{render();setTimeout(finish,650)}
@@ -1414,6 +1412,8 @@ async function oilAmbushReveal(){
   if(game!==epoch||ended){layer.replaceChildren();return}
   if(casualties.has(i)){
    cell.classList.add("compact-blood");
+   await playLethalSword();
+   if(game!==epoch||ended){layer.replaceChildren();return}
    await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};playGestureAudio("assets/audio/sfx/purge_shukusei.mp3",finish,"fx",2);setTimeout(finish,1700)});
    if(game!==epoch||ended){layer.replaceChildren();return}
    await playCasualtyCry();
@@ -1521,8 +1521,6 @@ function makeMove(m,prom,capturePreplayed=false){
     // An explicit final blow before the ambush replaces the routine victory.
     compactCalligraphy(true);
     storyBannerMessage("伊東甲子太郎、斬殺！",0);
-    await playKabukiVoice("kill");
-    if(id!==epoch||ended)return;
     await later(700);
     if(id!==epoch||ended)return;
     oilAmbushReveal();return;
@@ -1544,7 +1542,7 @@ function makeMove(m,prom,capturePreplayed=false){
     try{
      await window.ShinsengumiBattleRules.runOrderedEffect({
       valid:()=>id===epoch&&!ended,
-      attack:()=>{if(!oilFirstActVictory)compactCalligraphy(true);compactBloodMarks.push(square);render()},
+      attack:async()=>{if(!oilFirstActVictory)compactCalligraphy(true);compactBloodMarks.push(square);render();await playLethalSword()},
       impact:playBloodImpact,
       cry:playCasualtyCry,
       result:()=>later(850)
