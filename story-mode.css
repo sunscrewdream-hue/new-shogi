@@ -1358,3 +1358,21 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
  #storyHome .story-hero h1{margin:5px 0 3px;font-size:clamp(36px,10vw,48px)}
  #storyHome .story-hero p{margin-top:6px}
 }
+
+/* Shared stage heading: prominent chapter name, date at the lower right. */
+#storyBattle .story-battle-heading{
+ display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+ width:min(96vw,520px);max-width:520px;min-height:0;
+ margin:6px auto 7px;padding:0 4px 4px;box-sizing:border-box;
+}
+#storyBattle .story-battle-heading #battleTitle{
+ margin:0;text-align:center;font:900 clamp(26px,7.6vw,38px)/1.18 "Yu Mincho",serif;
+ letter-spacing:.035em;color:#f5dca9;text-shadow:0 2px 5px #0009;
+}
+#storyBattle .story-battle-heading #battleChapter{
+ width:100%;padding:0;margin:3px 0 0;text-align:right;
+ font:800 clamp(12px,3vw,15px)/1.35 "Yu Mincho",serif;
+ color:#d9c09b;letter-spacing:.025em;
+}
+#storyHome .history-note{margin:10px auto 12px;max-width:620px;text-align:center}
+#storyHome .story-dev-controls{margin:12px auto 18px}
