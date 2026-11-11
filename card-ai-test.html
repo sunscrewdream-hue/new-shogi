@@ -585,7 +585,7 @@ let bgmEnabled=true;
 const bgmAudio=new Audio('./assets/audio/bgm/honor_in_the_silence_96kbps.mp3');
 bgmAudio.loop=true;bgmAudio.preload='auto';bgmAudio.playsInline=true;
 function bgmStatus(message){let node=el('bgmStatus');if(node)node.textContent=message}
-function syncBgmVolume(){bgmAudio.volume=Math.min(1,Number(el('volume').value)/100*.60)}
+function syncBgmVolume(){bgmAudio.volume=Math.min(1,(window.ShinsengumiAudioMixer?.ratio('bgm')??Number(el('volume').value)/100)*.60)}
 function startBgm(){if(!bgmEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;syncBgmVolume();bgmStatus('BGM：読み込み・再生中…');let playing=bgmAudio.play();if(playing&&playing.catch)playing.catch(()=>bgmStatus('BGM：再生できません。BGMボタンをもう一度押してください'))}
 function stopBgm(){bgmAudio.pause();bgmAudio.currentTime=0;bgmStatus('BGM：停止中')}
 function toggleBgm(){bgmEnabled=!bgmEnabled;el('bgmToggle').textContent=bgmEnabled?'♪ BGM：ON':'♪ BGM：OFF';if(bgmEnabled)startBgm();else stopBgm()}
@@ -620,7 +620,7 @@ bgmAudio.addEventListener('pause',()=>{
  },450);
 });
 bgmAudio.addEventListener('error',()=>bgmStatus('BGM：音源の読込エラー。再読み込みしてBGMをONにしてください'));
-document.addEventListener('DOMContentLoaded',()=>{syncBgmVolume();el('volume').addEventListener('input',syncBgmVolume)});
+document.addEventListener('DOMContentLoaded',()=>{syncBgmVolume();el('volume').addEventListener('input',syncBgmVolume);window.ShinsengumiAudioMixer?.subscribe(syncBgmVolume)});
 /* Lightweight, mono 64 kbps battle lines. Gameplay FX/BGM stay independent. */
 let voiceEnabled=true,activeVoice=null,voicePreviewTimer=null;
 const battleVoiceUrls={
@@ -687,7 +687,7 @@ function playIncidentVoice(kind,onFinished){
   if(done||!voiceEnabled||document.hidden){finish();return}
   if(incidentAudioActive){try{incidentAudioActive.stop()}catch(e){}}
   const source=context.createBufferSource(),gain=context.createGain();
-  source.buffer=buffer;gain.gain.value=Math.min(.75,Math.max(0,Number(el('volume').value)/100*4.3));
+  source.buffer=buffer;gain.gain.value=Math.min(.75,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('voice')??Number(el('volume').value)/100)*4.3));
   source.connect(gain).connect(context.destination);incidentAudioActive=source;
   source.onended=()=>{if(incidentAudioActive===source)incidentAudioActive=null;finish()};
   context.resume().then(()=>source.start()).catch(()=>{finish()});
@@ -702,7 +702,7 @@ function playBattleVoice(kind,onFinished=null){
  if(!voiceEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return null;
  const clip=battleVoices[kind];if(!clip)return null;
  if(activeVoice){activeVoice.pause();activeVoice.currentTime=0}
- clip.volume=Math.min(.75,Math.max(0,Number(el('volume').value)/100*4.3));
+ clip.volume=Math.min(.75,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('voice')??Number(el('volume').value)/100)*4.3));
  clip.currentTime=0;activeVoice=clip;
  if(onFinished){
   let finished=false;
@@ -788,7 +788,7 @@ function playQuakeBattle(){
  if(!sampleSfxEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;
  stopQuakeBattle();
  quakeBattleCount=1;
- quakeBattleAudio.volume=Math.min(.50,Math.max(0,Number(el('volume').value)/100*2.4));
+ quakeBattleAudio.volume=Math.min(.50,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('fx')??Number(el('volume').value)/100)*2.4));
  const playing=quakeBattleAudio.play();
  if(playing&&typeof playing.catch==='function')playing.catch(()=>{});
 }
@@ -804,7 +804,7 @@ function playSampleSfx(kind){
  const clip=sampleSfx[kind];if(!clip)return false;
  if(activeSampleSfx){activeSampleSfx.pause();activeSampleSfx.currentTime=0}
  clip.currentTime=0;
- clip.volume=Math.min(.5,Math.max(0,Number(el('volume').value)/100*2.1));
+ clip.volume=Math.min(.5,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('fx')??Number(el('volume').value)/100)*2.1));
  activeSampleSfx=clip;
  let playing=clip.play();
  if(playing&&typeof playing.catch==='function')playing.catch(()=>{});
@@ -819,7 +819,7 @@ function playNormalPromotionRise(){
  const clip=normalPromotionAudio;let done=false;
  const finish=()=>{if(done)return;done=true;clearTimeout(timer);clip.removeEventListener('ended',finish);clip.removeEventListener('error',finish);resolve()};
  const timer=setTimeout(finish,2400);
- clip.pause();clip.currentTime=0;clip.volume=Math.min(.5,Math.max(0,Number(el('volume').value)/100*2.1));
+ clip.pause();clip.currentTime=0;clip.volume=Math.min(.5,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('fx')??Number(el('volume').value)/100)*2.1));
  clip.addEventListener('ended',finish,{once:true});clip.addEventListener('error',finish,{once:true});clip.play().catch(finish);
  });
 }
@@ -834,14 +834,14 @@ function stopSortieVoice(){sortieVoiceAudio.pause();sortieVoiceAudio.currentTime
 function playTitleIntro(){
  if(!voiceEnabled||document.hidden||el('titleScreen').classList.contains('hidden'))return;
  unlockAudio();stopTitleIntro();titleIntroAudio.currentTime=0;
- titleIntroAudio.volume=Math.min(.70,Math.max(0,Number(el('volume').value)/100*4));
+ titleIntroAudio.volume=Math.min(.70,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('fx')??Number(el('volume').value)/100)*4));
  const playing=titleIntroAudio.play();
  if(playing&&typeof playing.catch==='function')playing.catch(()=>{});
 }
 function playSortieVoice(){
  if(!voiceEnabled||document.hidden)return;
  stopSortieVoice();sortieVoiceAudio.currentTime=0;
- sortieVoiceAudio.volume=Math.min(.65,Math.max(0,Number(el('volume').value)/100*4));
+ sortieVoiceAudio.volume=Math.min(.65,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('voice')??Number(el('volume').value)/100)*4));
  const playing=sortieVoiceAudio.play();
  if(playing&&typeof playing.catch==='function')playing.catch(()=>{});
 }
@@ -1191,7 +1191,7 @@ function stopVictoryBgm(){victoryBgmClip.pause();victoryBgmClip.currentTime=0}
 function playVictoryBgm(){
  if(!bgmEnabled||document.hidden||!ended||!el('endOverlay').classList.contains('show'))return;
  stopVictoryBgm();
- victoryBgmClip.volume=Math.min(.7,Math.max(0,Number(el('volume').value)/100*2.1));
+ victoryBgmClip.volume=Math.min(.7,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('bgm')??Number(el('volume').value)/100)*2.1));
  victoryBgmClip.play().catch(()=>{});
 }
 
