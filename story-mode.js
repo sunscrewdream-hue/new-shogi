@@ -5,9 +5,9 @@ const SAVE="shinsengumi-story-progress-v2",KINGS="shinsengumi-story-kings-v1",CO
 let unlock=0;try{unlock=Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch(e){}
 let stage=-1,dialog=[],at=0,onEnd=null,g=null,selected=null,busy=false,ended=false,epoch=0,weapons=[],pendingWeaponDisplay=null,soundOff=false,voiceEnabled=true,fxEnabled=true,devPreview=false,debugModified=false,compactTurnLocked=false,compactFxSerial=0,compactCaptures={},compactArrival=null,promotionRise=null,promotionCapturePreview=null,promotionVisualHold=null,deferredCheckVisualEpoch=-1,compactIncident=null,compactIncidentEffect=null,compactIncidentMarks=[],compactQuakeMove=null,compactQuakeLanding=null,compactQuakeCracks=[],compactClosingHoles=[],compactHoleFading=false,compactBloodMarks=[],debugAwakenKey=null,oilAmbushAnimating=false,ikedayaReinforcing=false,ikedayaPendingPositions=new Set(),kinmonSatsumaReinforcing=false,kinmonSatsumaPendingPositions=new Set();
 let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volume-v1");if(saved!==null)storyVolume=Math.max(0,Math.min(100,Number(saved)||0))}catch(e){}
-const voiceLevel=()=>Math.min(.75,(window.ShinsengumiAudioMixer?.ratio('voice')??storyVolume/100)*4.3);
+const voiceLevel=()=>Math.min(.75,(window.ShinsengumiAudioMixer?.ratio('voice')??storyVolume/100)*.75);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
-const fxLevel=()=>Math.min(.5,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*2.1);
+const fxLevel=()=>Math.min(.5,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*.50);
 const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
 // Enemy moves run from timers, outside a touch gesture. A gesture-unlocked
 // Web Audio voice channel keeps capture and check shouts playable on iOS.
@@ -49,14 +49,14 @@ cannonImpactAudio.preload="auto";cannonImpactAudio.playsInline=true;
 function playCannonImpact(){
  if(!fxEnabled||document.hidden||fxLevel()<=0)return;
  cannonImpactAudio.pause();cannonImpactAudio.currentTime=0;
- cannonImpactAudio.volume=Math.min(.75,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*4.5);
+ cannonImpactAudio.volume=Math.min(.75,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*.75);
  cannonImpactAudio.play().catch(error=>console.warn("砲弾着弾音を再生できません",error));
 }
 const storyQuakeBattle=new Audio("assets/audio/sfx/battle_charge_mono_64kbps.mp3");let quakeBattleRuns=0;
 storyQuakeBattle.preload="auto";storyQuakeBattle.playsInline=true;
 function stopStoryQuakeBattle(){storyQuakeBattle.pause();storyQuakeBattle.currentTime=0;quakeBattleRuns=0}
 storyQuakeBattle.addEventListener("ended",()=>{if(quakeBattleRuns!==1||!fxEnabled||document.hidden)return;quakeBattleRuns=2;storyQuakeBattle.currentTime=0;storyQuakeBattle.play().catch(()=>{})});
-function playStoryQuakeBattle(){if(!fxEnabled||document.hidden)return;stopStoryQuakeBattle();quakeBattleRuns=1;storyQuakeBattle.volume=Math.min(.5,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*2.4);storyQuakeBattle.play().catch(()=>{})}
+function playStoryQuakeBattle(){if(!fxEnabled||document.hidden)return;stopStoryQuakeBattle();quakeBattleRuns=1;storyQuakeBattle.volume=Math.min(.5,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*.50);storyQuakeBattle.play().catch(()=>{})}
 function stopStoryClip(channel){
  const a=channel==="voice"?activeStoryVoice:activeStoryFx;if(a){a.pause();a.currentTime=0}
  if(channel==="voice"){
@@ -1750,7 +1750,7 @@ function stopStoryVictoryBgm(){storyVictoryBgmClip.pause();storyVictoryBgmClip.c
 function playStoryVictoryBgm(){
  if(soundOff||document.hidden||!ended||$("storyEndOverlay").classList.contains("hidden"))return;
  stopStoryVictoryBgm();
- storyVictoryBgmClip.volume=Math.min(.7,(window.ShinsengumiAudioMixer?.ratio('bgm')??storyVolume/100)*2.1);
+ storyVictoryBgmClip.volume=Math.min(.7,(window.ShinsengumiAudioMixer?.ratio('bgm')??storyVolume/100)*.70);
  storyVictoryBgmClip.play().catch(()=>{});
 }
 
