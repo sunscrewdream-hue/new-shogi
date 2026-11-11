@@ -2,6 +2,20 @@
    Existing buttons and handlers are moved, not recreated. */
 (()=>{
  'use strict';
+ const defaults=Object.freeze({bgm:18,fx:55,voice:70});
+ const key='shinsengumi-shogi-audio-mix-v2';
+ const clamp=n=>Math.max(0,Math.min(100,Number(n)||0));
+ let values={...defaults};
+ try{const data=JSON.parse(localStorage.getItem(key)||'null');if(data&&typeof data==='object')for(const k of Object.keys(defaults))if(Number.isFinite(Number(data[k])))values[k]=clamp(data[k])}catch{}
+ const listeners=new Set();
+ const mixer={
+  defaults, get:kind=>values[kind]??0,
+  ratio:kind=>(values[kind]??0)/100,
+  set:(kind,value)=>{if(!(kind in defaults))return;values[kind]=clamp(value);try{localStorage.setItem(key,JSON.stringify(values))}catch{};for(const fn of listeners)fn({...values})},
+  reset:()=>{values={...defaults};try{localStorage.setItem(key,JSON.stringify(values))}catch{};for(const fn of listeners)fn({...values})},
+  subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)}
+ };
+ window.ShinsengumiAudioMixer=mixer;
  function initialize(){
   const story=document.getElementById('storyVolume');
   const normal=document.getElementById('sfxToggle');
@@ -96,12 +110,40 @@
   const languageButton=document.querySelector('.language-toggle');
   if(languageButton)body.append(languageButton);
   document.body.append(panel);
-  const volumeKey='shinsengumi-shogi-master-volume-v1';
-  if(slider){
-   let saved=35;
-   try{const raw=localStorage.getItem(volumeKey);if(raw!==null&&Number.isFinite(Number(raw)))saved=Math.max(0,Math.min(100,Number(raw)))}catch{}
-   slider.value=String(saved);slider.dispatchEvent(new Event('input',{bubbles:true}));
-   slider.addEventListener('input',()=>{try{localStorage.setItem(volumeKey,slider.value)}catch{}});
+  if(slider&&!languageOnly){
+   const oldLabel=slider.closest('label');
+   // Preserve the original range input so the game's BGM handlers stay wired.
+   if(oldLabel){oldLabel.firstChild.textContent='BGM　';slider.style.width='100%'}
+   slider.value=String(mixer.get('bgm'));
+   slider.dispatchEvent(new Event('input',{bubbles:true}));
+   slider.addEventListener('input',()=>mixer.set('bgm',slider.value));
+   const group=document.createElement('div');
+   group.className='audio-mixer';
+   const rows={};
+   const labelFor={fx:'効果音',voice:'音声'};
+   for(const kind of ['fx','voice']){
+    const row=document.createElement('label');row.className='audio-mixer-row';
+    const title=document.createElement('span');title.textContent=labelFor[kind];
+    const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='1';
+    range.id='audioMix'+kind;range.value=String(mixer.get(kind));
+    range.setAttribute('aria-label',labelFor[kind]+'の音量');
+    const value=document.createElement('output');value.htmlFor=range.id;value.textContent=range.value+'%';
+    range.addEventListener('input',()=>mixer.set(kind,range.value));
+    row.append(title,range,value);group.append(row);rows[kind]={range,value};
+   }
+   const reset=document.createElement('button');reset.type='button';reset.className='audio-mixer-reset';
+   reset.textContent='推奨音量にリセット';
+   reset.onclick=()=>mixer.reset();
+   group.append(reset);
+   oldLabel?.after(group);
+   const bgmOutput=oldLabel?.querySelector('output');
+   const sync=next=>{
+    slider.value=String(next.bgm);
+    if(bgmOutput){bgmOutput.value=String(next.bgm);bgmOutput.textContent=String(next.bgm)}
+    slider.dispatchEvent(new Event('input',{bubbles:true}));
+    for(const kind of ['fx','voice']){rows[kind].range.value=String(next[kind]);rows[kind].value.textContent=next[kind]+'%'}
+   };
+   mixer.subscribe(sync);
   }
   const close=()=>panel.close();
   trigger.addEventListener('click',()=>{panel.showModal();trigger.setAttribute('aria-expanded','true');panel.querySelector('.audio-settings-close').focus()});
