@@ -204,15 +204,13 @@
   if(changed&&$('storyHome')){window.location.reload();return;}
   for(const node of document.querySelectorAll('[data-ui-ja]')){node.textContent=node.dataset.uiJa;delete node.dataset.uiJa}
   for(const anchor of document.querySelectorAll('a[href="manual.html"],a[href="manual-en.html"]'))anchor.href=lang==='en'?'manual-en.html':'manual.html';
-  refresh();for(const button of document.querySelectorAll('.language-toggle'))button.textContent=lang==='en'?'日本語 / EN':'JP / English';
+  refresh();for(const button of document.querySelectorAll('.language-toggle'))button.textContent=lang==='en'?'Language: English → 日本語':'表示言語：日本語 → English';
  }
- for(const anchor of ['titleExtras','quickSave']){
-  const parent=$(anchor);if(!parent)continue;
-  const btn=document.createElement('button');btn.type='button';btn.className='language-toggle';btn.textContent=lang==='en'?'日本語 / EN':'JP / English';btn.title='Switch interface language';btn.onclick=()=>setLang(lang==='en'?'ja':'en');
-  if(anchor==='titleExtras')parent.append(btn);else parent.insertAdjacentElement('afterend',btn);
- }
- if(!document.querySelector('.language-toggle')){
-  const hero=document.querySelector('.story-hero,.hero');if(hero){const btn=document.createElement('button');btn.type='button';btn.className='language-toggle';btn.textContent=lang==='en'?'日本語 / EN':'JP / English';btn.onclick=()=>setLang(lang==='en'?'ja':'en');hero.append(btn);}
+ const parent=$('titleExtras')||$('quickSave')||document.querySelector('.story-hero,.hero');
+ if(parent){
+  const btn=document.createElement('button');btn.type='button';btn.className='language-toggle';
+  btn.title='Switch interface language';btn.onclick=()=>setLang(lang==='en'?'ja':'en');
+  parent.append(btn);
  }
  if(document.querySelector('.language-toggle')){
   const style=document.createElement('style');style.textContent='.language-toggle{display:inline-block;margin:8px auto;padding:8px 15px;min-height:38px;border:1px solid #a88b61;border-radius:7px;background:#233b49;color:#fff1d4;font:700 13px/1.3 system-ui,sans-serif;cursor:pointer}.language-toggle:focus-visible{outline:3px solid #e6b756;outline-offset:2px}';document.head.append(style);
