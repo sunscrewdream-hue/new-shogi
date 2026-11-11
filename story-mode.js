@@ -1480,7 +1480,7 @@ function makeMove(m,prom,capturePreplayed=false){
  const deferCheck=showPromotion&&gaveCheck;
  if(deferCheck)deferredCheckVisualEpoch=epoch;
  const delayedCheck=compactClosingHoles.length>0&&gaveCheck;
- const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck});
+ const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck,captureAlreadyPlayed:capturePreplayed});
  if(captured){
   if(!willKill){
    if(!capturePreplayed)for(const cue of moveCues){if(cue==="capture"){
