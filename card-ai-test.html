@@ -664,7 +664,7 @@ const battleVoices=Object.fromEntries(Object.entries(battleVoiceUrls).map(([key,
 }));
 // An incident card can reveal after a timer rather than a direct tap. Safari
 // restricts HTMLAudio playback then, so unlock a Web Audio channel on touch.
-let incidentAudioContext=null,incidentAudioActive=null;
+let incidentAudioContext=null,incidentAudioActive=null,incidentAudioGain=null;
 const incidentAudioBuffers=new Map();
 function unlockIncidentAudio(){
  const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
@@ -688,8 +688,8 @@ function playIncidentVoice(kind,onFinished){
   if(incidentAudioActive){try{incidentAudioActive.stop()}catch(e){}}
   const source=context.createBufferSource(),gain=context.createGain();
   source.buffer=buffer;gain.gain.value=Math.min(.75,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('voice')??Number(el('volume').value)/100)*.75));
-  source.connect(gain).connect(context.destination);incidentAudioActive=source;
-  source.onended=()=>{if(incidentAudioActive===source)incidentAudioActive=null;finish()};
+  source.connect(gain).connect(context.destination);incidentAudioActive=source;incidentAudioGain=gain;
+  source.onended=()=>{if(incidentAudioActive===source){incidentAudioActive=null;incidentAudioGain=null}finish()};
   context.resume().then(()=>source.start()).catch(()=>{finish()});
  }).catch(()=>{if(!done)fallback()});
  return {incidentVoice:true};
@@ -810,6 +810,24 @@ function playSampleSfx(kind){
  if(playing&&typeof playing.catch==='function')playing.catch(()=>{});
  return true;
 }
+/* Update already playing clips while the settings slider is moving. */
+function applyLiveAudioMix(values){
+ const bgm=Math.max(0,Math.min(1,values.bgm/100));
+ const fx=Math.max(0,Math.min(1,values.fx/100));
+ const voice=Math.max(0,Math.min(1,values.voice/100));
+ syncBgmVolume();
+ victoryBgmClip.volume=bgm*.70;
+ if(activeVoice)activeVoice.volume=voice*.75;
+ if(incidentAudioGain)incidentAudioGain.gain.value=voice*.75;
+ if(activeSampleSfx)activeSampleSfx.volume=fx*.50;
+ normalPromotionAudio.volume=fx*.50;
+ quakeBattleAudio.volume=fx*.50;
+ titleIntroAudio.volume=fx*.70;
+ sortieVoiceAudio.volume=voice*.65;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ window.ShinsengumiAudioMixer?.subscribe(applyLiveAudioMix);
+});
 function playFx(name){playSampleSfx(name)}
 const normalPromotionAudio=new Audio('assets/audio/story/promotion_rise_shakiin_20261109.mp3');
 normalPromotionAudio.preload='auto';
