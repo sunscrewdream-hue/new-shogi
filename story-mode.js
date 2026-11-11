@@ -26,9 +26,9 @@ function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=n
  let loading=battleVoiceBuffers.get(path);
  if(!loading){
   loading=battleVoiceLoading.get(path);
-  if(!loading){loading=fetch(path).then(response=>{if(!response.ok)throw Error("voice HTTP "+response.status);return response.arrayBuffer()}).then(bytes=>context.decodeAudioData(bytes)).then(buffer=>{battleVoiceBuffers.set(path,buffer);return buffer});battleVoiceLoading.set(path,loading)}
+  if(!loading){loading=fetch(path).then(response=>{if(!response.ok)throw Error("voice HTTP "+response.status);return response.arrayBuffer()}).then(bytes=>context.decodeAudioData(bytes)).then(buffer=>{battleVoiceBuffers.set(path,buffer);battleVoiceLoading.delete(path);return buffer}).catch(error=>{battleVoiceLoading.delete(path);throw error});battleVoiceLoading.set(path,loading)}
  }
- let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},9000);
+ let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},5500);
  const finish=()=>{if(settled)return;settled=true;clearTimeout(watchdog);onDone?.()};
  Promise.resolve(loading).then(buffer=>{
   if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden||(isStillValid&&!isStillValid())){finish();return}
@@ -38,7 +38,7 @@ function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=n
   const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=Math.min(1,(channel==="voice"?voiceLevel():fxLevel())*gainBoost);source.connect(gain).connect(context.destination);
   if(channel==="voice")battleVoiceActive=source;else battleImpactActive=source;
   source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;if(battleImpactActive===source)battleImpactActive=null;finish()};
-  context.resume().then(()=>{if(isStillValid&&!isStillValid()){finish();return}source.start()}).catch(()=>{if(isStillValid&&!isStillValid()){finish();return}playStoryClip(path,channel,finish)});
+  Promise.race([context.resume(),new Promise((_,reject)=>setTimeout(()=>reject(Error("AudioContext resume timeout")),1400))]).then(()=>{if(settled)return;if(isStillValid&&!isStillValid()){finish();return}source.start()}).catch(()=>{if(settled)return;if(isStillValid&&!isStillValid()){finish();return}playStoryClip(path,channel,finish)});
  }).catch(()=>playStoryClip(path,channel,finish));
 }
 function playBattleShout(path,onDone){playGestureAudio(path,onDone,"voice")}
@@ -326,7 +326,7 @@ function compactCardReveal(){
  // The flip SFX and incident voice have separate channels as in the finished game.
  // Card arrival is timer-driven; on iOS an HTMLAudioElement may be denied
  // autoplay even after the initial tap. Use the touch-unlocked audio channel.
- playGestureAudio(compactCardVoices[kind],done,"voice");setTimeout(done,15000);
+ playGestureAudio(compactCardVoices[kind],done,"voice");setTimeout(done,6200);
 }
 function compactCardClose(){
  const state=compactIncident;if(!state||!state.revealed)return;
@@ -1141,7 +1141,7 @@ function battle(i,oilFormation=null,retry=false){
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();kinmonSatsumaReinforcing=false;kinmonSatsumaPendingPositions.clear();
- window.StoryBgm?.play(i===0||i===2?"battle01":"battle02");
+ window.StoryBgm?.play(i===3?"toba":i===0||i===2?"battle01":"battle02");
  // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
  if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
