@@ -30,7 +30,7 @@ function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=n
  }
  let settled=false;const watchdog=setTimeout(()=>{console.warn("音声演出タイムアウト",path);finish()},5500);
  const finish=()=>{if(settled)return;settled=true;clearTimeout(watchdog);onDone?.()};
- Promise.resolve(loading).then(buffer=>{
+ Promise.race([Promise.resolve(loading),new Promise((_,reject)=>setTimeout(()=>reject(Error("Voice loading timeout")),2500))]).then(buffer=>{
   if((channel==="voice"?!voiceEnabled:!fxEnabled)||document.hidden||(isStillValid&&!isStillValid())){finish();return}
   stopStoryClip(channel);
   const previous=channel==="voice"?battleVoiceActive:battleImpactActive;
@@ -1025,6 +1025,7 @@ function screenHome(){
 }
 function talk(i){
  window.StoryBgm?.play(i===4?"ending":"prologue");
+ if(i===3)window.StoryBgm?.preload?.("toba").catch(error=>console.warn("鳥羽・伏見BGMを先読みできません",error));
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
  if(i>=0&&i<4)selectIntroArtwork(i);
  dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>battle(i);
