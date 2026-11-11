@@ -63,8 +63,10 @@
  .shared-match-actions>button,.shared-match-actions>a{font-size:11px;padding:7px 8px;height:40px;min-height:40px}
 }
 
-/* Normal battle bottom: surrender spans the two equally sized lower actions. */
-.normal-match-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
-.normal-match-actions>.normal-resign{grid-column:1/-1;background:#a9e6f2;color:#153743;border-color:#5babbc;text-shadow:none}
-.normal-match-actions>.normal-resign:hover{background:#c4f1f8}
-.normal-match-actions>#quickSave,.normal-match-actions>.audio-settings-trigger{width:100%;max-width:none}
+/* All battle stages: surrender spans the two equally sized lower actions. */
+.two-tier-match-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.two-tier-match-actions>.match-resign{grid-column:1/-1;background:#a9e6f2;color:#153743;border-color:#5babbc;text-shadow:none}
+.two-tier-match-actions>.match-resign:hover{background:#c4f1f8}
+.two-tier-match-actions>#quickSave,.two-tier-match-actions>#storyQuickSave,.two-tier-match-actions>.audio-settings-trigger{width:100%;max-width:none}
+
+.story-audio-controls:empty{display:none!important}

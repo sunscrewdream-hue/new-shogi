@@ -42,7 +42,17 @@
   }else if(story){
    document.querySelector('.story-header')?.classList.add('shared-match-header');
    document.querySelector('#storyBattle .battle-top')?.classList.add('shared-match-top');
-   document.querySelector('#storyBattle .battle-bottom')?.classList.add('shared-match-actions');
+   const actions=document.querySelector('#storyBattle .battle-bottom');
+   if(actions){
+    actions.classList.add('shared-match-actions','two-tier-match-actions');
+    const resign=document.getElementById('storyResign');
+    const rules=document.getElementById('storyRules');
+    const save=document.querySelector('#storyDebugTools button[onclick="storySaveMatch()"]');
+    rules?.remove();
+    if(resign){resign.classList.add('match-resign');actions.append(resign)}
+    if(save){save.textContent='💾 保存';save.id='storyQuickSave';actions.append(save)}
+    actions.append(trigger);
+   }
   }else{
    const enemy=document.getElementById('enemyOfficerPanel');
    const playerHand=document.getElementById('playerHandShell');
@@ -55,9 +65,9 @@
    actionTop.className='shared-match-top normal-match-top';
    const label=document.createElement('span');label.textContent='通常対局';actionTop.append(label);
    header.after(actionTop);
-   const actions=document.createElement('div');actions.className='shared-match-actions normal-match-actions';
+   const actions=document.createElement('div');actions.className='shared-match-actions normal-match-actions two-tier-match-actions';
    const save=document.getElementById('quickSave');
-   if(resign){resign.textContent='降参する';resign.classList.add('normal-resign');actions.append(resign)}
+   if(resign){resign.textContent='降参する';resign.classList.add('normal-resign','match-resign');actions.append(resign)}
    if(save){save.textContent='💾 保存';actions.append(save)}
    actions.append(trigger);
    // These two controls were retired from the normal match UI.
