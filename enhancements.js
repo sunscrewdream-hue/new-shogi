@@ -57,7 +57,9 @@
   try{if(document.fullscreenElement){await document.exitFullscreen();return}if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();return}}catch{}
   alert('このブラウザでは直接の全画面表示に対応していません。iPhoneではSafariの「共有」→「ホーム画面に追加」を選ぶと、アプリのように起動できます。');
  };
- extras.append(resume,manualLoad,full);$('startGame').insertAdjacentElement('afterend',extras);
+ const titleSettings=document.createElement('button');titleSettings.type='button';titleSettings.id='titleSettingsButton';titleSettings.textContent='⚙ 設定';titleSettings.setAttribute('aria-haspopup','dialog');
+ titleSettings.onclick=()=>{const settingsButton=document.querySelector('.audio-settings-trigger');if(settingsButton)settingsButton.click()};
+ extras.append(resume,manualLoad,full,titleSettings);$('startGame').insertAdjacentElement('afterend',extras);
  const manual=document.createElement('a');manual.href='manual.html';manual.textContent='新選組将棋の遊び方';$('titleLinks').prepend(manual);
  const collectionLink=$('titleLinks').querySelector('a[href="collection.html"]');if(collectionLink)collectionLink.textContent='人物コレクション';
  const inGameSave=document.createElement('button');inGameSave.type='button';inGameSave.id='quickSave';inGameSave.textContent='💾 対局を保存';inGameSave.onclick=()=>{if(titleIsVisible()||ended){showToast('対局中に保存してください');return}showToast(saveGame(MANUAL_KEY)?'対局を保存しました':'保存できませんでした')};
