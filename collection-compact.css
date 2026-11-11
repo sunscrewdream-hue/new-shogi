@@ -22,3 +22,8 @@
  .card summary .open-hint{font-size:10px;margin-top:3px}
  .card.locked .portrait:after{font-size:33px}
 }
+
+/* Center the two collection footer scroll-buttons with equal widths. */
+.links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;max-width:440px;margin:32px auto}
+.links .button-link{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-width:0;text-align:center}
+@media(max-width:380px){.links{gap:10px}.links .button-link{font-size:13px;padding-inline:8px}}
