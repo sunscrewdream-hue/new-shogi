@@ -757,7 +757,8 @@ function compactTurn(side,after,opening=false){
  compactTurnLocked=true;
  const panel=$("compactTurnNotice"),art=$("compactTurnArt"),fallback=$("compactTurnFallback");
  // All battle sizes use the same board-relative turn presentation routine.
- window.ShinsengumiTurnPresentation.place($("storyBoard"),panel,'offset');
+ if(typeof window.ShinsengumiTurnPresentation?.place==='function')window.ShinsengumiTurnPresentation.place($("storyBoard"),panel,'offset');
+ else{const rect=$("storyBoard").getBoundingClientRect();panel.style.setProperty('--game-board-effect-offset',(rect.top+rect.height/2-innerHeight/2)+'px')}
  const title=side===0?"新選組の手番！":"敵軍の手番！";
  art.src=side===0?"assets/turn-notice/turn_shinsengumi_illustrated.png":"assets/turn-notice/turn_enemy_illustrated.png";
  art.alt=title;art.style.display="block";fallback.textContent=title;fallback.classList.add("hidden");
