@@ -6,7 +6,7 @@
  const common=[
   'assets/sprites/figures/shinsengumi_back.webp',
   'assets/sprites/figures/saccho_front.webp',
-  'assets/visuals/incident-title-outline-v3.webp'
+  'assets/cards/incident-title-outline-v3.webp'
  ];
  const normalImages=[
   'assets/visuals/intro_toba_fushimi_enemy_mobile.webp',
@@ -76,7 +76,7 @@
  function createOverlay(){
   if(overlay)return;
   const style=document.createElement('style');
-  style.textContent='#startupPreload{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#0a1621eF;color:#f5e8cd;padding:22px;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;text-align:center}#startupPreload[hidden]{display:none}#startupPreload .preloadBox{max-width:360px;width:100%;padding:24px 20px;border:1px solid #b59b70;border-radius:11px;background:#172b38;box-shadow:0 14px 45px #0009}#startupPreload h2{margin:0 0 12px;font-size:clamp(22px,6vw,29px)}#startupPreload p{font-size:14px;line-height:1.7}#startupPreload progress{width:100%;height:12px;accent-color:#c5a36d}#startupPreload .preloadActions{display:flex;justify-content:center;gap:9px;margin-top:16px}#startupPreload button{padding:10px;border-radius:7px;border:1px solid #c3a979;background:#e8d3a6;color:#261d15;font-weight:800;min-height:43px}';
+  style.textContent='#startupPreload{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#0a1621eF;color:#f5e8cd;padding:22px;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;text-align:center}#startupPreload[hidden]{display:none}#startupPreload .preloadBox{max-width:360px;width:100%;padding:24px 20px;border:1px solid #b59b70;border-radius:11px;background:#172b38;box-shadow:0 14px 45px #0009}#startupPreload h2{margin:0 0 12px;font-size:clamp(22px,6vw,29px)}#startupPreload p{font-size:14px;line-height:1.7}#startupPreload progress{width:100%;height:12px;accent-color:#c5a36d}#startupPreload .preloadActions{display:flex;justify-content:center;gap:9px;margin-top:16px}#startupPreload .preloadActions[hidden]{display:none}#startupPreload button{padding:10px;border-radius:7px;border:1px solid #c3a979;background:#e8d3a6;color:#261d15;font-weight:800;min-height:43px}';
   document.head.append(style);
   overlay=document.createElement('div');overlay.id='startupPreload';overlay.hidden=true;
   overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','出陣準備中');
