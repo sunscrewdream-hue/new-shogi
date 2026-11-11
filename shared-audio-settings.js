@@ -41,6 +41,7 @@
    // Collection has no match controls; keep its existing page layout.
   }else if(story){
    document.querySelector('.story-header')?.classList.add('shared-match-header');
+   document.getElementById('battleQuit')?.remove();
    document.querySelector('#storyBattle .battle-top')?.classList.add('shared-match-top');
    const actions=document.querySelector('#storyBattle .battle-bottom');
    if(actions){
@@ -62,6 +63,14 @@
    const header=document.createElement('div');header.className='shared-match-header normal-match-header';
    if(back){back.textContent='タイトルへ戻る';back.classList.add('page-return');header.append(back)}
    enemy?.before(header);
+   // The player sitting opposite the screen also needs a surrender control.
+   const opponentResign=document.createElement('button');
+   opponentResign.type='button';opponentResign.id='opponentResignButton';
+   opponentResign.className='match-resign opponent-resign';
+   opponentResign.textContent='降参する';
+   opponentResign.setAttribute('aria-label','対面側が降参する');
+   opponentResign.onclick=()=>window.surrenderOpponent?.();
+   header.after(opponentResign);
    actionTop.className='shared-match-top normal-match-top';
    const label=document.createElement('span');label.textContent='通常対局';actionTop.append(label);
    header.after(actionTop);

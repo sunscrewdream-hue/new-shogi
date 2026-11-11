@@ -70,3 +70,9 @@
 .two-tier-match-actions>#quickSave,.two-tier-match-actions>#storyQuickSave,.two-tier-match-actions>.audio-settings-trigger{width:100%;max-width:none}
 
 .story-audio-controls:empty{display:none!important}
+
+/* Larger, stronger surrender lettering across normal and story battles. */
+.two-tier-match-actions>.match-resign,.opponent-resign{font-size:clamp(18px,4.6vw,22px)!important;font-weight:900!important;letter-spacing:.12em}
+.opponent-resign{display:none;box-sizing:border-box;width:min(96vw,520px);min-height:44px;margin:8px auto;padding:9px 12px;border:1px solid #5babbc;border-radius:6px;background:#a9e6f2;color:#153743;box-shadow:0 2px 6px #0005;transform:rotate(180deg);cursor:pointer;align-items:center;justify-content:center}
+body.local-title-mode #opponentResignButton{display:flex}
+@media(max-width:400px){.opponent-resign{min-height:40px}}
