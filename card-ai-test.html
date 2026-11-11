@@ -1340,7 +1340,16 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
    if(pendingEpoch!==epoch||ended||gameMode!=='ai'||turn!==1||ply!==pendingPly||
       pendingCardSide!==null||incidentRunning||aiMoveSpot)return;
    if(!aiTurnScheduled)scheduleAI();
-  },12000);
+  },3800);
+ }
+ // A completed AI move must return control even when its voice callback stalls.
+ if(speakerSide===1&&gameMode==='ai'){
+  const readyEpoch=epoch,readyPly=ply;
+  setTimeout(()=>{
+   if(readyEpoch!==epoch||ply!==readyPly||turn!==0||ended||pendingCardSide!==null||incidentRunning||playerTurnReady)return;
+   noticeSerial++;noticeQueue++;el('turnNotice').className='';
+   busy=false;playerTurnReady=true;render();
+  },4200);
  }
  if(rulePreset==='traditional')positionHistory.push({key:positionKey(b,h,turn),mover:speakerSide,gaveCheck});
  if(quakeHoles.length){const oldCount=quakeHoles.length;quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(quakeHoles.length<oldCount){playFx('cliffcollapse');if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}}
