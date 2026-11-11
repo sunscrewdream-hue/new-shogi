@@ -1292,15 +1292,15 @@ function queueTurnNotice(side){
   if(e!==epoch||id!==noticeQueue||pendingCardSide!==null||ended)return;
   // Move voices and character portraits finish BEFORE the next-turn artwork.
   // A long capture clip may need longer than the usual turn pause.
-  if(Date.now()-started<6000&&[el('officerPanel'),el('enemyOfficerPanel')].some(panel=>panel.classList.contains('speaking'))){
+  if(Date.now()-started<3000&&[el('officerPanel'),el('enemyOfficerPanel')].some(panel=>panel.classList.contains('speaking'))){
    setTimeout(revealWhenReady,120);return;
   }
   showTurnNotice(side);
   if(side===1&&gameMode==='ai')setTimeout(()=>{
    if(e===epoch&&id===noticeQueue&&pendingCardSide===null&&!ended)scheduleAI()
-  },1900);
+  },1150);
  };
- setTimeout(revealWhenReady,side===1?1400:1800);
+ setTimeout(revealWhenReady,side===1?550:1800);
 }
 let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
  if(!preplayedCapture&&rulePreset!=='traditional'&&!m.drop&&b[m.Y][m.X]){
