@@ -37,14 +37,15 @@
   for(const person of D[field]||[])register(person.name,person.role,side,chapter,person.art);
  register('宮部鼎蔵','尊王攘夷派・池田屋の指導者',1,'池田屋事件');
  register('伊東甲子太郎','御陵衛士・盟主',1,'油小路');
- if(rows.length!==104)console.warn('人物数の確認が必要です',rows.length);
+ register('芹沢鴨','壬生浪士組・初代局長',0,'幕末物語','assets/collection/105.webp');
+ if(rows.length!==105)console.warn('人物数の確認が必要です',rows.length);
  for(const row of rows){
   if(adoptedArt[row.name])row.art=adoptedArt[row.name];
   if(row.element)continue;
   const card=document.createElement('details');card.className='card';card.dataset.side=row.side;
   const summary=document.createElement('summary');
   const portrait=document.createElement('span');portrait.className='portrait';portrait.setAttribute('aria-hidden','true');portrait.textContent=row.name.slice(0,1);
-  const tag=document.createElement('span');tag.className='tag';tag.textContent=(row.side==='0'?'新選組・会津／関係者':'幕末・対戦人物')+' ／ '+String(rows.indexOf(row)+1).padStart(3,'0');
+  const tag=document.createElement('span');tag.className='tag';tag.textContent=(row.name==='芹沢鴨'?'特別収録':row.side==='0'?'新選組・会津／関係者':'幕末・対戦人物')+' ／ '+String(rows.indexOf(row)+1).padStart(3,'0');
   const heading=document.createElement('h3');heading.textContent=row.name;
   const role=document.createElement('div');role.className='role';role.textContent=row.role;
   const hint=document.createElement('span');hint.className='open-hint';hint.textContent='略歴を読む ＋';
@@ -55,17 +56,17 @@
   const dt2=document.createElement('dt');dt2.textContent='登場章';const dd2=document.createElement('dd');dd2.textContent=row.chapters.join('・')||'通常盤';
   const dt3=document.createElement('dt');dt3.textContent='人物素材';const dd3=document.createElement('dd');dd3.textContent='正式採用コレクションカード';
   dl.append(dt1,dd1,dt2,dd2,dt3,dd3);
-  const note=document.createElement('p');note.textContent='正式採用カードを収録しています。ゲーム内の役割は史実の経歴と異なる場合があります。';
+  const note=document.createElement('p');note.textContent=row.name==='芹沢鴨'?'幕末物語のすべての対局を勝ち抜くと獲得できる特別なゴールドカード。芹沢の肖像は残っておらず、伝承をもとに創作した人物像です。':'正式採用カードを収録しています。ゲーム内の役割は史実の経歴と異なる場合があります。';
   profile.append(dl,note);card.append(summary,profile);grid.append(card);row.element=card;
  }
  const notice=main.querySelector('.notice');if(notice)notice.remove();
  main.querySelector('h1').textContent='幕末人物コレクション';
  main.querySelector('.eyebrow').textContent='HISTORICAL CHARACTER COLLECTION';
- main.querySelector('.intro').textContent='幕末を生きた104名。人物を選ぶと、カードとプロフィールを一緒に確認できます。対局で駒を取ると人物カードを獲得できます。';
+ main.querySelector('.intro').textContent='幕末を生きた104名と特別収録の芹沢鴨。人物を選ぶと、カードとプロフィールを一緒に確認できます。対局で駒を取るか、物語を攻略すると人物カードを獲得できます。';
  document.title='人物コレクション｜新選組将棋';
  let testMode=false;
  const panel=document.createElement('section');panel.className='collection-progress';
- panel.innerHTML='<strong id="collectionTotal">0 / 104</strong><div>人物カードを収集中</div><div class="collection-bar" aria-hidden="true"><div id="collectionFill"></div></div><p id="collectionStatus" role="status" aria-live="polite"></p><button type="button" id="collectionDevToggle" aria-pressed="false">🛠 開発テスト：全104名を表示</button><button type="button" id="resetCollection">収集データをリセット</button>';
+ panel.innerHTML='<strong id="collectionTotal">0 / 105</strong><div>人物カードを収集中</div><div class="collection-bar" aria-hidden="true"><div id="collectionFill"></div></div><p id="collectionStatus" role="status" aria-live="polite"></p><button type="button" id="collectionDevToggle" aria-pressed="false">🛠 開発テスト：全105名を表示</button><button type="button" id="resetCollection">収集データをリセット</button>';
  main.append(panel);
  const keys=[primaryKey,...legacy.map(x=>x[0]),oilKey];
  const readArray=key=>{try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch{return[]}};
@@ -86,16 +87,30 @@
   let progress=0;try{progress=Number(localStorage.getItem('shinsengumi-story-progress-v2'))||0}catch{}
   if(progress>=1)names.add('宮部鼎蔵');
   if(progress>=3)names.add('伊東甲子太郎');
+  if(progress>=4)names.add('芹沢鴨');
   return names;
  };
  const viewer=document.createElement('dialog');viewer.className='collection-viewer';
  viewer.innerHTML='<button type="button" class="viewer-close" aria-label="閉じる">×</button><h2 class="viewer-name"></h2><div class="viewer-layout"><img class="viewer-art" alt=""><div class="viewer-profile" aria-label="人物のプロフィール"></div></div>';
  document.body.append(viewer);
+ // Reuse the adopted page-turn sound. Opening is clear; closing is gentler.
+ const pageFlip=new Audio('assets/audio/sfx/card_flip.mp3');
+ pageFlip.preload='auto';
+ let lastFlipAt=0;
+ function playProfilePageTurn(closing=false){
+  if(Date.now()-lastFlipAt<130)return;
+  lastFlipAt=Date.now();
+  try{
+   pageFlip.pause();pageFlip.currentTime=0;
+   pageFlip.volume=closing?0.30:0.46;
+   const playback=pageFlip.play();if(playback?.catch)playback.catch(()=>{});
+  }catch(_){/* Audio can be unavailable until the next user gesture. */}
+ }
  let lastFocused=null;
  const closeViewer=()=>{if(viewer.open)viewer.close()};
  viewer.querySelector('.viewer-close').onclick=closeViewer;
  viewer.onclick=e=>{if(e.target===viewer)closeViewer()};
- viewer.addEventListener('close',()=>{lastFocused?.focus?.();lastFocused=null});
+ viewer.addEventListener('close',()=>{playProfilePageTurn(true);lastFocused?.focus?.();lastFocused=null});
  function showCard(row){
   if(!testMode&&!owned().has(row.name))return;
   lastFocused=document.activeElement;
@@ -106,6 +121,7 @@
   const profile=row.element.querySelector('.profile');
   viewer.querySelector('.viewer-profile').replaceChildren(...Array.from(profile.childNodes,child=>child.cloneNode(true)));
   viewer.showModal();
+  playProfilePageTurn();
  }
  rows.forEach((row,index)=>{
   const card=row.element;card.dataset.characterIndex=String(index);
@@ -132,7 +148,7 @@
   const query=normalize(search.value),matches=rows.filter(row=>(filterSide==='all'||row.side===filterSide)&&normalize(row.element.dataset.search).includes(query));
   const visible=new Set(matches.slice(0,testMode||query?matches.length:shownLimit));
   for(const row of rows)row.element.hidden=!visible.has(row);
-  document.getElementById('count').textContent=visible.size+'名を表示 ／ 該当'+matches.length+'名 ／ 全104名';
+  document.getElementById('count').textContent=visible.size+'名を表示 ／ 該当'+matches.length+'名 ／ 全105名';
   document.getElementById('empty').hidden=matches.length>0;
   more.hidden=testMode||!!query||matches.length<=shownLimit;
   if(!more.hidden)more.textContent='さらに'+Math.min(pageSize,matches.length-shownLimit)+'名を表示';
@@ -141,7 +157,7 @@
  const sides={0:rows.filter(x=>x.side==='0').length,1:rows.filter(x=>x.side==='1').length};
  for(const button of buttons){if(button.dataset.filter==='0')button.textContent='新選組・会津 '+sides[0]+'名';if(button.dataset.filter==='1')button.textContent='その他の人物 '+sides[1]+'名';button.onclick=()=>{filterSide=button.dataset.filter;shownLimit=pageSize;for(const item of buttons)item.setAttribute('aria-pressed',String(item===button));filter()}}
  const devButton=document.getElementById('collectionDevToggle');
- devButton.onclick=()=>{testMode=!testMode;devButton.setAttribute('aria-pressed',String(testMode));devButton.textContent=testMode?'🛠 開発テストを終了（通常表示へ）':'🛠 開発テスト：全104名を表示';shownLimit=pageSize;refresh()};
+ devButton.onclick=()=>{testMode=!testMode;devButton.setAttribute('aria-pressed',String(testMode));devButton.textContent=testMode?'🛠 開発テストを終了（通常表示へ）':'🛠 開発テスト：全105名を表示';shownLimit=pageSize;refresh()};
  more.onclick=()=>{shownLimit+=pageSize;filter()};
  search.oninput=()=>{shownLimit=pageSize;filter()};
  document.getElementById('resetCollection').onclick=()=>{

@@ -1,4 +1,4 @@
-*{box-sizing:border-box}html{min-height:100%;background:#10171c}body{margin:0;min-height:100dvh;color:#f4e6c6;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;background:radial-gradient(ellipse at 50% 0%,#2d3d46,#0a1117 78%)}button{font:inherit;cursor:pointer;border:1px solid #b99962;border-radius:6px;background:linear-gradient(#dec18a,#a87540);color:#21190e;padding:10px 17px;font-weight:bold}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,a:focus-visible,.sq:focus-visible{outline:3px solid #f9d789;outline-offset:3px}a{color:#f2d59c}#storyApp{max-width:760px;min-height:100dvh;margin:auto;padding:0 10px 24px}.hidden{display:none!important}.story-header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 5px;border-bottom:1px solid #b895554d;font-size:15px}.story-header .back-link{font-family:system-ui;font-size:12px}.story-header button{font-size:12px;padding:6px 10px;background:#283c44;color:#f6dfa7}.story-hero{padding:33px 15px 22px;text-align:center;min-height:245px;background:linear-gradient(#0f1c2566,#080f19c9),url("assets/visuals/intro_shinsengumi.webp") center 42%/cover;border-bottom:2px solid #b58b55}.story-tag{font-size:13px;letter-spacing:.36em;color:#f4d293}.story-hero h1{font-size:clamp(42px,12vw,66px);letter-spacing:.16em;margin:10px 0 4px;text-shadow:1px 3px 10px #000}.story-hero p{font-size:13px;line-height:1.8;text-shadow:0 2px 6px #000}.chapter-grid{display:grid;gap:11px;margin:16px 2px}.chapter{width:100%;min-height:115px;padding:16px;text-align:left;display:grid;grid-template-columns:1fr 74px;gap:12px;color:#f3e2bb;background:linear-gradient(94deg,#16252fea,#16252fd9),url("assets/backgrounds/seasons/kyoto-autumn.webp") center/cover;border:1px solid #ab8958;border-left:5px solid #d7aa69;border-radius:8px;box-shadow:0 5px 14px #0007}.chapter.locked{filter:saturate(.35);opacity:.54}.chapter small{display:block;color:#c2ad84;font-size:11px;letter-spacing:.1em;margin-bottom:3px}.chapter strong{font-size:clamp(20px,5.5vw,25px);font-weight:900}.chapter em{display:block;font-size:12px;color:#c9d1cb;font-style:normal;margin-top:7px}.chapter .chapter-board{display:grid;place-items:center;border-left:1px solid #ffffff33;font-size:19px;text-align:center}.chapter .chapter-board span{display:block;font-size:12px}.chapter.completed{border-left-color:#6db9a3}.history-note{font:12px/1.7 system-ui;color:#b3c0bd;margin:20px 9px}.view{animation:appear .22s ease-out}@keyframes appear{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}.scene-art{min-height:48dvh;position:relative;background-position:center;background-size:cover;background-color:#293333;display:flex;align-items:end;border:1px solid #9e774d;margin-top:16px}.scene-overlay{width:100%;padding:26px 16px;background:linear-gradient(transparent,#060a0cf2)}.scene-overlay span{color:#f3cc86;font-size:13px}.scene-overlay h2{font-size:clamp(29px,8vw,43px);margin:8px 0}.narration{background:#e2d0ac;color:#302418;margin-top:14px;border:3px double #644323;padding:18px 16px;border-radius:4px;box-shadow:0 12px 24px #0007}.narration p{font-size:17px;line-height:1.92;min-height:98px;margin:8px 0 20px}.narrator-label{font-size:13px;font-weight:900;color:#704526}.dialogue-foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#674d37}.dialogue-foot button{min-width:135px}.battle-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 2px;font-size:13px;color:#dfc18a}.battle-top button{padding:5px 10px;color:#efdcb9;background:#2a3438;font-size:12px}#battleTitle{margin:1px 0 8px;font-size:clamp(19px,5vw,25px)}.person-banner{position:relative;width:min(100%,520px);margin:3px auto;border:1px solid #96744d;aspect-ratio:880/174;background:linear-gradient(45deg,#e6d3ad,#e0c89d);overflow:hidden}.person-banner img{position:absolute;width:100%;height:100%;inset:0;object-fit:cover}.banner-text{position:absolute;left:4%;top:10%;bottom:9%;width:54%;display:flex;flex-direction:column;align-items:start;justify-content:center;color:#251c16}.banner-name{font-size:clamp(18px,5.2vw,31px);font-weight:900;line-height:1.15}.banner-role{font-size:clamp(11px,2.9vw,16px);font-weight:bold;margin-top:5px}.hand-container{max-width:520px;margin:5px auto;text-align:left;font:12px system-ui;color:#ead7b4}.story-hand{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-height:29px}.story-hand button{min-width:36px;padding:5px 8px;background:#e2c38b;color:#292017;border:2px solid #86613e}.story-hand button.selected{border-color:#ffe75a;background:#9ae3a9}.battle-status{margin:5px auto;padding:8px;border:1px solid #b48a54;border-radius:5px;background:#151c20cc;font-size:13px;max-width:520px;min-height:34px}#storyBoard{--cols:9;--rows:9;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:repeat(var(--rows),minmax(0,1fr));width:min(94vw,520px);aspect-ratio:var(--cols)/var(--rows);margin:6px auto;background-image:linear-gradient(#cfad72ac,#bda071b3),url("assets/boards/normal/board-kyoto-anime-framed-1080.webp");background-size:100% 100%;background-position:center;border:10px ridge #51351f;box-shadow:0 9px 19px #000a;user-select:none;touch-action:manipulation}#storyBoard[data-stage="2"]{background-image:url("assets/boards/story/board-aburanokoji.webp"),linear-gradient(135deg,#8d7b66,#645b55)}#storyBoard .sq{position:relative;min-width:0;min-height:0;display:grid;place-items:center;padding:0;border:0;border-right:1px solid #4f3828a8;border-bottom:1px solid #4f3828a8;border-radius:0;background:transparent;outline-offset:-3px;aspect-ratio:1}#storyBoard .sq.last{background:#eac16d7b}#storyBoard .sq.selected{background:#ffe85aa0;box-shadow:inset 0 0 0 2px #ffe256}#storyBoard .sq.hint{background:#88d89d91;box-shadow:inset 0 0 0 2px #247d4c}#storyBoard .sq.hit{background:#e94a44ba;box-shadow:inset 0 0 0 3px #fff2aa}#storyBoard .sq.warn{animation:warn .44s ease-in-out infinite alternate;background:#ec343384}@keyframes warn{from{background:#ef413047}to{background:#ffe487b5}}.token{position:relative;display:grid;place-items:center;width:90%;height:90%;clip-path:polygon(50% 0%,100% 23%,95% 100%,5% 100%,0 23%);background:linear-gradient(135deg,#356e87,#174457);border:2px solid #183a42;color:#fdf2d3;font-weight:900;font-size:clamp(13px,3.9vw,27px);text-shadow:0 1px 3px #071823;box-shadow:inset 0 0 0 2px #ffffff26}.token.enemy{background:linear-gradient(135deg,#a95453,#7d3035);transform:rotate(180deg)}.token.promoted{color:#ffe383}.token span{pointer-events:none}#storyBoard.small-board .token{font-size:clamp(23px,6.6vw,39px)}.battle-bottom{display:flex;justify-content:center;gap:12px;margin:13px auto}.battle-bottom button{background:#303e43;color:#e7ce9e;font-size:13px;padding:9px}.popup{position:fixed;z-index:999;inset:0;display:grid;place-items:center;background:#080b10d9;padding:13px}.popup-panel{width:min(95vw,450px);max-height:92dvh;overflow:auto;text-align:center;color:#f7e4bd;border:2px solid #c6a06c;border-radius:10px;padding:18px;background:radial-gradient(circle at top,#41403c,#151b21 75%);box-shadow:0 10px 50px #000b}.popup-panel h2{font-size:clamp(23px,7vw,35px);margin:12px 0}.popup-panel p{line-height:1.85;white-space:pre-line}.popup-art{display:block;max-width:100%;width:auto;max-height:46dvh;object-fit:contain;margin:auto;border-radius:5px}.popup-buttons{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin:14px auto 2px}.popup-buttons button{min-width:110px}.popup-buttons button.secondary{background:#344049;color:#f0d8a5}.scene-prologue{background-image:linear-gradient(#141b24b3,#0c0f17c9),url("assets/backgrounds/seasons/kyoto-spring.webp")}.shot-overlay{position:absolute;inset:0;pointer-events:none;z-index:20;display:grid;place-items:center;background:#e4473459;animation:impact .65s ease-out forwards}.shot-overlay img{width:130%;height:130%;object-fit:contain}.shot-overlay.cannon{background:#ef6a325f}.bullet{position:absolute;width:36%;height:36%;object-fit:contain;filter:drop-shadow(0 0 6px #f8e29e);z-index:23;pointer-events:none}@keyframes impact{from{transform:scale(.3);opacity:.15}40%{transform:scale(1.2);opacity:1}to{transform:scale(1);opacity:0}}@media(max-height:750px){.story-hero{min-height:170px;padding:20px}.scene-art{min-height:38dvh}#storyBoard{width:min(86vw,470px)}}@media(prefers-reduced-motion:reduce){.view,.sq.warn,.shot-overlay{animation:none!important}}
+*{box-sizing:border-box}html{min-height:100%;background:#10171c}body{margin:0;min-height:100dvh;color:#f4e6c6;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;background:radial-gradient(ellipse at 50% 0%,#2d3d46,#0a1117 78%)}button{font:inherit;cursor:pointer;border:1px solid #b99962;border-radius:6px;background:linear-gradient(#dec18a,#a87540);color:#21190e;padding:10px 17px;font-weight:bold}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,a:focus-visible,.sq:focus-visible{outline:3px solid #f9d789;outline-offset:3px}a{color:#f2d59c}#storyApp{max-width:760px;min-height:100dvh;margin:auto;padding:0 10px 24px}.hidden{display:none!important}.story-header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 5px;border-bottom:1px solid #b895554d;font-size:15px}.story-header .back-link{font-family:system-ui;font-size:12px}.story-header button{font-size:12px;padding:6px 10px;background:#283c44;color:#f6dfa7}.story-hero{padding:33px 15px 22px;text-align:center;min-height:245px;background:linear-gradient(#0f1c2566,#080f19c9),url("assets/visuals/intro_shinsengumi_team_pc.webp") center 42%/cover;border-bottom:2px solid #b58b55}.story-tag{font-size:13px;letter-spacing:.36em;color:#f4d293}.story-hero h1{font-size:clamp(42px,12vw,66px);letter-spacing:.16em;margin:10px 0 4px;text-shadow:1px 3px 10px #000}.story-hero p{font-size:13px;line-height:1.8;text-shadow:0 2px 6px #000}.chapter-grid{display:grid;gap:11px;margin:16px 2px}.chapter{width:100%;min-height:115px;padding:16px;text-align:left;display:grid;grid-template-columns:1fr 74px;gap:12px;color:#f3e2bb;background:linear-gradient(94deg,#16252fea,#16252fd9),url("assets/backgrounds/seasons/kyoto-autumn.webp") center/cover;border:1px solid #ab8958;border-left:5px solid #d7aa69;border-radius:8px;box-shadow:0 5px 14px #0007}.chapter.locked{filter:saturate(.35);opacity:.54}.chapter small{display:block;color:#c2ad84;font-size:11px;letter-spacing:.1em;margin-bottom:3px}.chapter strong{font-size:clamp(20px,5.5vw,25px);font-weight:900}.chapter em{display:block;font-size:12px;color:#c9d1cb;font-style:normal;margin-top:7px}.chapter .chapter-board{display:grid;place-items:center;border-left:1px solid #ffffff33;font-size:19px;text-align:center}.chapter .chapter-board span{display:block;font-size:12px}.chapter.completed{border-left-color:#6db9a3}.history-note{font:12px/1.7 system-ui;color:#b3c0bd;margin:20px 9px}.view{animation:appear .22s ease-out}@keyframes appear{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}.scene-art{min-height:48dvh;position:relative;background-position:center;background-size:cover;background-color:#293333;display:flex;align-items:end;border:1px solid #9e774d;margin-top:16px}.scene-overlay{width:100%;padding:26px 16px;background:linear-gradient(transparent,#060a0cf2)}.scene-overlay span{color:#f3cc86;font-size:13px}.scene-overlay h2{font-size:clamp(29px,8vw,43px);margin:8px 0}.narration{background:#e2d0ac;color:#302418;margin-top:14px;border:3px double #644323;padding:18px 16px;border-radius:4px;box-shadow:0 12px 24px #0007}.narration p{font-size:17px;line-height:1.92;min-height:98px;margin:8px 0 20px}.narrator-label{font-size:13px;font-weight:900;color:#704526}.dialogue-foot{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#674d37}.dialogue-foot button{min-width:135px}.battle-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 2px;font-size:13px;color:#dfc18a}.battle-top button{padding:5px 10px;color:#efdcb9;background:#2a3438;font-size:12px}#battleTitle{margin:1px 0 8px;font-size:clamp(19px,5vw,25px)}.person-banner{position:relative;width:min(100%,520px);margin:3px auto;border:1px solid #96744d;aspect-ratio:880/174;background:linear-gradient(45deg,#e6d3ad,#e0c89d);overflow:hidden}.person-banner img{position:absolute;width:100%;height:100%;inset:0;object-fit:cover}.banner-text{position:absolute;left:4%;top:10%;bottom:9%;width:54%;display:flex;flex-direction:column;align-items:start;justify-content:center;color:#251c16}.banner-name{font-size:clamp(18px,5.2vw,31px);font-weight:900;line-height:1.15}.banner-role{font-size:clamp(11px,2.9vw,16px);font-weight:bold;margin-top:5px}.hand-container{max-width:520px;margin:5px auto;text-align:left;font:12px system-ui;color:#ead7b4}.story-hand{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-height:29px}.story-hand button{min-width:36px;padding:5px 8px;background:#e2c38b;color:#292017;border:2px solid #86613e}.story-hand button.selected{border-color:#ffe75a;background:#9ae3a9}.battle-status{margin:5px auto;padding:8px;border:1px solid #b48a54;border-radius:5px;background:#151c20cc;font-size:13px;max-width:520px;min-height:34px}#storyBoard{--cols:9;--rows:9;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:repeat(var(--rows),minmax(0,1fr));width:min(94vw,520px);aspect-ratio:var(--cols)/var(--rows);margin:6px auto;background-image:linear-gradient(#cfad72ac,#bda071b3),url("assets/boards/normal/board-kyoto-anime-framed-1080.webp");background-size:100% 100%;background-position:center;border:10px ridge #51351f;box-shadow:0 9px 19px #000a;user-select:none;touch-action:manipulation}#storyBoard[data-stage="2"]{background-image:url("assets/boards/story/board-aburanokoji.webp"),linear-gradient(135deg,#8d7b66,#645b55)}#storyBoard .sq{position:relative;min-width:0;min-height:0;display:grid;place-items:center;padding:0;border:0;border-right:1px solid #4f3828a8;border-bottom:1px solid #4f3828a8;border-radius:0;background:transparent;outline-offset:-3px;aspect-ratio:1}#storyBoard .sq.last{background:#eac16d7b}#storyBoard .sq.selected{background:#ffe85aa0;box-shadow:inset 0 0 0 2px #ffe256}#storyBoard .sq.hint{background:#88d89d91;box-shadow:inset 0 0 0 2px #247d4c}#storyBoard .sq.hit{background:#e94a44ba;box-shadow:inset 0 0 0 3px #fff2aa}#storyBoard .sq.warn{animation:warn .44s ease-in-out infinite alternate;background:#ec343384}@keyframes warn{from{background:#ef413047}to{background:#ffe487b5}}.token{position:relative;display:grid;place-items:center;width:90%;height:90%;clip-path:polygon(50% 0%,100% 23%,95% 100%,5% 100%,0 23%);background:linear-gradient(135deg,#356e87,#174457);border:2px solid #183a42;color:#fdf2d3;font-weight:900;font-size:clamp(13px,3.9vw,27px);text-shadow:0 1px 3px #071823;box-shadow:inset 0 0 0 2px #ffffff26}.token.enemy{background:linear-gradient(135deg,#a95453,#7d3035);transform:rotate(180deg)}.token.promoted{color:#ffe383}.token span{pointer-events:none}#storyBoard.small-board .token{font-size:clamp(23px,6.6vw,39px)}.battle-bottom{display:flex;justify-content:center;gap:12px;margin:13px auto}.battle-bottom button{background:#303e43;color:#e7ce9e;font-size:13px;padding:9px}.popup{position:fixed;z-index:999;inset:0;display:grid;place-items:center;background:#080b10d9;padding:13px}.popup-panel{width:min(95vw,450px);max-height:92dvh;overflow:auto;text-align:center;color:#f7e4bd;border:2px solid #c6a06c;border-radius:10px;padding:18px;background:radial-gradient(circle at top,#41403c,#151b21 75%);box-shadow:0 10px 50px #000b}.popup-panel h2{font-size:clamp(23px,7vw,35px);margin:12px 0}.popup-panel p{line-height:1.85;white-space:pre-line}.popup-art{display:block;max-width:100%;width:auto;max-height:46dvh;object-fit:contain;margin:auto;border-radius:5px}.popup-buttons{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin:14px auto 2px}.popup-buttons button{min-width:110px}.popup-buttons button.secondary{background:#344049;color:#f0d8a5}.scene-prologue{background-image:linear-gradient(#141b24b3,#0c0f17c9),url("assets/backgrounds/seasons/kyoto-spring.webp")}.shot-overlay{position:absolute;inset:0;pointer-events:none;z-index:20;display:grid;place-items:center;background:#e4473459;animation:impact .65s ease-out forwards}.shot-overlay img{width:130%;height:130%;object-fit:contain}.shot-overlay.cannon{background:#ef6a325f}.bullet{position:absolute;width:36%;height:36%;object-fit:contain;filter:drop-shadow(0 0 6px #f8e29e);z-index:23;pointer-events:none}@keyframes impact{from{transform:scale(.3);opacity:.15}40%{transform:scale(1.2);opacity:1}to{transform:scale(1);opacity:0}}@media(max-height:750px){.story-hero{min-height:170px;padding:20px}.scene-art{min-height:38dvh}#storyBoard{width:min(86vw,470px)}}@media(prefers-reduced-motion:reduce){.view,.sq.warn,.shot-overlay{animation:none!important}}
 /* Earned story commanders, separate from the original 40-person collection. */
 #storyKingCollection{margin:24px auto 10px;max-width:620px;text-align:center}
 #storyKingCollection h2{font-size:19px;margin:10px}
@@ -983,13 +983,13 @@ body.story-quake-active{animation:storyQuakeBackdrop .105s steps(2,end) infinite
 #storyEndPanel #storyEndText{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;padding:0!important;margin:-1px!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;opacity:0!important}
 #storyEndPanel .story-end-calligraphy{position:absolute;z-index:3;width:auto;height:auto;object-fit:contain;pointer-events:none;filter:drop-shadow(0 4px 7px #050507aa)}
 #storyEndVerdictGraphic{bottom:96px;left:50%;width:min(46vw,560px)!important;max-height:16dvh;transform:translateX(-50%)}
-#storyEndVictoryGraphic{left:2%;top:23%;width:min(29vw,350px)!important;max-height:34dvh}
+#storyEndVictoryGraphic{left:2%;top:31%;width:min(29vw,350px)!important;max-height:34dvh}
 #storyEndDefeatGraphic{right:5%;top:62%;width:min(23vw,270px)!important;max-height:25dvh}
 #storyEndPanel #storyEndActions{z-index:4!important;position:relative;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;background:linear-gradient(transparent,#070b13e8)!important;padding:0 12px 18px}
 @keyframes storyVictorySceneIn{from{opacity:0;transform:translateX(-50%) translateY(10%) scale(.84)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 @media(orientation:portrait){
  #storyEndPanel .story-end-illustration#storyEndWinner{top:1%!important;left:50%!important;width:min(96vw,48dvh)!important;max-width:96vw!important;height:calc(100dvh - 112px)!important;object-fit:contain!important;object-position:center center!important}
- #storyEndVictoryGraphic{left:0;top:23%;width:42vw!important;max-height:30dvh}
+ #storyEndVictoryGraphic{left:0;top:31%;width:42vw!important;max-height:30dvh}
  #storyEndDefeatGraphic{right:0;top:63%;width:38vw!important;max-height:24dvh}
  #storyEndVerdictGraphic{bottom:94px;width:min(75vw,360px)!important;max-height:15dvh}
  #storyEndPanel #storyEndActions{padding-bottom:max(18px,env(safe-area-inset-bottom));gap:8px}
@@ -1064,6 +1064,141 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
 
 
 /* Winner/loser positions and animation live exclusively in shared-victory.css. */
+
+/* Oil-koji: approved organic perimeter sits outside the exact 5x6 playable grid.
+   The transparent opening matches the stone-and-soil board 1:1; hit targets stay untouched. */
+#storyBoard[data-stage="2"].small-board{
+  border:3px solid #463829;
+  position:relative;
+  overflow:visible;
+  isolation:isolate;
+}
+#storyBoard[data-stage="2"].small-board::before{
+  content:"";position:absolute;z-index:3;pointer-events:none;
+  left:-35.371%;top:-7.423%;width:172.402%;height:115.429%;
+  background:url("assets/boards/story/board-aburanokoji-perimeter.webp") center/100% 100% no-repeat;
+}
+#storyBoard[data-stage="2"]>.sq{z-index:2}
+
+/* Shared promotion calligraphy for every story chapter (including Ikedaya). */
+#storyPromotionHeadlines{display:none}
+.popup.promotion-calligraphy .popup-panel{width:min(92vw,440px);padding:8px 8px 15px;background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.popup.promotion-calligraphy #popupTitle{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.popup.promotion-calligraphy #popupText,.popup.promotion-calligraphy #popupArt{display:none!important}
+.popup.promotion-calligraphy #storyPromotionHeadlines{display:flex;flex-direction:column;align-items:center;gap:0;margin:0 auto 12px}
+#storyPromotionHeadlines img{display:block;width:min(84vw,400px);height:auto;max-height:min(17dvh,128px);object-fit:contain}
+#storyPromotionHeadlines .story-promotion-naru{filter:drop-shadow(1px 2px 2px rgba(0,0,0,.82))}
+#storyPromotionHeadlines .story-promotion-naranu{filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))}
+.popup.promotion-calligraphy .popup-buttons{margin:0 auto 2px}
+@media(max-height:600px){#storyPromotionHeadlines img{max-height:90px}.popup.promotion-calligraphy #storyPromotionHeadlines{margin-bottom:8px}}
+
+/* Shared story-stage effect: understated 1.05s rise/flip when choosing 成る. */
+#storyBoard .sq.story-promotion-rise{isolation:isolate;perspective:520px}
+#storyBoard .sq.story-promotion-rise .story-token{
+ animation:ikedayaRiseToken 1.05s cubic-bezier(.2,.62,.2,1) both;
+ backface-visibility:hidden;transform-origin:50% 50%;z-index:2
+}
+#storyBoard .sq.story-promotion-rise .story-token.enemy{
+ animation-name:storyEnemyRiseToken
+}
+#storyBoard .sq.story-promotion-rise::after{
+ content:"";position:absolute;inset:6%;border-radius:50%;pointer-events:none;z-index:1;
+ background:radial-gradient(ellipse,#fff9d9b8 0%,#f8e4a36b 32%,transparent 72%);
+ animation:ikedayaRiseGlow 1.05s ease-out both
+}
+@keyframes ikedayaRiseToken{
+ 0%{transform:rotateY(-80deg) scale(.86);filter:brightness(1.18) drop-shadow(0 2px 2px #0008);opacity:.85}
+ 30%{transform:rotateY(0deg) scale(1.10);filter:brightness(1.9) drop-shadow(0 0 12px #fff1b3);opacity:1}
+ 65%{transform:rotateY(9deg) scale(1.04);filter:brightness(1.35) drop-shadow(0 0 8px #ecd18b)}
+ 100%{transform:rotateY(0deg) scale(1);filter:brightness(1) drop-shadow(0 2px 2px #0008)}
+}
+@keyframes storyEnemyRiseToken{
+ 0%{transform:rotate(180deg) rotateY(-80deg) scale(.86);filter:brightness(1.18) drop-shadow(0 2px 2px #0008);opacity:.85}
+ 30%{transform:rotate(180deg) rotateY(0deg) scale(1.10);filter:brightness(1.9) drop-shadow(0 0 12px #fff1b3);opacity:1}
+ 65%{transform:rotate(180deg) rotateY(9deg) scale(1.04);filter:brightness(1.35) drop-shadow(0 0 8px #ecd18b)}
+ 100%{transform:rotate(180deg) rotateY(0deg) scale(1);filter:brightness(1) drop-shadow(0 2px 2px #0008)}
+}
+@keyframes ikedayaRiseGlow{
+ 0%{opacity:0;transform:scale(.65)}
+ 25%{opacity:1;transform:scale(1.16)}
+ 70%{opacity:.42;transform:scale(1.06)}
+ 100%{opacity:0;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ #storyBoard .sq.story-promotion-rise .story-token,
+ #storyBoard .sq.story-promotion-rise::after{animation:none!important}
+}
+
+/* Hide the captive only when the escort reaches the board square; the engine move waits for the choice. */
+#storyBoard .sq.promotion-capture-preview .story-token{visibility:hidden}
+
+/* Picture-story headings belong outside the illustration, aligned upper-right. */
+#storyDialogue .story-scene-heading{
+ position:static;display:flex;flex-direction:column;align-items:flex-end;
+ width:100%;padding:4px 7px 8px;margin:8px 0 0;
+ background:none!important;text-align:right;box-shadow:none;
+}
+#storyDialogue .story-scene-heading #dialogueDate{
+ color:#d3b987;font-size:clamp(12px,2.8vw,15px);font-weight:700;
+ line-height:1.3;text-shadow:none;
+}
+#storyDialogue .story-scene-heading #dialogueTitle{
+ color:#f5e5be;font-size:clamp(22px,5.5vw,33px);font-weight:900;
+ line-height:1.15;margin:2px 0 0;text-shadow:none;
+}
+#storyDialogue .scene-art{margin-top:0;display:block}
+
+/* Chapter selection: one centered column of vertical wooden dispatch cases. */
+#storyChapters.chapter-grid{
+ display:flex;flex-direction:column;align-items:center;gap:18px;
+ margin:20px auto 22px;width:100%;
+}
+#storyChapters .chapter{
+ --chapter-width:194px;--chapter-height:312px;
+ position:relative;isolation:isolate;overflow:hidden;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ width:var(--chapter-width);height:var(--chapter-height);min-height:0;
+ padding:18px 12px 16px;margin:0;
+ border:0;border-radius:8px;background:#af7546;
+ box-shadow:0 7px 20px #0009,0 0 0 1px #e3ba7b8c;
+ text-align:center;color:#27170c;
+}
+#storyChapters .chapter::before{
+ content:"";position:absolute;z-index:-1;left:50%;top:50%;
+ width:var(--chapter-height);height:var(--chapter-width);
+ transform:translate(-50%,-50%) rotate(90deg);
+ background:url("assets/scenes/prologue-travel-document-box.png") center/100% 100% no-repeat;
+}
+#storyChapters .chapter > div:first-child{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:8px;height:100%;width:100%;min-width:0;
+}
+#storyChapters .chapter small{
+ display:block;margin:0;font-size:14px;font-weight:900;line-height:1.3;
+ text-shadow:0 1px 1px #eac99c;
+}
+#storyChapters .chapter strong{
+ display:block;writing-mode:vertical-rl;text-orientation:mixed;
+ font-size:clamp(25px,6.5vw,32px);font-weight:900;line-height:1.1;
+ letter-spacing:.09em;max-height:218px;margin:1px auto;
+ text-shadow:0 1px 2px #eac99c;
+}
+#storyChapters .chapter em{
+ display:block;margin:0;font-size:12px;font-weight:900;line-height:1.4;
+ max-width:160px;text-shadow:0 1px 1px #eac99c;
+}
+#storyChapters .chapter .chapter-board{
+ position:absolute;right:9px;top:10px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:3px;
+ width:36px;min-width:0;padding:0;border:0;
+ font-size:18px;line-height:1.1;
+}
+#storyChapters .chapter .chapter-board span{font-size:10px;font-weight:900;white-space:nowrap}
+#storyChapters .chapter:focus-visible{outline:3px solid #ffe2a2;outline-offset:5px}
+@media(max-width:390px){
+ #storyChapters .chapter{--chapter-width:180px;--chapter-height:296px}
+ #storyChapters .chapter strong{font-size:25px;max-height:206px}
+}
 
 /* Oil-koji: approved organic perimeter sits outside the exact 5x6 playable grid.
    The transparent opening matches the stone-and-soil board 1:1; hit targets stay untouched. */

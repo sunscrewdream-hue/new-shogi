@@ -42,7 +42,7 @@ table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;bor
 <body><main><nav class="page-nav" aria-label="ページ案内"><a class="page-nav-link" href="card-ai-test.html">タイトルへ戻る</a><a class="page-nav-link" href="collection.html">人物コレクション</a><a class="page-nav-link" href="history.html">新選組の歴史</a><a class="page-nav-link" href="manual.html">新選組将棋の遊び方</a><a class="page-nav-link" href="rules.html" aria-current="page">将棋の基本ルール</a></nav><header><img src="assets/visuals/logo-shinsengumi-sumi-watercolor.webp" alt="新選組将棋" loading="eager"><h1>将棋の基本ルール</h1><p>初めての方にも分かる、盤上の戦いの基本</p></header>
 <section><h2>1. 将棋はどうすれば勝ち？</h2><p class="lead">相手の<strong>王（玉）</strong>を逃げられない状態にする「<strong>詰み</strong>」を目指すゲームです。</p>
 <p>盤は縦9マス×横9マス。自分の駒を一手ずつ動かし、相手の駒があるマスへ進めばその駒を取れます。自分の駒がある場所へは進めません。</p>
-<p><strong>王手</strong>は「次に王を取れる位置にいる」という警告です。王手されたら、王を逃がす・攻撃駒を取る・攻撃の間に駒を置くなど、必ず王手を解消してください。</p></section>
+<p><strong>王手</strong>は「次に王を取れる位置にいる」という警告です。通常将棋では、王を逃がす・攻撃駒を取る・攻撃の間に駒を置くなどして、必ず王手を解消してください。<strong>新選組将棋の特殊ルール</strong>では、警告を確認したうえで王手を防がない「主君を見捨てる」選択もできます（<a href="manual.html">独自ルールの説明</a>）。</p></section>
 <section><h2>2. 駒8種類の動き</h2><p>本物の将棋駒をイメージした木製の五角形と、漢字の表記を添えています。</p><p>図は<strong>自分が盤の下側にいる場合</strong>です。「●」が駒、「▲」が1マス移動可能、「↟」がその方向に何マスでも進めることを表します。相手側の駒は上下を反転して考えます。</p>
 <div class="tiles" id="pieces"></div>
 <p class="note">飛車・角・香のように何マスでも進む駒は、<strong>他の駒を飛び越えられません</strong>。桂馬だけは途中の駒を飛び越えられます。</p></section>
@@ -59,17 +59,17 @@ table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{padding:8px;bor
 <p class="mini">金将と王将（玉将）は成りません。</p><p>歩・香が一番奥に進む場合、桂が奥2段に進む場合は、進める場所を失うため<strong>必ず成ります</strong>。</p></section>
 <section><h2>5. 注意したい反則</h2><p><strong>二歩：</strong>同じ縦列に、成っていない自分の歩を2枚置くことはできません。<br>
 <strong>打ち歩詰め：</strong>持ち駒の歩を打ったその手で、相手を即詰みにすることは禁止です。<br>
-<strong>王を危険にさらす手：</strong>王手がかかったままになる手や、自分の王に王手をかけられる手は指せません。<br>
+<strong>王を危険にさらす手：</strong>通常将棋では、王手がかかったままになる手や、自分の王に王手をかけられる手は指せません。新選組将棋の特殊モードには例外があります。<br>
 <strong>行き所のない駒打ち：</strong>歩・香を最奥段、桂を奥2段に打つことはできません。</p>
-<p class="mini">千日手・持将棋など細かい引き分け規定もあります。ゲーム試作版では一部の例外判定が今後の改善対象です。</p></section>
+<p class="mini">千日手・持将棋など、ここでは説明を省いた細かな規定もあります。本ページは最初の対局に必要な基本をまとめたものです。</p></section>
 <section><h2>6. 新選組将棋の「事件札」</h2><p>基本の将棋に加え、両陣営に事件札が出現します。<strong>敵味方とも札をタップして表を確認</strong>し、もう一度タップして閉じると効果が発動します。</p>
 <table><tbody>
 <tr><th>何事もなし</th><td>変化なし</td></tr>
 <tr><th>寝返り</th><td>敵の隊士が陣営を変え、自分の持ち駒に加わる</td></tr>
 <tr><th>脱走</th><td>味方の駒が1枚退場する</td></tr>
 <tr><th>粛清</th><td>味方の歩・香・桂・銀のうち1枚が退場する（相手の持ち駒にはならない）</td></tr>
-<tr><th>大地震</th><td>盤と背景が揺れ、一部の駒が安全な隣接マスへ移動する</td></tr>
-</tbody></table><p>事件札の抽選確率は調整中です。王将を直接退場させるなど、将棋の勝敗原則を壊す事件は発動しません。</p></section>
+<tr><th>大地震</th><td>盤と背景が揺れ、一部の駒が移動する。崩落したマスは一時的に使えなくなることがある</td></tr>
+</tbody></table><p>通常対局では各陣営の4手番ごとに事件札が登場します。王将を直接退場させるなど、将棋の勝敗原則を壊す事件は発動しません。章ごとに異なる特殊演出は<a href="manual.html">遊び方</a>を参照してください。</p></section>
 <section><h2>7. 遊び始めるには</h2><p>対局画面で「いざ、出陣」をタップ。自分の駒を選び、色が付いた移動可能マスをタップすれば動かせます。赤く点滅する駒は王手をかけている刺客です。</p><p>途中でやめる場合は「降参」か「タイトルへ戻る」を選びます。</p></section>
 <div style="text-align:center"><a class="page-return" href="card-ai-test.html">タイトルへ戻る</a></div>
 </main><script>
