@@ -1311,6 +1311,8 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
  normalCaptureHidden=null;normalPromotionPreview=null;
  const speakerSide=turn,capturedPiece=!m.drop?b[m.Y][m.X]:null,captured=!!capturedPiece;
  const movingPiece=!m.drop?b[m.y]?.[m.x]:(handIdentities[turn][m.t]||[])[0];
+ const forcedPromotion=!m.drop&&!!movingPiece&&forced(movingPiece,m.Y);
+ const showPromotion=prom||forcedPromotion;
  const originSide=movingPiece?.originSide??movingPiece?.s??turn,officer=movingPiece?.cid;
  const speaker={...(movingPiece||{}),s:speakerSide,t:m.drop?m.t:movingPiece?.t,originSide};
  const capturerKey=window.ShinsengumiBattleRules.fighterKey(speaker);
@@ -1319,7 +1321,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
  const forcedKill=capturePlan.lethal;
  if(rulePreset!=='traditional')setCharacterBanner(speakerSide,speaker,'',0);
  if(captured&&rulePreset!=='traditional')setCharacterBanner(1-speakerSide,capturedPiece,forcedKill?'斬殺':'捕縛',2100);
- apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});normalPromotionHold=prom&&!m.drop?{y:m.Y,x:m.X,piece:{...movingPiece,p:false}}:null;
+ apply(b,h,turn,m,prom,handIdentities,{kill:forcedKill});normalPromotionHold=showPromotion&&!m.drop?{y:m.Y,x:m.X,piece:{...movingPiece,p:false}}:null;
  lastMove={y:m.Y,x:m.X};
  if(forcedKill)captureCounts[capturerKey]=capturePlan.next;
  else{if(!captured)sound(false);if(captured&&ruleSettings.hitokiri){captureCounts[capturerKey]=capturePlan.next;if(capturePlan.awakened)flashHitokiri('人斬り覚醒');}}
@@ -1368,7 +1370,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
  const voiceStart=async()=>{
  if(!valid())return;
  for(const key of voiceKeys.filter(key=>key!=='oute')){await speak(key);if(!valid())return}
- if(prom&&rulePreset!=='traditional'){
+ if(showPromotion&&(rulePreset!=='traditional'||forcedPromotion)){
  await new Promise(resolve=>setTimeout(resolve,220));if(!valid())return;
  normalPromotionHold=null;normalPromotionRise={y:m.Y,x:m.X};render();
  await Promise.all([new Promise(resolve=>setTimeout(resolve,1050)),playNormalPromotionRise()]);
