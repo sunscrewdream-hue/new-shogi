@@ -1358,7 +1358,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
  if(speakerSide===1){aiMoveSpot={y:m.Y,x:m.X};const e=epoch;setTimeout(()=>{if(e===epoch){aiMoveSpot=null;render()}},1400)}
  render();
  let voiceCompleted=false,animationCompleted=!forcedKill||rulePreset==='traditional',thisEpoch=epoch;
- const valid=()=>thisEpoch===epoch&&!ended&&!el('titleScreen').classList.contains('hidden');
+ const valid=()=>thisEpoch===epoch&&!ended&&el('titleScreen').classList.contains('hidden');
  const resume=()=>{
  if(!voiceCompleted||!animationCompleted||!valid())return;
  if(rulePreset==='traditional'){const repetition=repetitionVerdict();if(repetition){if(repetition.loser===null)showRepetitionDraw();else showVictory(1-repetition.loser,'連続王手の千日手');return}}
