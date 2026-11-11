@@ -927,7 +927,7 @@ function banner(s,p,hold=false){
 function storyBannerMessage(message,side=g?.side??0,cardCountdown=null){
  $("storyStatus").textContent=message;
  $("playerBannerStatus").textContent=side===0?message:"新選組、待機中";
- $("enemyBannerStatus").textContent=side===1?message:"薩長同盟、布陣中";
+ $("enemyBannerStatus").textContent=side===1?message:"敵陣、布陣中";
  if(cardCountdown!==null){
   const target=$(side===0?"playerBannerStatus":"enemyBannerStatus");
   target.replaceChildren();
@@ -1237,7 +1237,7 @@ function render(){
   if(!g.hands[s].length)hand.textContent="なし";
   const names={歩:"fu",香:"kyosha",桂:"keima",銀:"gin",金:"kin",角:"kaku",飛:"hisha"};
   for(const t of ["飛","角","金","銀","桂","香","歩"]){if(!groups[t])continue;
-   const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.dataset.piece=t;b.setAttribute("aria-label",(s===0?"新選組":"薩長同盟")+"の持ち駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
+   const b=document.createElement("button");b.type="button";b.className="story-hand-piece";b.dataset.piece=t;b.setAttribute("aria-label",(s===0?"新選組":"敵陣")+"の持ち駒 "+t+" "+groups[t]+"枚");b.disabled=ended||busy||compactTurnLocked||s===1||g.side!==0;
    const fig=document.createElement("img");fig.className="story-hand-art story-hand-figure";fig.src="assets/sprites/figures/"+(s===0?"shinsengumi_back":"saccho_front")+".webp";fig.alt="";fig.draggable=false;fig.decoding="async";
    const letter=document.createElement("img");letter.className="story-hand-art story-hand-letter";letter.src="assets/sprites/letters/normal_"+names[t]+".webp";letter.alt="";letter.draggable=false;letter.decoding="async";
    const fallback=document.createElement("span");fallback.className="story-hand-fallback";fallback.textContent=t;
@@ -1835,7 +1835,7 @@ function storyDebugIncident(kind){
  compactApplyIncident({kind,side,owner,y:v.y,x:v.x});
 }
 $("debugWin").onclick=()=>storyDebugRun(()=>finish(0,"開発テスト：新選組の勝利"),true);
-$("debugLose").onclick=()=>storyDebugRun(()=>finish(1,"開発テスト：薩長同盟の勝利"),true);
+$("debugLose").onclick=()=>storyDebugRun(()=>finish(1,"開発テスト：敵陣の勝利"),true);
 $("debugCard").onclick=()=>storyDebugRun(()=>compactCardStart(g.side),true);
  $("debugOilAmbush").onclick=()=>storyDebugRun(()=>{
  if(stage!==2||g.oilPhase!==1)return;
