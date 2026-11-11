@@ -22,10 +22,7 @@
  gap:7px;width:min(96vw,520px);margin:7px auto 5px;text-align:center;
 }
 .shared-match-header .audio-settings-trigger{margin:0 auto}
-.normal-match-header>button:not(.audio-settings-trigger){
- font:800 12px/1.3 system-ui,sans-serif;padding:7px 13px;
- color:#efdcb9;background:#2a3438;border:1px solid #9c815a;border-radius:5px;
-}
+.normal-match-header>.page-return{margin:0;appearance:none;cursor:pointer}
 .shared-match-top{
  width:min(96vw,520px);max-width:520px;min-height:30px;
  margin:5px auto 3px;text-align:center;color:#dfc18a;
