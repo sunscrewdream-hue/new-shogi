@@ -17,7 +17,7 @@
  function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),3100)}
 
  /* A phone cannot autoplay without a gesture. The first title interaction unlocks it. */
- function syncTitleVolume(){titleAudio.volume=Math.min(.6,Number($('volume').value)/100)*(titleIntroAudio.paused?1:.18)}
+ function syncTitleVolume(){const volume=$('volume')||document.querySelector('.audio-settings-panel #volume');if(!volume)return;titleAudio.volume=Math.min(.6,Number(volume.value)/100)*(titleIntroAudio.paused?1:.18)}
  titleIntroAudio.addEventListener('play',syncTitleVolume);
  titleIntroAudio.addEventListener('ended',syncTitleVolume);
  titleIntroAudio.addEventListener('pause',syncTitleVolume);
