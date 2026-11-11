@@ -11,7 +11,7 @@ const fxLevel=()=>Math.min(.5,(window.ShinsengumiAudioMixer?.ratio('fx')??storyV
 const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
 // Enemy moves run from timers, outside a touch gesture. A gesture-unlocked
 // Web Audio voice channel keeps capture and check shouts playable on iOS.
-let battleVoiceContext=null,battleVoiceActive=null,battleImpactActive=null;
+let battleVoiceContext=null,battleVoiceActive=null,battleImpactActive=null,battleVoiceGain=null,battleImpactGain=null,battleVoiceBoost=1,battleImpactBoost=1;
 const battleVoiceBuffers=new Map(),battleVoiceLoading=new Map();
 function unlockBattleVoice(){
  if(!battleVoiceContext){const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return null;battleVoiceContext=new AudioContextClass()}
@@ -36,8 +36,8 @@ function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=n
   const previous=channel==="voice"?battleVoiceActive:battleImpactActive;
   if(previous){try{previous.stop()}catch(e){}}
   const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=Math.min(1,(channel==="voice"?voiceLevel():fxLevel())*gainBoost);source.connect(gain).connect(context.destination);
-  if(channel==="voice")battleVoiceActive=source;else battleImpactActive=source;
-  source.onended=()=>{if(battleVoiceActive===source)battleVoiceActive=null;if(battleImpactActive===source)battleImpactActive=null;finish()};
+  if(channel==="voice"){battleVoiceActive=source;battleVoiceGain=gain;battleVoiceBoost=gainBoost}else{battleImpactActive=source;battleImpactGain=gain;battleImpactBoost=gainBoost}
+  source.onended=()=>{if(battleVoiceActive===source){battleVoiceActive=null;battleVoiceGain=null}if(battleImpactActive===source){battleImpactActive=null;battleImpactGain=null}finish()};
   Promise.race([context.resume(),new Promise((_,reject)=>setTimeout(()=>reject(Error("AudioContext resume timeout")),1400))]).then(()=>{if(settled)return;if(isStillValid&&!isStillValid()){finish();return}source.start()}).catch(()=>{if(settled)return;if(isStillValid&&!isStillValid()){finish();return}playStoryClip(path,channel,finish)});
  }).catch(()=>playStoryClip(path,channel,finish));
 }
@@ -61,10 +61,10 @@ function stopStoryClip(channel){
  const a=channel==="voice"?activeStoryVoice:activeStoryFx;if(a){a.pause();a.currentTime=0}
  if(channel==="voice"){
   activeStoryVoice=null;
-  if(battleVoiceActive){try{battleVoiceActive.stop()}catch(e){}battleVoiceActive=null}
+  if(battleVoiceActive){try{battleVoiceActive.stop()}catch(e){}battleVoiceActive=null;battleVoiceGain=null}
  }else{
   activeStoryFx=null;
-  if(battleImpactActive){try{battleImpactActive.stop()}catch(e){}battleImpactActive=null}
+  if(battleImpactActive){try{battleImpactActive.stop()}catch(e){}battleImpactActive=null;battleImpactGain=null}
  }
 }
 function playStoryClip(path,channel="fx",onDone=null){
@@ -1938,7 +1938,17 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden){stopStoryC
 window.addEventListener("pagehide",()=>{stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()});
 $("storyVolume").value=String(storyVolume);$("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
 window.StoryBgm?.setVolume(window.ShinsengumiAudioMixer?.get('bgm')??storyVolume);
-window.ShinsengumiAudioMixer?.subscribe(values=>{window.StoryBgm?.setVolume(values.bgm)});
+window.ShinsengumiAudioMixer?.subscribe(values=>{
+ window.StoryBgm?.setVolume(values.bgm);
+ if(activeStoryVoice)activeStoryVoice.volume=voiceLevel();
+ if(activeStoryFx)activeStoryFx.volume=fxLevel();
+ if(battleVoiceGain)battleVoiceGain.gain.value=Math.min(1,voiceLevel()*battleVoiceBoost);
+ if(battleImpactGain)battleImpactGain.gain.value=Math.min(1,fxLevel()*battleImpactBoost);
+ promotionRiseSound.volume=fxLevel();
+ cannonImpactAudio.volume=values.fx/100*.75;
+ storyQuakeBattle.volume=values.fx/100*.50;
+ storyVictoryBgmClip.volume=values.bgm/100*.70;
+});
 $("storyVolume").addEventListener("input",event=>{
  storyVolume=Math.max(0,Math.min(100,Number(event.target.value)||0));
  $("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
