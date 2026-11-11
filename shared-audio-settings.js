@@ -140,7 +140,8 @@
    const sync=next=>{
     slider.value=String(next.bgm);
     if(bgmOutput){bgmOutput.value=String(next.bgm);bgmOutput.textContent=String(next.bgm)}
-    slider.dispatchEvent(new Event('input',{bubbles:true}));
+    // Game audio subscribes to the mixer directly; re-dispatching input here
+    // would recursively trigger mixer.set() through this range's listener.
     for(const kind of ['fx','voice']){rows[kind].range.value=String(next[kind]);rows[kind].value.textContent=next[kind]+'%'}
    };
    mixer.subscribe(sync);
