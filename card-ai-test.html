@@ -1786,7 +1786,7 @@ function makeHandPiece(s,t,count){
 }
 function render(){let ownTurns=Math.floor(ply/2)+(turn===0?1:0);let next=4-((ownTurns-1+400)%4);el('cardCountdown').textContent=!ruleSettings.cards?'':pendingCardSide!==null?'🎴 事件札が出現！':('🎴 '+(gameMode==='local'?(turn?'後手':'先手'):(turn?'AI':'新選組'))+'：札まで'+(next===4?4:next)+'手');el('status').textContent=(gameMode==='local'?(turn?'後手':'先手'):(turn?'敵軍':'新撰組'))+'の手番'+((!normalDeferCheck&&check(b,turn))?'【王手】':'')+(busy?'　🤔 思考中…':'');el('status').className=busy?'thinking':'';
 const statusFor=side=>ended?'勝負あり':pendingCardSide!==null?'事件札を確認中':incidentRunning?'事件発生中…':turn===side
- ?(!normalDeferCheck&&check(b,side))?'王手！ 防御してください':(gameMode==='local'?(side===0?'先手の手番':'後手の手番'):(side===1?'敵軍、思案中…':'あなたの手番'))
+ ?(!normalDeferCheck&&check(b,side))?'王手！ 防御してください':(gameMode==='local'?(side===0?'先手の手番':'後手の手番'):(side===1?'敵陣、思案中…':'あなたの手番'))
  :(gameMode==='local'?(side===0?'後手の手番':'先手の手番'):(side===0?'敵陣の手番':'新選組の手番'));
 setBannerStatus(0,statusFor(0));setBannerStatus(1,statusFor(1));
 el('quakeHoleHint').textContent=quakeCracks.length?'⚠ 地面に亀裂が入った！':quakeHoles.length?'⚠ 崩落マスは進入・駒打ち不可（あと'+Math.max(0,quakeHoles[0].expiresPly-ply)+'手）':'';
