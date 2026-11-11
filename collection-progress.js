@@ -91,11 +91,24 @@
  const viewer=document.createElement('dialog');viewer.className='collection-viewer';
  viewer.innerHTML='<button type="button" class="viewer-close" aria-label="閉じる">×</button><h2 class="viewer-name"></h2><div class="viewer-layout"><img class="viewer-art" alt=""><div class="viewer-profile" aria-label="人物のプロフィール"></div></div>';
  document.body.append(viewer);
+ // Reuse the adopted page-turn sound. Opening is clear; closing is gentler.
+ const pageFlip=new Audio('assets/audio/sfx/card_flip.mp3');
+ pageFlip.preload='auto';
+ let lastFlipAt=0;
+ function playProfilePageTurn(closing=false){
+  if(Date.now()-lastFlipAt<130)return;
+  lastFlipAt=Date.now();
+  try{
+   pageFlip.pause();pageFlip.currentTime=0;
+   pageFlip.volume=closing?0.30:0.46;
+   const playback=pageFlip.play();if(playback?.catch)playback.catch(()=>{});
+  }catch(_){/* Audio can be unavailable until the next user gesture. */}
+ }
  let lastFocused=null;
  const closeViewer=()=>{if(viewer.open)viewer.close()};
  viewer.querySelector('.viewer-close').onclick=closeViewer;
  viewer.onclick=e=>{if(e.target===viewer)closeViewer()};
- viewer.addEventListener('close',()=>{lastFocused?.focus?.();lastFocused=null});
+ viewer.addEventListener('close',()=>{playProfilePageTurn(true);lastFocused?.focus?.();lastFocused=null});
  function showCard(row){
   if(!testMode&&!owned().has(row.name))return;
   lastFocused=document.activeElement;
@@ -106,6 +119,7 @@
   const profile=row.element.querySelector('.profile');
   viewer.querySelector('.viewer-profile').replaceChildren(...Array.from(profile.childNodes,child=>child.cloneNode(true)));
   viewer.showModal();
+  playProfilePageTurn();
  }
  rows.forEach((row,index)=>{
   const card=row.element;card.dataset.characterIndex=String(index);
