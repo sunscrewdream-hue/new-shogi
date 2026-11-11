@@ -1332,3 +1332,18 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
 #storyChapters .chapter{direction:ltr;font-weight:900}
 #storyChapters .chapter small,#storyChapters .chapter strong,
 #storyChapters .chapter em,#storyChapters .chapter .chapter-board{font-weight:900!important}
+
+/* Final-page departure fits beside the left back arrow on narrow phones. */
+#storyDialogue .dialogue-foot.story-sortie-foot .dialogue-navigation #dialogueNext.story-sortie-button{
+ box-sizing:border-box;
+ width:min(52vw,210px);
+ max-width:calc(100% - 92px);
+ min-width:0;
+ min-height:52px;
+ padding:10px 8px;
+ font-size:clamp(18px,4.8vw,23px);
+ line-height:1.25;
+}
+#storyDialogue .dialogue-foot.story-sortie-foot .dialogue-navigation #dialoguePrev{
+ z-index:1;
+}
