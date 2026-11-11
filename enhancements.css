@@ -721,3 +721,28 @@ body.local-title-mode #storyUnlockExplanation{
   height:332px!important;min-height:332px!important;--scroll-height:332px!important;
  }
 }
+
+
+/* 2026-11-11: 二人対戦で旧・縦巻物の410px枠が残っていた問題を解消。 */
+@media(max-width:600px){
+ body.local-title-mode #battlefieldModeGroup{
+  gap:10px!important;align-items:stretch!important;
+ }
+ body.local-title-mode #titleModeActions,
+ body.local-title-mode #titleModeActions .titleModeChoice:first-child{
+  height:auto!important;min-height:0!important;max-height:none!important;
+  overflow:visible!important;
+ }
+ body.local-title-mode #titleModeActions .titleModeChoice:first-child{
+  display:flex!important;flex-direction:column!important;
+  justify-content:flex-start!important;align-items:stretch!important;
+  padding:0!important;gap:5px!important;
+ }
+ body.local-title-mode #titleModeActions .titleModeChoice:first-child #startGame{
+  flex:none!important;position:relative!important;top:auto!important;bottom:auto!important;
+ }
+ body.local-title-mode #titleModeActions .titleModeChoice:first-child .modeInfo{
+  flex:none!important;position:static!important;bottom:auto!important;
+ }
+ body.local-title-mode #storyUnlockPicker{flex:none!important;}
+}
