@@ -13,9 +13,9 @@
   const next=captured&&hitokiri?(lethal?0:count+1):count;
   return Object.freeze({lethal,next,awakened:Boolean(captured&&hitokiri&&!lethal&&next===3)});
  }
- function voiceCues({captured=false,lethal=false,gaveCheck=false}){
+ function voiceCues({captured=false,lethal=false,gaveCheck=false,captureAlreadyPlayed=false}){
   const cues=[];
-  if(captured&&!lethal)cues.push("capture");
+  if(captured&&!lethal&&!captureAlreadyPlayed)cues.push("capture");
   if(gaveCheck&&!lethal)cues.push("check");
   return cues;
  }
