@@ -33,7 +33,14 @@
  .shared-match-header{gap:8px}
  .shared-match-header .audio-settings-trigger{min-height:40px;padding:8px 15px;font-size:14px}
 }
-.normal-match-header>.page-return{margin:0;appearance:none;cursor:pointer}
+.normal-match-header>.page-return{
+ margin:0;appearance:none;cursor:pointer;
+ min-width:150px;min-height:44px;padding:10px 20px;
+ font:700 14px/1.4 system-ui,"Yu Gothic",sans-serif;
+ border:0;border-radius:0;box-shadow:none;
+ color:#fff0d0!important;text-shadow:0 1px 2px #43170ec9;
+ background:#863522 url('assets/ui/makimono_red_button.webp') center / 100% 100% no-repeat;
+}
 .shared-match-top{
  width:min(96vw,520px);max-width:520px;min-height:30px;
  margin:5px auto 3px;text-align:center;color:#dfc18a;
