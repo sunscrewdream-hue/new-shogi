@@ -648,11 +648,12 @@ function compactApplyIncident(effect){
   },1750);return;
  }
  const {kind,side,owner,y,x}=effect,p=g.board[y]?.[x];
- if(!p||p.s!==owner||p.t==="玉"){compactResumeTurn();return}
+ if(!p||p.s!==owner||p.t==="玉"){compactIncidentMarks=[];compactResumeTurn();return}
  compactIncidentMarks=[y+":"+x];banner(owner,p);render();
  // Finished match plays the gravel-run cue as the desertion starts, not after it ends.
  if(kind==="脱走"||kind==="寝返り")compactSound("desert");
- const finish=()=>{if(game!==epoch)return;compactIncidentMarks=[];compactResumeTurn()};
+ let effectFinished=false;
+ const finish=()=>{if(game!==epoch||effectFinished)return;effectFinished=true;compactIncidentMarks=[];render();compactResumeTurn()};
  const remove=()=>{
   if(game!==epoch)return;const current=g.board[y]?.[x];if(!current||current!==p){finish();return}
   g.board[y][x]=null;
@@ -689,11 +690,15 @@ function compactApplyIncident(effect){
    ghost=document.createElement("img");ghost.src="assets/sprites/figures/"+(owner===0?"shinsengumi_back":"saccho_front")+".webp";ghost.alt="";
    Object.assign(ghost.style,{left:rect.left+rect.width/2-width/2+"px",top:rect.top+rect.height/2-height/2+"px",width:width+"px",height:height+"px"});layer.replaceChildren(ghost);
   }
-  const depart=()=>{if(game!==epoch||g.board[y]?.[x]!==p)return;g.board[y][x]=null;g.fallen[p.s].push({...p,p:false});render()};
+  const depart=()=>{if(game!==epoch)return;if(g.board[y]?.[x]!==p)return;g.board[y][x]=null;g.fallen[p.s].push({...p,p:false});render()};
   if(!ghost){depart();setTimeout(finish,180);return}
   setTimeout(depart,120);
   const travel=owner===0?-innerWidth:innerWidth;
-  ghost.animate([{offset:0,opacity:1,transform:"rotate(0)"},{offset:.12,transform:"rotate(-8deg)"},{offset:.24,transform:"rotate(8deg)"},{offset:.38,transform:"rotate(-6deg)"},{offset:.62,opacity:1,transform:`translate(${travel*.42}px,-38px) rotate(-15deg)`},{offset:1,opacity:0,transform:`translate(${travel}px,${-rect.top-100}px) rotate(16deg) scale(.5)`}],{duration:2600,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{ghost.remove();finish()});
+  const settle=()=>{if(game!==epoch)return;depart();ghost.remove();finish()};
+  const watchdog=setTimeout(settle,3100);
+  try{
+   ghost.animate([{offset:0,opacity:1,transform:"rotate(0)"},{offset:.12,transform:"rotate(-8deg)"},{offset:.24,transform:"rotate(8deg)"},{offset:.38,transform:"rotate(-6deg)"},{offset:.62,opacity:1,transform:`translate(${travel*.42}px,-38px) rotate(-15deg)`},{offset:1,opacity:0,transform:`translate(${travel}px,${-rect.top-100}px) rotate(16deg) scale(.5)`}],{duration:2600,easing:"ease-in-out",fill:"forwards"}).finished.catch(()=>{}).then(()=>{clearTimeout(watchdog);settle()});
+  }catch(error){console.warn("脱走アニメーションを復旧",error);clearTimeout(watchdog);settle()}
  }else setTimeout(remove,850);
 }
 function compactIntro(){
