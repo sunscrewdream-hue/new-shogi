@@ -57,6 +57,10 @@
    const label=document.createElement('span');label.textContent='通常対局';actionTop.append(label);
    header.after(actionTop);
    const actions=document.createElement('div');actions.className='shared-match-actions normal-match-actions';
+   const save=document.getElementById('quickSave');
+   const fullscreen=save?.nextElementSibling?.textContent?.includes('全画面')?save.nextElementSibling:null;
+   if(save)actions.append(save);
+   if(fullscreen)actions.append(fullscreen);
    if(rules){rules.textContent='操作・ルール';actions.append(rules)}
    if(restart){restart.textContent='最初から';actions.append(restart)}
    if(resign){resign.textContent='降参する';actions.append(resign)}
