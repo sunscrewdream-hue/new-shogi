@@ -653,3 +653,6 @@ body.local-title-mode #storyUnlockExplanation{
   left:5px!important;
  }
 }
+
+/* Keep the four title scroll links as one centered group. */
+#titleScreen #titleLinks{grid-template-columns:repeat(4,minmax(0,1fr))!important;width:min(92vw,316px)!important;margin-left:auto!important;margin-right:auto!important;justify-content:center!important}
