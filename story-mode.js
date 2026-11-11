@@ -1278,6 +1278,24 @@ function square(y,x){
       options.forEach(button=>button.disabled=true);
       playStoryClip(kabukiVoice.promotion,"voice",()=>{if(!modal.classList.contains("hidden"))options.forEach(button=>button.disabled=false)});
      };
+     const previewThenChoose=async(capturePreplayed=false)=>{
+      const game=epoch;busy=true;selected=null;
+      // Visually complete the move before the promotion question, on every board size.
+      promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,hide:false,showMover:true,piece:unit};render();
+      const cells=$("storyBoard").querySelectorAll(".sq"),origin=cells[m.y*g.w+m.x],target=cells[m.Y*g.w+m.X],token=target?.querySelector(".story-token");
+      if(token&&origin&&target&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
+       const a=origin.getBoundingClientRect(),b=target.getBoundingClientRect();
+       await new Promise(resolve=>{
+        let done=false,animation=null;
+        const finish=()=>{if(done)return;done=true;try{animation?.cancel()}catch{}resolve()};
+        try{animation=token.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px)`,opacity:.9},{transform:"translate(0,0)",opacity:1}],{duration:360,easing:"ease-out"});animation.onfinish=finish;animation.oncancel=finish}
+        catch{finish()}
+        setTimeout(finish,500);
+       });
+      }else await later(180);
+      if(game!==epoch||ended||$("storyBattle").classList.contains("hidden"))return;
+      busy=false;render();showPromotionChoice(capturePreplayed);
+     };
      const captive=!m.drop?g.board[m.Y][m.X]:null;
      const sourceKey=compactFighterKey(unit);
      const capturePlan=captive?window.ShinsengumiBattleRules.captureResult({captured:true,drop:false,previous:compactCaptures[sourceKey]||0,hitokiri:true}):null;
@@ -1295,11 +1313,10 @@ function square(y,x){
       ]).then(async()=>{
        await later(300);
        if(game!==epoch||ended||$("storyBattle").classList.contains("hidden"))return;
-       promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,hide:false,showMover:true,piece:unit};
-       busy=false;render();showPromotionChoice(true);
+       await previewThenChoose(true);
       });return;
      }
-     showPromotionChoice();return;
+     void previewThenChoose();return;
     }makeMove(m,false);
    };
    if(g.allowAbandonKing&&g.check(g.board,0)){

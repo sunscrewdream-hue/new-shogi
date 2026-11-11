@@ -1307,3 +1307,22 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
  #storyChapters .chapter .chapter-board{bottom:6px;font-size:12px}
  #storyChapters .chapter .chapter-board span{font-size:8px}
 }
+
+/* Every battle chapter shares a truly centered chapter heading. */
+#storyBattle .battle-top{
+ position:relative;display:flex;justify-content:center;align-items:center;
+ max-width:520px;min-height:34px;margin:5px auto 2px;
+}
+#storyBattle #battleChapter{
+ display:block;width:100%;padding:0 96px;
+ text-align:center;font-weight:800;line-height:1.35;
+ overflow-wrap:anywhere;
+}
+#storyBattle .battle-top #battleQuit{
+ position:absolute;right:0;top:50%;transform:translateY(-50%);
+}
+#storyBattle #battleTitle{text-align:center;margin-left:auto;margin-right:auto}
+@media(max-width:600px){
+ #storyBattle #battleChapter{padding:0 74px;font-size:clamp(10px,2.7vw,12px)}
+ #storyBattle .battle-top #battleQuit{font-size:11px;padding:5px 7px}
+}
