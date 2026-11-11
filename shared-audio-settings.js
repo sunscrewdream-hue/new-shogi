@@ -51,7 +51,6 @@
    const rules=document.querySelector('.game-menu-link[href="rules.html"]');
    const header=document.createElement('div');header.className='shared-match-header normal-match-header';
    if(back){back.textContent='タイトルへ戻る';back.classList.add('page-return');header.append(back)}
-   header.append(trigger);
    enemy?.before(header);
    actionTop.className='shared-match-top normal-match-top';
    const label=document.createElement('span');label.textContent='通常対局';actionTop.append(label);
@@ -61,6 +60,7 @@
    const fullscreen=save?.nextElementSibling?.textContent?.includes('全画面')?save.nextElementSibling:null;
    if(save)actions.append(save);
    if(fullscreen)actions.append(fullscreen);
+   actions.append(trigger);
    if(rules){rules.textContent='操作・ルール';actions.append(rules)}
    if(restart){restart.textContent='最初から';actions.append(restart)}
    if(resign){resign.textContent='降参する';actions.append(resign)}
