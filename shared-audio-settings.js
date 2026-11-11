@@ -43,7 +43,7 @@
    const back=findAction('returnToTitle'),restart=findAction('restartGame'),resign=findAction('surrender');
    const rules=document.querySelector('.game-menu-link[href="rules.html"]');
    const header=document.createElement('div');header.className='shared-match-header normal-match-header';
-   if(back){back.textContent='タイトルへ戻る';header.append(back)}
+   if(back){back.textContent='タイトルへ戻る';back.classList.add('page-return');header.append(back)}
    header.append(trigger);
    enemy?.before(header);
    actionTop.className='shared-match-top normal-match-top';
