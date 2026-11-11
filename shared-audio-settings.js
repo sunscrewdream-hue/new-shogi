@@ -57,9 +57,7 @@
    header.after(actionTop);
    const actions=document.createElement('div');actions.className='shared-match-actions normal-match-actions';
    const save=document.getElementById('quickSave');
-   const fullscreen=save?.nextElementSibling?.textContent?.includes('全画面')?save.nextElementSibling:null;
    if(save)actions.append(save);
-   if(fullscreen)actions.append(fullscreen);
    actions.append(trigger);
    // These two controls were retired from the normal match UI.
    rules?.remove();

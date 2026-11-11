@@ -53,18 +53,13 @@
  const extras=document.createElement('div');extras.id='titleExtras';
  const resume=document.createElement('button');resume.type='button';resume.id='continueGame';resume.textContent='▶ 続きから';resume.onclick=()=>loadGame(SAVE_KEY);
  const manualLoad=document.createElement('button');manualLoad.type='button';manualLoad.id='loadGame';manualLoad.textContent='📂 保存した対局';manualLoad.onclick=()=>loadGame(MANUAL_KEY);
- const full=document.createElement('button');full.type='button';full.textContent='⛶ 全画面';full.onclick=async()=>{
-  try{if(document.fullscreenElement){await document.exitFullscreen();return}if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();return}}catch{}
-  alert('このブラウザでは直接の全画面表示に対応していません。iPhoneではSafariの「共有」→「ホーム画面に追加」を選ぶと、アプリのように起動できます。');
- };
  const titleSettings=document.createElement('button');titleSettings.type='button';titleSettings.id='titleSettingsButton';titleSettings.textContent='⚙ 設定';titleSettings.setAttribute('aria-haspopup','dialog');
  titleSettings.onclick=()=>{const settingsButton=document.querySelector('.audio-settings-trigger');if(settingsButton)settingsButton.click()};
- extras.append(resume,manualLoad,full,titleSettings);$('startGame').insertAdjacentElement('afterend',extras);
+ extras.append(resume,manualLoad,titleSettings);$('startGame').insertAdjacentElement('afterend',extras);
  const manual=document.createElement('a');manual.href='manual.html';manual.textContent='新選組将棋の遊び方';$('titleLinks').prepend(manual);
  const collectionLink=$('titleLinks').querySelector('a[href="collection.html"]');if(collectionLink)collectionLink.textContent='人物コレクション';
  const inGameSave=document.createElement('button');inGameSave.type='button';inGameSave.id='quickSave';inGameSave.textContent='💾 対局を保存';inGameSave.onclick=()=>{if(titleIsVisible()||ended){showToast('対局中に保存してください');return}showToast(saveGame(MANUAL_KEY)?'対局を保存しました':'保存できませんでした')};
  const gameHelp=document.querySelector('.game-menu-link');gameHelp?.insertAdjacentElement('beforebegin',inGameSave);
- const inGameFull=document.createElement('button');inGameFull.type='button';inGameFull.textContent='⛶ 全画面';inGameFull.onclick=full.onclick;inGameSave.insertAdjacentElement('afterend',inGameFull);
  function updateContinueButton(){resume.hidden=!getStorage(SAVE_KEY);manualLoad.hidden=!getStorage(MANUAL_KEY)}
 
  /* Special "abandon the king" rule. It is intentionally not standard shogi. */
