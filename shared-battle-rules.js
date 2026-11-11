@@ -38,6 +38,13 @@
   setTimeout(()=>{face.removeEventListener("animationend",onAnimationEnd);finish()},fallbackMs);
  }
 
+ // Contact/finish are idempotent even if an animation ends and a watchdog fires.
+ function runCaptureEscort({animate,onContact=()=>{},onFinished=()=>{},valid=()=>true}){
+  let touched=false,finished=false;
+  const contact=()=>{if(touched||!valid())return;touched=true;onContact()};
+  const finish=()=>{if(finished||!valid())return;finished=true;contact();onFinished()};
+  try{animate(finish,contact)}catch(error){console.error("捕獲護送の復旧",error);finish()}
+ }
  // One serialized capture -> visible move -> promotion-question contract.
  // Each view supplies its own board rendering and character sprite adapter.
  async function runCapturePromotionSequence({capture=null,movePreview=null,choose,valid=()=>true}){
@@ -65,5 +72,5 @@
    setTimeout(finish,duration+140);
   });
  }
- root.ShinsengumiBattleRules=Object.freeze({fighterKey,captureResult,voiceCues,runOrderedEffect,revealAfterTurn,runCapturePromotionSequence,animateMovePreview});
+ root.ShinsengumiBattleRules=Object.freeze({fighterKey,captureResult,voiceCues,runOrderedEffect,revealAfterTurn,runCaptureEscort,runCapturePromotionSequence,animateMovePreview});
 })(typeof window!=="undefined"?window:globalThis);
