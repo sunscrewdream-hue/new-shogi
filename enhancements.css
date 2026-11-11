@@ -644,9 +644,12 @@ body.local-title-mode #storyUnlockExplanation{
 }
 
 
-/* 二人対戦は従来の縦巻物を維持し、出陣巻物だけわずかに左へ。 */
+/* 二人対戦：出陣の巻物を少し左へ、左側の縦書き説明との距離を確保。 */
 @media(max-width:600px){
  body.local-title-mode #titleModeActions .titleModeChoice:first-child #startGame{
-  transform:translateX(4px)!important;
+  transform:translateX(-8px)!important;
+ }
+ body.local-title-mode #titleModeActions .titleModeChoice:first-child .modeInfo{
+  left:5px!important;
  }
 }
