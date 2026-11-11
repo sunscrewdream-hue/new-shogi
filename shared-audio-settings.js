@@ -57,12 +57,12 @@
    header.after(actionTop);
    const actions=document.createElement('div');actions.className='shared-match-actions normal-match-actions';
    const save=document.getElementById('quickSave');
-   if(save)actions.append(save);
+   if(resign){resign.textContent='降参する';resign.classList.add('normal-resign');actions.append(resign)}
+   if(save){save.textContent='💾 保存';actions.append(save)}
    actions.append(trigger);
    // These two controls were retired from the normal match UI.
    rules?.remove();
    restart?.remove();
-   if(resign){resign.textContent='降参する';actions.append(resign)}
    playerHand?.after(actions);
   }
   // Same audio field order and same saved master-volume percentage in both modes.
