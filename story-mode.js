@@ -1771,11 +1771,9 @@ function finish(winner,reason){
  $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
- // Same two bottom actions as the normal-match verdict.
- // Replay restarts the current chapter, while return goes to the title screen.
  const choices=[
-  ["もう一局！",()=>battle(stage,null,true)],
-  ["タイトルへ戻る",()=>{window.location.href="card-ai-test.html"}]
+  [win?"物語を進める":"再挑戦",()=>win?talk(Math.min(stage+1,4)):battle(stage,null,true)],
+  ["章選択",screenHome]
  ];
  for(const [label,action] of choices){
   const button=document.createElement("button");button.type="button";button.textContent=label;
