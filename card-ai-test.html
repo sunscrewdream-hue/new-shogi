@@ -1396,41 +1396,41 @@ function ai(){
  if(gameMode!=='ai'||ended)return;
  const ms=legalMoves(b,h,1);
  if(!ms.length){gameEnd();render();return}
+ // Keep decisions responsive on phones: score all legal moves cheaply,
+ // then inspect tactical danger only for a small shortlist.
  const values={玉:100,飛:13,角:11,金:8,銀:6,桂:4,香:4,歩:1};
- let scored=ms.map(m=>{
-  const capture=!m.drop?b[m.Y][m.X]:null;
-  const willPromote=aiPromote(b,m);
-  if(aiLevel===0){
-   return {m,v:Math.random()*4+(capture?values[capture.t]*1.6:0)+(willPromote?2:0)};
-  }
-  const bb=clone(b),hh=clone(h);
-  apply(bb,hh,1,m,willPromote);
-  let v=aiEvaluate(bb)+(capture?1.5:0)+(willPromote?1.4:0)+Math.random()*(aiLevel===2?.25:.8);
-  // Avoid one-ply blunders: price the best immediate enemy capture/attack.
-  let maxLoss=0;
-  for(let y=0;y<9;y++)for(let x=0;x<9;x++){
-   const p=bb[y][x];if(!p||p.s!==0)continue;
-   for(const [Y,X] of moves(bb,y,x,true)){
-    const q=bb[Y][X];if(q?.s===1&&q.t!=='玉')maxLoss=Math.max(maxLoss,aiValue(q));
-   }
-  }
-  v-=maxLoss*(aiLevel===2?.85:.62);
+ const scored=ms.map(m=>{
+  const piece=m.drop?{t:m.t}:b[m.y][m.x];
+  const captured=m.drop?null:b[m.Y][m.X];
+  const promotion=aiPromote(b,m);
+  const advance=m.drop?0:(m.Y-m.y);
+  const center=4-Math.abs(m.X-4);
+  const captureValue=captured?(values[captured.t]||1):0;
+  let v=captureValue*(aiLevel===0?1.5:2.2)+(promotion?3:0);
+  v+=advance*(piece.t==='歩'?.28:.06)+center*.09;
+  v+=Math.random()*(aiLevel===0?5:aiLevel===1?1.6:.55);
   return {m,v};
  }).sort((a,z)=>z.v-a.v);
- if(aiLevel===2){
-  for(const item of scored.slice(0,9)){
-   const bb=clone(b),hh=clone(h);apply(bb,hh,1,item.m,aiPromote(b,item.m));
-   const replies=legalMoves(bb,hh,0);
-   let worst=Infinity;
-   for(const response of replies){
-    const bc=clone(bb),hc=clone(hh);apply(bc,hc,0,response,aiPromote(bb,response));
-    worst=Math.min(worst,aiEvaluate(bc));
+ if(aiLevel>0){
+  const shortlist=scored.slice(0,aiLevel===2?6:4);
+  for(const item of shortlist){
+   const m=item.m,bb=clone(b),hh=clone(h);
+   apply(bb,hh,1,m,aiPromote(b,m));
+   // The opponent's attack map is enough to detect hanging pieces.
+   // Avoid recursively searching every reply for every candidate.
+   let maxLoss=0;
+   for(let y=0;y<9;y++)for(let x=0;x<9;x++){
+    const p=bb[y][x];if(!p||p.s!==0)continue;
+    for(const [Y,X] of moves(bb,y,x,true)){
+     const q=bb[Y][X];
+     if(q?.s===1&&q.t!=='玉')maxLoss=Math.max(maxLoss,values[q.t]||1);
+    }
    }
-   if(replies.length)item.v=worst+(item.v-aiEvaluate(bb))*.35;
+   item.v-=maxLoss*(aiLevel===2?1.1:.65);
+   if(check(bb,0))item.v+=aiLevel===2?3:1.5;
   }
-  const candidates=scored.slice(0,9).sort((a,z)=>z.v-a.v);
-  const choice=candidates[0];
-  scored.splice(0,scored.length,choice);
+  shortlist.sort((a,z)=>z.v-a.v);
+  scored.splice(0,scored.length,...shortlist);
  }
  const m=scored[0].m,prom=aiPromote(b,m);busy=false;
  if(m.drop){commit(m,prom)}
