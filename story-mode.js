@@ -1022,8 +1022,22 @@ function screenHome(){
 function talk(i){
  window.StoryBgm?.play(i===4?"ending":"prologue");
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
+ if(i>=0&&i<4)selectIntroArtwork(i);
  dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>battle(i);
  $("dialogueScene").className="scene-art scene-"+ch.scene;$("dialogueDate").textContent=storyKanjiNumerals(ch.era);$("dialogueTitle").textContent=ch.title;chooseView("storyDialogue");line();
+}
+// The same approved Shinsengumi side is paired with each stage's own enemy art.
+// Switching while the story pages are open lets the browser preload both images
+// before the sortie animation begins.
+function selectIntroArtwork(chapter){
+ const stages=["ikedaya","kinmon","aburanokoji","toba_fushimi"];
+ const key=stages[chapter];if(!key)return;
+ const root=$("compactIntroClash"),pictures=root.querySelectorAll("picture");
+ const enemy=pictures[0],shinsengumi=pictures[1];
+ enemy.querySelector("source").srcset=`assets/visuals/intro_${key}_enemy_mobile.webp`;
+ enemy.querySelector("img").src=`assets/visuals/intro_${key}_enemy_pc.webp`;
+ shinsengumi.querySelector("source").srcset="assets/visuals/intro_shinsengumi_team_mobile.webp";
+ shinsengumi.querySelector("img").src="assets/visuals/intro_shinsengumi_team_pc.webp";
 }
 function storyKanjiNumerals(value){
  const digits="〇一二三四五六七八九";
