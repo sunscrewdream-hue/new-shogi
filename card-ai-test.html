@@ -1298,7 +1298,7 @@ function queueTurnNotice(side){
   showTurnNotice(side);
   if(side===1&&gameMode==='ai')setTimeout(()=>{
    if(e===epoch&&id===noticeQueue&&pendingCardSide===null&&!ended)scheduleAI()
-  },1150);
+  },2050);
  };
  setTimeout(revealWhenReady,side===1?550:1800);
 }
@@ -1342,7 +1342,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
    if(pendingEpoch!==epoch||ended||gameMode!=='ai'||turn!==1||ply!==pendingPly||
       pendingCardSide!==null||incidentRunning||aiMoveSpot)return;
    if(!aiTurnScheduled)scheduleAI();
-  },3800);
+  },6500);
  }
  // A completed AI move must return control even when its voice callback stalls.
  if(speakerSide===1&&gameMode==='ai'){
