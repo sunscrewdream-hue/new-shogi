@@ -63,6 +63,7 @@
   const primary=new Set([...order,'volume','storyVolume']);
   const extras=[...body.children].filter(node=>!primary.has(node.id)&&node!==sliderLabel);
   extras.forEach(node=>body.append(node));
+  document.body.append(panel);
   const volumeKey='shinsengumi-shogi-master-volume-v1';
   if(slider){
    let saved=35;
@@ -70,7 +71,6 @@
    slider.value=String(saved);slider.dispatchEvent(new Event('input',{bubbles:true}));
    slider.addEventListener('input',()=>{try{localStorage.setItem(volumeKey,slider.value)}catch{}});
   }
-  document.body.append(panel);
   const close=()=>panel.close();
   trigger.addEventListener('click',()=>{panel.showModal();trigger.setAttribute('aria-expanded','true');panel.querySelector('.audio-settings-close').focus()});
   panel.querySelector('.audio-settings-close').addEventListener('click',close);
