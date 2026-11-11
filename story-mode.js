@@ -1201,7 +1201,10 @@ function render(){
   const previewDestination=preview?.y===y&&preview?.x===x;
   const previewOrigin=preview?.fromY===y&&preview?.fromX===x;
   const held=promotionVisualHold?.y===y&&promotionVisualHold.x===x?promotionVisualHold.piece:null;
-  const shown=previewDestination?preview.piece:previewOrigin?null:held||p;
+  const captureHidden=promotionCapturePreview?.hide&&promotionCapturePreview.y===y&&promotionCapturePreview.x===x;
+   // Once the escort touches the captive, remove the actual board token from
+   // the rendered DOM. CSS-only visibility was vulnerable to later redraws.
+   const shown=captureHidden?null:previewDestination?preview.piece:previewOrigin?null:held||p;
   btn.setAttribute("aria-label",(y+1)+"段"+(x+1)+"列 "+(shown?person(shown).name+" "+label(shown):"空きマス"));
   if(g.last?.y===y&&g.last.x===x)btn.classList.add("last");
   if(selected&&!selected.drop&&selected.y===y&&selected.x===x)btn.classList.add("selected");
