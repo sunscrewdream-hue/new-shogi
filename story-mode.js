@@ -1301,10 +1301,16 @@ function square(y,x){
       promotionCapturePreview={y:m.Y,x:m.X,hide:false};render();
       const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}};
       const capture=async()=>{
-       await Promise.all([
-        new Promise(resolve=>animateCompactEscort(0,m.Y,m.X,captive,resolve,takeCaptive)),
-        new Promise(resolve=>sfx("capture",resolve))
-       ]);
+       await new Promise(resolve=>{
+        let escortDone=false,voiceDone=false;
+        const finish=()=>{if(escortDone&&voiceDone)resolve()};
+        window.ShinsengumiBattleRules.runCaptureEscort({
+         valid:()=>game===epoch&&!ended,
+         animate:(done,contact)=>animateCompactEscort(0,m.Y,m.X,captive,done,()=>{takeCaptive();contact()}),
+         onContact:()=>sfx("capture",()=>{voiceDone=true;finish()}),
+         onFinished:()=>{escortDone=true;finish()}
+        });
+       });
        await later(300);
       };
       void previewThenChoose(true,capture);return;
@@ -1460,7 +1466,7 @@ function makeMove(m,prom,capturePreplayed=false){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
  const forcedPromotion=!m.drop&&!!source&&g.forced(source,m.Y),showPromotion=prom||forcedPromotion;
  const holesBefore=compactMode()?[...g.holes]:[];
- let moveVoiceDone=Promise.resolve();
+ let moveVoiceDone=Promise.resolve(),triggerCaptureVoice=null;
  const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
  const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
@@ -1477,16 +1483,21 @@ function makeMove(m,prom,capturePreplayed=false){
   justAwakened=capturePlan.awakened;
  }
  const gaveCheck=g.check(g.board,1-actor);
- const deferCheck=showPromotion&&gaveCheck;
+ const deferCheck=(showPromotion||!!captured)&&gaveCheck;
  if(deferCheck)deferredCheckVisualEpoch=epoch;
  const delayedCheck=compactClosingHoles.length>0&&gaveCheck;
  const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck,captureAlreadyPlayed:capturePreplayed});
  if(captured){
   if(!willKill){
    if(!capturePreplayed)for(const cue of moveCues){if(cue==="capture"){
-    if(actor===0)announce("capture",sfx);else announce("sacchoCapture");
+    const voiceDone=new Promise(resolve=>{
+     let started=false;
+     triggerCaptureVoice=()=>{if(started)return;started=true;
+      if(actor===0)sfx("capture",resolve);else compactSound("sacchoCapture",resolve)
+     };
+    });
+    moveVoiceDone=moveVoiceDone.then(()=>voiceDone);
    }else if(!delayedCheck&&!deferCheck)announce("check")}
-   if(compactMode()&&!capturePreplayed)compactSound("slash");
   }
   // The fallen Shinsengumi officer responds after the enemy's capture shout.
   // Ordinary capture plays 「捕えた」 only. 「無念」 is reserved for killing,
@@ -1501,7 +1512,7 @@ function makeMove(m,prom,capturePreplayed=false){
   else if(dedicated)announce(dedicated);
   else if(nearby&&Math.random()<.45)announce(actor===0?"move0":showPromotion?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
- promotionCapturePreview=null;
+ promotionCapturePreview=captured&&!willKill&&!capturePreplayed?{y:m.Y,x:m.X,piece:captured,showMover:true,hide:false}:null;
  if(unit)banner(actor,unit);selected=null;render();
  const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
  // Being cornered without legal moves is not Ito's death.
@@ -1552,7 +1563,18 @@ function makeMove(m,prom,capturePreplayed=false){
    }
    else compactResumeTurn();
   });
-  if(captured&&!willKill&&!capturePreplayed)animateCompactEscort(actor,m.Y,m.X,captured,afterFx);
+  if(captured&&!willKill&&!capturePreplayed){
+   const valid=()=>id===epoch&&!ended;
+   window.ShinsengumiBattleRules.runCaptureEscort({
+    valid,
+    animate:(done,contact)=>animateCompactEscort(actor,m.Y,m.X,captured,done,contact),
+    onContact:()=>{
+     if(promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}
+     compactSound("slash");triggerCaptureVoice?.();
+    },
+    onFinished:()=>{promotionCapturePreview=null;render();afterFx()}
+   });
+  }
   else if(willKill){
    // The shared contract enforces attack -> impact -> casualty cry -> result.
    (async()=>{
