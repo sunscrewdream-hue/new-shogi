@@ -209,10 +209,13 @@
   }
  }
  const baseCommit=commit;
- commit=function(m,prom=false){
+ commit=function(m,prom=false,preplayedCapture=false){
   const captured=!m.drop?b[m.Y]?.[m.X]:null;
-  const result=baseCommit(m,prom);
-  if(captured)awardPerson(captured);
+  const beforePly=ply;
+  // Forward the escort completion flag; dropping it restarts the capture forever.
+  const result=baseCommit(m,prom,preplayedCapture);
+  // Award a character only after the board move actually commits.
+  if(captured&&ply!==beforePly)awardPerson(captured);
   return result;
  };
  /* The seal belongs to a particular historical person and follows their capture counter. */
