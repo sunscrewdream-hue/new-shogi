@@ -9,10 +9,10 @@
   'assets/cards/incident-title-outline-v3.webp'
  ];
  const normalImages=[
-  'assets/visuals/intro_toba_fushimi_enemy_mobile.webp',
-  'assets/visuals/intro_shinsengumi_team_mobile.webp',
-  'assets/visuals/intro_toba_fushimi_enemy_pc.webp',
-  'assets/visuals/intro_shinsengumi_team_pc.webp'
+  'assets/visuals/intro_toba_fushimi_enemy_mobile.webp?v=clash-art-20261111b',
+  'assets/visuals/intro_shinsengumi_team_mobile.webp?v=clash-art-20261111b',
+  'assets/visuals/intro_toba_fushimi_enemy_pc.webp?v=clash-art-20261111b',
+  'assets/visuals/intro_shinsengumi_team_pc.webp?v=clash-art-20261111b'
  ];
  const titleVoice='assets/audio/voice_iza_shutsujin.mp3';
  const cache=new Map(),successful=new Set(),bypass=new WeakSet();
