@@ -1008,7 +1008,7 @@ function screenHome(){
  for(const p of profile){
   const card=document.createElement("button");card.className="story-king-card";const unlocked=owned.includes(p.id);
   card.setAttribute("aria-label",unlocked?p.name+"の人物情報":"未解放の人物カード");
-  const picture=document.createElement("img");picture.alt=unlocked?p.name:"";picture.loading="lazy";picture.src=unlocked?p.art:"assets/cards/back/card-back-saccho-1024x1536.webp";
+  const picture=document.createElement("img");picture.alt=unlocked?p.name:"";picture.loading="lazy";picture.src=unlocked?p.art:"assets/cards/back/card-back-king-neutral.webp";
   const heading=document.createElement("strong");heading.textContent=unlocked?p.name:"？？？";
   card.append(picture,heading);card.onclick=()=>unlocked&&popup(p.name,p.subtitle+"\n"+p.text,[["閉じる",()=>{}]],p.art);cards.append(card);
  }
