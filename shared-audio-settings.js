@@ -61,8 +61,9 @@
    if(save)actions.append(save);
    if(fullscreen)actions.append(fullscreen);
    actions.append(trigger);
-   if(rules){rules.textContent='操作・ルール';actions.append(rules)}
-   if(restart){restart.textContent='最初から';actions.append(restart)}
+   // These two controls were retired from the normal match UI.
+   rules?.remove();
+   restart?.remove();
    if(resign){resign.textContent='降参する';actions.append(resign)}
    playerHand?.after(actions);
   }
