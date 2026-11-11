@@ -18,10 +18,21 @@
 
 /* Identical on-board controls for normal matches and every story chapter. */
 .shared-match-header{
- display:flex;flex-direction:column;align-items:center;justify-content:center;
- gap:7px;width:min(96vw,520px);margin:7px auto 5px;text-align:center;
+ display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:center;
+ gap:10px;width:min(96vw,520px);margin:7px auto 5px;text-align:center;
 }
-.shared-match-header .audio-settings-trigger{margin:0 auto}
+.shared-match-header .story-audio-controls:has(.audio-settings-trigger){
+ display:flex;flex:0 0 auto;align-items:center;justify-content:center;
+ width:auto;max-width:none;margin:0;gap:0;flex-wrap:nowrap;
+}
+.shared-match-header .audio-settings-trigger{
+ margin:0;min-height:42px;padding:9px 20px;
+ font:800 15px/1.25 system-ui,sans-serif;
+}
+@media(max-width:450px){
+ .shared-match-header{gap:8px}
+ .shared-match-header .audio-settings-trigger{min-height:40px;padding:8px 15px;font-size:14px}
+}
 .normal-match-header>.page-return{margin:0;appearance:none;cursor:pointer}
 .shared-match-top{
  width:min(96vw,520px);max-width:520px;min-height:30px;
