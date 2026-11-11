@@ -206,10 +206,10 @@
   for(const anchor of document.querySelectorAll('a[href="manual.html"],a[href="manual-en.html"]'))anchor.href=lang==='en'?'manual-en.html':'manual.html';
   refresh();for(const button of document.querySelectorAll('.language-toggle'))button.textContent=lang==='en'?'日本語 / EN':'JP / English';
  }
- for(const anchor of ['titleExtras','titleMatchSettings','quickSave']){
+ for(const anchor of ['titleExtras','quickSave']){
   const parent=$(anchor);if(!parent)continue;
   const btn=document.createElement('button');btn.type='button';btn.className='language-toggle';btn.textContent=lang==='en'?'日本語 / EN':'JP / English';btn.title='Switch interface language';btn.onclick=()=>setLang(lang==='en'?'ja':'en');
-  if(anchor==='titleExtras'||anchor==='titleMatchSettings')parent.append(btn);else parent.insertAdjacentElement('afterend',btn);
+  if(anchor==='titleExtras')parent.append(btn);else parent.insertAdjacentElement('afterend',btn);
  }
  if(!document.querySelector('.language-toggle')){
   const hero=document.querySelector('.story-hero,.hero');if(hero){const btn=document.createElement('button');btn.type='button';btn.className='language-toggle';btn.textContent=lang==='en'?'日本語 / EN':'JP / English';btn.onclick=()=>setLang(lang==='en'?'ja':'en');hero.append(btn);}
