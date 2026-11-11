@@ -1731,12 +1731,12 @@ function finish(winner,reason){
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
  const choices=[
-  [win?"物語を進める":"再挑戦",()=>win?(stage===3?talk(4):screenHome()):battle(stage,null,true)],
+  [win?"物語を進める":"再挑戦",()=>win?talk(Math.min(stage+1,4)):battle(stage,null,true)],
   ["章選択",screenHome]
  ];
  for(const [label,action] of choices){
   const button=document.createElement("button");button.type="button";button.textContent=label;
-  button.onclick=()=>{overlay.classList.add("hidden");action()};
+  button.onclick=()=>{overlay.classList.add("hidden");stopStoryVictoryBgm();action()};
   actions.append(button);
  }
  overlay.classList.remove("hidden");
