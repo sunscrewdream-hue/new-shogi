@@ -7,10 +7,11 @@ const specs={
  prologue:{count:7,level:.79},
  battle01:{count:8,level:.77},
  battle02:{count:8,level:1},
+ toba:{count:7,level:.92},
  ending:{count:8,level:.78}
 };
 let ctx=null,master=null,source=null,channel=null,current=null,wanted=null,muted=false,epoch=0,volume=10;
-const gainLevel=()=>muted?0:Math.min(1,volume/100*.60);
+const gainLevel=()=>muted?0:Math.min(1,volume/100*1.15);
 const buffers=new Map(),pending=new Map();
 function audioContext(){
  if(ctx)return ctx;
