@@ -10,7 +10,7 @@
   const extras=document.getElementById('titleExtras');
   if(!extras)return;
   const button=document.createElement('button');
-  button.type='button';button.id='installAppButton';button.textContent='📲 ホーム画面に追加';
+  button.type='button';button.id='installAppButton';button.textContent='ホーム画面に追加';
   button.setAttribute('aria-haspopup','dialog');
   const dialog=document.createElement('dialog');
   dialog.id='installAppDialog';dialog.className='install-app-dialog';
