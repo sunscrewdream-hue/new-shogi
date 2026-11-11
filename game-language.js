@@ -101,7 +101,12 @@
   '肥後出身の尊攘派志士。池田屋事件で命を落とした。':'A loyalist activist from Higo who died in the Ikedaya Incident.',
   '吉田松陰に学んだ長州藩士。禁門の変で自刃した。':'A Chōshū samurai who studied under Yoshida Shōin and died by suicide during the Kinmon Incident.',
   '新選組を離れて御陵衛士を結成。油小路事件で暗殺された。':'He left the Shinsengumi to form the Imperial Tomb Guards and was assassinated during the Aburanokōji Incident.',
-  '新政府側の有力指導者。ゲーム上の最終章王将。':'An influential leader of the new government forces and the final opposing king in this game.'
+  '新政府側の有力指導者。ゲーム上の最終章王将。':'An influential leader of the new government forces and the final opposing king in this game.',
+  '志を胸に、時代を駆ける。':'Carry your convictions through a turbulent age.',
+  '史実をたどりながら、盤上で新選組を指揮せよ。':'Follow history and lead the Shinsengumi on the board.',
+  '史実に基づく物語ですが、対局・勝敗・駒の配置はゲーム独自の演出です。':'Inspired by history; battles, outcomes, and piece positions are fictional game elements.',
+  '対局を進めずに演出を確認できます。事件札・兵器のテストは局面が変化する場合があります。':'Preview effects without taking turns. Event-card and weapon tests may alter the board.',
+  'テスト中：全章・終章に直接移動できます。クリア・人物獲得は保存しません。':'Test mode: all chapters and the epilogue are available. Clears and cards are not saved.'
  };
  const exact=new Map(Object.entries(strings));
  const replacements=[
