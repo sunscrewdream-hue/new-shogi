@@ -1446,6 +1446,7 @@ async function oilAmbushReveal(){
 }
 function makeMove(m,prom,capturePreplayed=false){
  const actor=g.side,source=m.drop?g.hands[actor].find(p=>p.t===m.t):g.board[m.y][m.x];
+ const forcedPromotion=!m.drop&&!!source&&g.forced(source,m.Y),showPromotion=prom||forcedPromotion;
  const holesBefore=compactMode()?[...g.holes]:[];
  let moveVoiceDone=Promise.resolve();
  const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
@@ -1453,18 +1454,18 @@ function makeMove(m,prom,capturePreplayed=false){
  const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
  const oilItoCapture=stage===2&&g.oilPhase===1&&!m.drop&&g.board[m.Y][m.X]?.king==="ito";
  const willKill=capturePlan.lethal||oilItoCapture;
- const prePromotionPiece=prom&&!m.drop?{...source,p:false}:null;
+ const prePromotionPiece=showPromotion&&!m.drop?{...source,p:false}:null;
  let justAwakened=false;
  const {unit,captured}=g.move(m,prom,willKill);
  if(prePromotionPiece)promotionVisualHold={y:m.Y,x:m.X,piece:prePromotionPiece};
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
- if(compactMode()&&!prom)compactArrival={y:m.Y,x:m.X};
+ if(compactMode()&&!showPromotion)compactArrival={y:m.Y,x:m.X};
  if(compactMode()&&captured){
   compactCaptures[key]=capturePlan.next;
   justAwakened=capturePlan.awakened;
  }
  const gaveCheck=g.check(g.board,1-actor);
- const deferCheck=prom&&gaveCheck;
+ const deferCheck=showPromotion&&gaveCheck;
  if(deferCheck)deferredCheckVisualEpoch=epoch;
  const delayedCheck=compactClosingHoles.length>0&&gaveCheck;
  const moveCues=window.ShinsengumiBattleRules.voiceCues({captured:!!captured,lethal:willKill,gaveCheck});
@@ -1480,13 +1481,13 @@ function makeMove(m,prom,capturePreplayed=false){
   // purging and weapon casualties; the finished match does not stack both.
   if(actor===0)collect(captured);banner(1-actor,captured);
  }else{
-  if(!prom)sfx("move");
+  if(!showPromotion)sfx("move");
   const nearby=g.board.some((row,Y)=>row.some((p,X)=>p&&p.s!==actor&&Math.max(Math.abs(Y-m.Y),Math.abs(X-m.X))<=1));
   const dedicated=actor===0?(source?.origin===0&&source?.cid===0?"kondo":source?.origin===0&&source?.cid===1?"hijikata":null)
    :source?.origin===1&&source?.cid===0?"saigo":source?.origin===1&&source?.cid===2?"kido":null;
   if(moveCues.includes("check")&&!delayedCheck&&!deferCheck)announce("check");
   else if(dedicated)announce(dedicated);
-  else if(nearby&&Math.random()<.45)announce(actor===0?"move0":prom?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
+  else if(nearby&&Math.random()<.45)announce(actor===0?"move0":showPromotion?"sacchoPromote":Math.random()<.3?"sacchoUryaa":"sacchoChesto");
  }
  promotionCapturePreview=null;
  if(unit)banner(actor,unit);selected=null;render();
@@ -1500,7 +1501,7 @@ function makeMove(m,prom,capturePreplayed=false){
   const afterFx=()=>moveVoiceDone.then(async()=>{
    if(id!==epoch||ended)return;
    // Serialize complete capture escort + 「捕えた！」 voice before promotion.
-   if(prom){
+   if(showPromotion){
     await later(220); // A deliberate breath between two distinct beats.
     if(id!==epoch||ended)return;
     promotionVisualHold=null;promotionRise={y:m.Y,x:m.X};render();
@@ -1558,7 +1559,7 @@ function makeMove(m,prom,capturePreplayed=false){
      if(id===epoch&&!ended){render();afterFx()}
     }
    })();
-  }else setTimeout(afterFx,prom?350:850);
+  }else setTimeout(afterFx,showPromotion?350:850);
   return;
  }
  if(oilFirstActVictory){storyBannerMessage("伊東甲子太郎、斬殺！",0);oilAmbushReveal();return}
