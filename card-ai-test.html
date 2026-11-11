@@ -1380,7 +1380,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
  };
  if(forcedKill&&rulePreset!=='traditional'){
  window.ShinsengumiBattleRules.runOrderedEffect({
- valid,attack:()=>{animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！')},
+ valid,attack:async()=>{animateLethalSlash(m.Y,m.X);markBlood(m.Y,m.X);flashHitokiri('斬殺！');await new Promise(resolve=>{if(!playSampleSfx('slash'))return resolve();const clip=activeSampleSfx;let done=false;const finish=()=>{if(done)return;done=true;clip?.removeEventListener('ended',finish);resolve()};clip?.addEventListener('ended',finish,{once:true});setTimeout(finish,1300)})},
  impact:()=>new Promise(resolve=>{const clip=sampleSfx.purge;let finished=false;const finish=()=>{if(finished)return;finished=true;clip?.removeEventListener('ended',finish);clip?.removeEventListener('pause',finish);resolve()};clip?.addEventListener('ended',finish);clip?.addEventListener('pause',finish);if(!playSampleSfx('purge'))finish();else setTimeout(finish,1800)}),
  cry:()=>new Promise(resolve=>{if(!playBattleVoice('casualtyCry',resolve))resolve();else setTimeout(resolve,3600)}),
  result:()=>new Promise(resolve=>setTimeout(resolve,450))
@@ -1656,7 +1656,7 @@ function runIncidentEffect(){
   if(effect.kind==='粛清'){
    window.ShinsengumiBattleRules.runOrderedEffect({
     valid:()=>e===epoch&&!ended,
-    attack:()=>markBlood(effect.y,effect.x),
+    attack:async()=>{markBlood(effect.y,effect.x);await new Promise(resolve=>{if(!playSampleSfx('slash'))return resolve();const clip=activeSampleSfx;let done=false;const finish=()=>{if(done)return;done=true;clip?.removeEventListener('ended',finish);resolve()};clip?.addEventListener('ended',finish,{once:true});setTimeout(finish,1300)})},
     impact:()=>new Promise(resolve=>{
      const clip=sampleSfx.purge;let done=false;
      const complete=()=>{if(done)return;done=true;clip?.removeEventListener('ended',complete);resolve()};
@@ -1664,7 +1664,7 @@ function runIncidentEffect(){
      if(!playSampleSfx('purge'))complete();else setTimeout(complete,1800);
     }),
     cry:()=>new Promise(resolve=>{
-     if(!playBattleVoice(effect.owner===1?'sacchoLoss':'loss',resolve))resolve();
+     if(!playBattleVoice('casualtyCry',resolve))resolve();
      else setTimeout(resolve,3800);
     }),
     result:finish
