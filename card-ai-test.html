@@ -1290,13 +1290,22 @@ function queueTurnNotice(side){
  if(rulePreset==='traditional'){showTurnNotice(side);return}
  const e=epoch,id=++noticeQueue;render();
  const started=Date.now();
+ let portraitGoneAt=0;
  const revealWhenReady=()=>{
   if(e!==epoch||id!==noticeQueue||pendingCardSide!==null||ended)return;
-  // Move voices and character portraits finish BEFORE the next-turn artwork.
-  // A long capture clip may need longer than the usual turn pause.
-  if(Date.now()-started<3000&&[el('officerPanel'),el('enemyOfficerPanel')].some(panel=>panel.classList.contains('speaking'))){
-   setTimeout(revealWhenReady,120);return;
+  // The artwork follows the complete portrait dismissal, including its fade.
+  const panels=[el('officerPanel'),el('enemyOfficerPanel')];
+  const portraitVisible=panels.some(panel=>panel.classList.contains('has-portrait')||panel.classList.contains('speaking'));
+  if(portraitVisible){
+   portraitGoneAt=0;
+   if(Date.now()-started<6500){setTimeout(revealWhenReady,120);return}
+   // A lost voice completion must not leave the portrait visible forever.
+   clearCharacterBanner(0);clearCharacterBanner(1);
+   portraitGoneAt=Date.now();
+   setTimeout(revealWhenReady,280);return;
   }
+  if(!portraitGoneAt){portraitGoneAt=Date.now();setTimeout(revealWhenReady,280);return}
+  if(Date.now()-portraitGoneAt<260){setTimeout(revealWhenReady,80);return}
   showTurnNotice(side);
   if(side===1&&gameMode==='ai')setTimeout(()=>{
    if(e===epoch&&id===noticeQueue&&pendingCardSide===null&&!ended)scheduleAI()
