@@ -57,8 +57,8 @@
   }
   // Same audio field order and same saved master-volume percentage in both modes.
   const order=story?['audioToggle','storyVoiceToggle','storyFxToggle']:['bgmToggle','voiceToggle','sfxToggle'];
-  for(const id of order){const control=document.getElementById(id);if(control)body.append(control)}
-  const slider=story?document.getElementById('storyVolume'):document.getElementById('volume');
+  for(const id of order){const control=body.querySelector('#'+id);if(control)body.append(control)}
+  const slider=body.querySelector(story?'#storyVolume':'#volume');
   const sliderLabel=slider?.closest('label');if(sliderLabel)body.append(sliderLabel);
   const primary=new Set([...order,'volume','storyVolume']);
   const extras=[...body.children].filter(node=>!primary.has(node.id)&&node!==sliderLabel);
