@@ -1155,7 +1155,7 @@ function battle(i,oilFormation=null,retry=false){
    [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
  }
  if(i===2)g.startOilAmbush();
- const ch=D.chapters[i];$("battleChapter").textContent="第"+(i+1)+"章 ／ "+ch.era;$("battleTitle").textContent=ch.title;
+ const ch=D.chapters[i];$("battleChapter").textContent=ch.era;$("battleTitle").textContent=ch.title;
  const board=$("storyBoard");board.dataset.stage=i;board.style.setProperty("--cols",ch.w);board.style.setProperty("--rows",ch.h);
  board.classList.toggle("small-board",ch.w===5);
  document.body.style.backgroundImage="linear-gradient(#10172138,#07101660),url('assets/backgrounds/story/"+ch.scene+"-bg-v2.webp'),url('assets/backgrounds/seasons/kyoto-autumn.webp')";
