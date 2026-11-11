@@ -1111,7 +1111,7 @@ function playMoveBattleVoice(kind,side,onCompleted){
  setTimeout(finish,5000);
 }
 function showOfficer(p){if(p)setCharacterBanner(p.s??turn,p,'',2600)}
-let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;normalCaptureHidden=null;normalPromotionPreview=null;normalPromotionHold=null;normalPromotionRise=null;normalDeferCheck=false;actionSerial++;el('actionLayer').replaceChildren();bloodMarks=[];captureCounts=[0,0];positionHistory=[];el('hitokiriNotice').classList.remove('show');el('promotionOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;aiTurnScheduled=false;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];quakeCracks=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];positionHistory=[{key:positionKey(b,h,0),mover:null,gaveCheck:false}];ended=false;busy=false;el('event').textContent='';updateDialogueBanner(0,{s:0,cid:0,t:'玉'});updateDialogueBanner(1,{s:1,cid:0,t:'玉'});setBannerStatus(0,'新選組、出陣を待つ');setBannerStatus(1,'薩長同盟、出陣を待つ');render()}
+let handIdentities=[{},{}];function reset(){hideHijikataPortrait();stopBattleVoice();stopSampleSfx();stopQuakeBattle();stopIntroClash();pendingPromotion=null;normalCaptureHidden=null;normalPromotionPreview=null;normalPromotionHold=null;normalPromotionRise=null;normalDeferCheck=false;actionSerial++;el('actionLayer').replaceChildren();bloodMarks=[];captureCounts=[0,0];positionHistory=[];el('hitokiriNotice').classList.remove('show');el('promotionOverlay').classList.remove('show');el('endOverlay').classList.remove('show','enemy-win');el('endSurrender').textContent='';document.body.classList.remove('quake-world');el('board').classList.remove('quake');epoch++;noticeSerial++;noticeQueue++;noticeQueuedPly=-1;aiTurnScheduled=false;playerTurnReady=false;el('turnNotice').className='';pendingCardSide=null;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;incidentEffect=null;incidentRunning=false;incidentTarget=null;aiMoveSpot=null;lastIncidentKind='何事もなし';quakeMarks=[];quakeMove=null;quakeLanding=null;quakeHoles=[];quakeCracks=[];el('cardOverlay').classList.remove('show');el('incidentBanner').classList.remove('show');b=Array.from({length:9},()=>Array(9).fill(null));for(let x=0;x<9;x++){b[0][x]={t:back[x],s:1,p:false};b[8][x]={t:back[x],s:0,p:false};b[2][x]={t:'歩',s:1,p:false};b[6][x]={t:'歩',s:0,p:false}}b[1][1]={t:'飛',s:1,p:false};b[1][7]={t:'角',s:1,p:false};b[7][1]={t:'角',s:0,p:false};b[7][7]={t:'飛',s:0,p:false};let rosters=[[...Array(20).keys()],[...Array(20).keys()]];for(let y=0;y<9;y++)for(let x=0;x<9;x++){let p=b[y][x];if(p){let roster=rosters[p.s];let map={玉:0,飛:1,角:2,金:3,銀:5,桂:7,香:9,歩:11};let base=map[p.t];let used=roster.find(i=>i>=base&&i<(p.t==='歩'?20:base+(p.t==='玉'||p.t==='飛'||p.t==='角'?1:2)));p.cid=used;p.originSide=p.s;rosters[p.s]=roster.filter(i=>i!==used)}}h=[{},{}];handIdentities=[{},{}];turn=0;sel=null;lastMove=null;left=[0,0];ply=0;used=[false,false];positionHistory=[{key:positionKey(b,h,0),mover:null,gaveCheck:false}];ended=false;busy=false;el('event').textContent='';updateDialogueBanner(0,{s:0,cid:0,t:'玉'});updateDialogueBanner(1,{s:1,cid:0,t:'玉'});setBannerStatus(0,'新選組、出陣を待つ');setBannerStatus(1,'薩長同盟、出陣を待つ');render()}
 function moves(B,y,x,attack=false){let p=B[y][x];if(!p)return[];let d=p.s?1:-1,out=[];function add(dy,dx,slide=false){let Y=y+dy,X=x+dx;while(inside(Y,X)){if(isQuakeHole(Y,X))break;let q=B[Y][X];if(q&&q.s===p.s)break;if(q?.t==='玉'&&!attack)break;out.push([Y,X]);if(q||!slide)break;Y+=dy;X+=dx}}let gold=[[d,-1],[d,0],[d,1],[0,-1],[0,1],[-d,0]],silver=[[d,-1],[d,0],[d,1],[-d,-1],[-d,1]];if(p.t==='玉')[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v));else if(p.t==='金'||p.p&&['歩','香','桂','銀'].includes(p.t))gold.forEach(v=>add(...v));else if(p.t==='銀')silver.forEach(v=>add(...v));else if(p.t==='歩')add(d,0);else if(p.t==='桂'){add(2*d,-1);add(2*d,1)}else if(p.t==='香')add(d,0,true);else if(p.t==='飛'){[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v,true));if(p.p)[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v))}else if(p.t==='角'){[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(v=>add(...v,true));if(p.p)[[1,0],[-1,0],[0,1],[0,-1]].forEach(v=>add(...v))}return out}
 function check(B,s){let king;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===s&&B[y][x].t==='玉')king=[y,x];if(!king)return true;for(let y=0;y<9;y++)for(let x=0;x<9;x++)if(B[y][x]?.s===1-s&&moves(B,y,x,true).some(v=>v[0]===king[0]&&v[1]===king[1]))return true;return false}
 function promote(p,y,Y){return !p.p&&['歩','香','桂','銀','飛','角'].includes(p.t)&&(p.s?y>=6||Y>=6:y<=2||Y<=2)}
@@ -1258,7 +1258,7 @@ function scheduleAI(){
   }
  },aiLevel===2?1350:aiLevel===1?1050:800);
 }
-let noticeSerial=0;
+let noticeSerial=0,noticeQueuedPly=-1;
 function showTurnNotice(side){
  if(ended)return;playerTurnReady=false;
  if(rulePreset==='traditional'){
@@ -1268,7 +1268,7 @@ function showTurnNotice(side){
  const board=el('board');
  const n=el('turnNotice'),id=++noticeSerial,e=epoch;
  const positionTurnArt=()=>{if(n.classList.contains('on'))window.ShinsengumiTurnPresentation.place(board,n,'absolute')};
- const title=gameMode==='local'?(side===0?'先手の番！':'後手の番！'):(side===0?'新選組の手番！':'敵軍の手番！'),banner=el('turnBanner'),backup=el('turnBannerFallback');
+ const title=gameMode==='local'?(side===0?'先手の番！':'後手の番！'):(side===0?'新選組の手番！':'敵陣の手番！'),banner=el('turnBanner'),backup=el('turnBannerFallback');
  banner.src=gameMode==='local'?(side===0?'assets/turn-notice/turn_sente_illustrated_v2.png':'assets/turn-notice/turn_gote_illustrated_v2.png'):(side===0?'assets/turn-notice/turn_shinsengumi_illustrated.png':'assets/turn-notice/turn_enemy_illustrated.png');
  banner.alt=title;banner.style.display='block';backup.textContent=title;backup.style.display='none';
  banner.onerror=()=>{banner.style.display='none';backup.style.display='block'};
@@ -1284,6 +1284,8 @@ function showTurnNotice(side){
  },1800);
 }
 function queueTurnNotice(side){
+ if(noticeQueuedPly===ply)return;
+ noticeQueuedPly=ply;
  playerTurnReady=false;
  if(rulePreset==='traditional'){showTurnNotice(side);return}
  const e=epoch,id=++noticeQueue;render();
@@ -1339,7 +1341,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
   setTimeout(()=>{
    if(pendingEpoch!==epoch||ended||gameMode!=='ai'||turn!==1||ply!==pendingPly||
       pendingCardSide!==null||incidentRunning||aiMoveSpot)return;
-   if(!aiTurnScheduled)scheduleAI();
+   if(noticeQueuedPly!==ply&&!aiTurnScheduled)queueTurnNotice(1);
   },3800);
  }
  // A completed AI move must return control even when its voice callback stalls.
@@ -1347,18 +1349,19 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
   const readyEpoch=epoch,readyPly=ply;
   setTimeout(()=>{
    if(readyEpoch!==epoch||ply!==readyPly||turn!==0||ended||pendingCardSide!==null||incidentRunning||playerTurnReady)return;
-   noticeSerial++;noticeQueue++;el('turnNotice').className='';
-   busy=false;playerTurnReady=true;render();
+   if(noticeQueuedPly===ply)return;
+   busy=false;queueTurnNotice(0);
   },4200);
  }
  if(rulePreset==='traditional')positionHistory.push({key:positionKey(b,h,turn),mover:speakerSide,gaveCheck});
  if(quakeHoles.length){const oldCount=quakeHoles.length;quakeHoles=quakeHoles.filter(v=>ply<v.expiresPly);if(quakeHoles.length<oldCount){playFx('cliffcollapse');if(!quakeHoles.length)el('event').textContent='地震の穴が塞がった！'}}
  if(speakerSide===1){aiMoveSpot={y:m.Y,x:m.X};const e=epoch;setTimeout(()=>{if(e===epoch){aiMoveSpot=null;render()}},1400)}
  render();
- let voiceCompleted=false,animationCompleted=!forcedKill||rulePreset==='traditional',thisEpoch=epoch;
- const valid=()=>thisEpoch===epoch&&!ended&&!el('titleScreen').classList.contains('hidden');
+ let voiceCompleted=false,animationCompleted=!forcedKill||rulePreset==='traditional',thisEpoch=epoch,resumed=false;
+ const valid=()=>thisEpoch===epoch&&!ended&&el('titleScreen').classList.contains('hidden');
  const resume=()=>{
- if(!voiceCompleted||!animationCompleted||!valid())return;
+ if(resumed||!voiceCompleted||!animationCompleted||!valid())return;
+ resumed=true;
  if(rulePreset==='traditional'){const repetition=repetitionVerdict();if(repetition){if(repetition.loser===null)showRepetitionDraw();else showVictory(1-repetition.loser,'連続王手の千日手');return}}
  if(gameEnd())return;
  if(ruleSettings.cards&&ply%8===(speakerSide===0?7:0)){pendingCardSide=speakerSide;const e=epoch;setTimeout(()=>{if(e===epoch&&pendingCardSide===speakerSide)startIncident(speakerSide,true)},250)}
@@ -1767,7 +1770,7 @@ function makeHandPiece(s,t,count){
 }
 function render(){let ownTurns=Math.floor(ply/2)+(turn===0?1:0);let next=4-((ownTurns-1+400)%4);el('cardCountdown').textContent=!ruleSettings.cards?'':pendingCardSide!==null?'🎴 事件札が出現！':('🎴 '+(gameMode==='local'?(turn?'後手':'先手'):(turn?'AI':'新選組'))+'：札まで'+(next===4?4:next)+'手');el('status').textContent=(gameMode==='local'?(turn?'後手':'先手'):(turn?'敵軍':'新撰組'))+'の手番'+((!normalDeferCheck&&check(b,turn))?'【王手】':'')+(busy?'　🤔 思考中…':'');el('status').className=busy?'thinking':'';
 const statusFor=side=>ended?'勝負あり':pendingCardSide!==null?'事件札を確認中':incidentRunning?'事件発生中…':turn===side
- ?(!normalDeferCheck&&check(b,side))?'王手！ 防御してください':(gameMode==='local'?(side===0?'先手の手番':'後手の手番'):(side===1?'敵軍、思案中…':'あなたの手番'))
+ ?(!normalDeferCheck&&check(b,side))?'王手！ 防御してください':(gameMode==='local'?(side===0?'先手の手番':'後手の手番'):(side===1?'敵陣、思案中…':'あなたの手番'))
  :(gameMode==='local'?(side===0?'後手の手番':'先手の手番'):(side===0?'薩長同盟の手番':'新選組の手番'));
 setBannerStatus(0,statusFor(0));setBannerStatus(1,statusFor(1));
 el('quakeHoleHint').textContent=quakeCracks.length?'⚠ 地面に亀裂が入った！':quakeHoles.length?'⚠ 崩落マスは進入・駒打ち不可（あと'+Math.max(0,quakeHoles[0].expiresPly-ply)+'手）':'';
