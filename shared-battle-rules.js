@@ -37,5 +37,33 @@
   face.addEventListener("animationend",onAnimationEnd);
   setTimeout(()=>{face.removeEventListener("animationend",onAnimationEnd);finish()},fallbackMs);
  }
- root.ShinsengumiBattleRules=Object.freeze({fighterKey,captureResult,voiceCues,runOrderedEffect,revealAfterTurn});
+
+ // One serialized capture -> visible move -> promotion-question contract.
+ // Each view supplies its own board rendering and character sprite adapter.
+ async function runCapturePromotionSequence({capture=null,movePreview=null,choose,valid=()=>true}){
+  if(!valid())return false;
+  if(typeof capture==="function")await capture();
+  if(!valid())return false;
+  if(typeof movePreview==="function")await movePreview();
+  if(!valid())return false;
+  if(typeof choose==="function")choose();
+  return true;
+ }
+ // Used by both 9x9 regular matches and all story board sizes.
+ function animateMovePreview(from,to,token,{duration=360,valid=()=>true}={}){
+  if(!from||!to||!token||!valid())return Promise.resolve();
+  if(typeof token.animate!=="function"||root.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
+   return new Promise(resolve=>setTimeout(resolve,180));
+  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();
+  return new Promise(resolve=>{
+   let settled=false,motion=null;
+   const finish=()=>{if(settled)return;settled=true;try{motion?.cancel()}catch{}resolve()};
+   try{
+    motion=token.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px)`,opacity:.9},{transform:"translate(0,0)",opacity:1}],{duration,easing:"ease-out"});
+    motion.onfinish=finish;motion.oncancel=finish;
+   }catch{finish()}
+   setTimeout(finish,duration+140);
+  });
+ }
+ root.ShinsengumiBattleRules=Object.freeze({fighterKey,captureResult,voiceCues,runOrderedEffect,revealAfterTurn,runCapturePromotionSequence,animateMovePreview});
 })(typeof window!=="undefined"?window:globalThis);
