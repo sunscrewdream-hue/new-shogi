@@ -1278,43 +1278,36 @@ function square(y,x){
       options.forEach(button=>button.disabled=true);
       playStoryClip(kabukiVoice.promotion,"voice",()=>{if(!modal.classList.contains("hidden"))options.forEach(button=>button.disabled=false)});
      };
-     const previewThenChoose=async(capturePreplayed=false)=>{
+     const previewThenChoose=async(capturePreplayed=false,capture=null)=>{
       const game=epoch;busy=true;selected=null;
-      // Visually complete the move before the promotion question, on every board size.
-      promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,hide:false,showMover:true,piece:unit};render();
-      const cells=$("storyBoard").querySelectorAll(".sq"),origin=cells[m.y*g.w+m.x],target=cells[m.Y*g.w+m.X],token=target?.querySelector(".story-token");
-      if(token&&origin&&target&&!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches){
-       const a=origin.getBoundingClientRect(),b=target.getBoundingClientRect();
-       await new Promise(resolve=>{
-        let done=false,animation=null;
-        const finish=()=>{if(done)return;done=true;try{animation?.cancel()}catch{}resolve()};
-        try{animation=token.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px)`,opacity:.9},{transform:"translate(0,0)",opacity:1}],{duration:360,easing:"ease-out"});animation.onfinish=finish;animation.oncancel=finish}
-        catch{finish()}
-        setTimeout(finish,500);
+      const valid=()=>game===epoch&&!ended&&!$("storyBattle").classList.contains("hidden");
+      const movePreview=async()=>{
+       promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,hide:false,showMover:true,piece:unit};render();
+       const cells=$("storyBoard").querySelectorAll(".sq");
+       await window.ShinsengumiBattleRules.animateMovePreview(cells[m.y*g.w+m.x],cells[m.Y*g.w+m.X],cells[m.Y*g.w+m.X]?.querySelector(".story-token"),{valid});
+      };
+      try{
+       await window.ShinsengumiBattleRules.runCapturePromotionSequence({
+        capture,movePreview,valid,
+        choose:()=>{busy=false;render();showPromotionChoice(capturePreplayed)}
        });
-      }else await later(180);
-      if(game!==epoch||ended||$("storyBattle").classList.contains("hidden"))return;
-      busy=false;render();showPromotionChoice(capturePreplayed);
+      }catch(error){console.error("物語・成り演出復旧",error);if(valid()){busy=false;promotionCapturePreview=null;render()}}
      };
      const captive=!m.drop?g.board[m.Y][m.X]:null;
      const sourceKey=compactFighterKey(unit);
      const capturePlan=captive?window.ShinsengumiBattleRules.captureResult({captured:true,drop:false,previous:compactCaptures[sourceKey]||0,hitokiri:true}):null;
      if(captive&&!capturePlan.lethal&&!(stage===2&&g.oilPhase===1&&captive.king==='ito')){
-      // The actual board move waits for the user's promotion choice, but the
-      // capture escort and 「捕えた！」 must finish before showing that choice.
       const game=epoch;busy=true;selected=null;
       promotionCapturePreview={y:m.Y,x:m.X,hide:false};render();
-      // Hide the original token exactly as the escort touches it; the floating
-      // captive then travels alongside the guard into our hand area.
       const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}};
-      Promise.all([
-       new Promise(resolve=>animateCompactEscort(0,m.Y,m.X,captive,resolve,takeCaptive)),
-       new Promise(resolve=>sfx("capture",resolve))
-      ]).then(async()=>{
+      const capture=async()=>{
+       await Promise.all([
+        new Promise(resolve=>animateCompactEscort(0,m.Y,m.X,captive,resolve,takeCaptive)),
+        new Promise(resolve=>sfx("capture",resolve))
+       ]);
        await later(300);
-       if(game!==epoch||ended||$("storyBattle").classList.contains("hidden"))return;
-       await previewThenChoose(true);
-      });return;
+      };
+      void previewThenChoose(true,capture);return;
      }
      void previewThenChoose();return;
     }makeMove(m,false);
