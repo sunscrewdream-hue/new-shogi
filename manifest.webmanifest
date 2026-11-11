@@ -1,1 +1,26 @@
-{"id":"./card-ai-test.html","name":"新選組将棋 — 幕末動乱・盤上決戦","short_name":"新選組将棋","description":"幕末の隊士が盤上で戦う、事件札付き将棋ゲーム。","start_url":"./card-ai-test.html","scope":"./","display":"standalone","orientation":"portrait","background_color":"#14242d","theme_color":"#14242d","icons":[]}
+{
+  "id": "./card-ai-test.html",
+  "name": "新選組将棋 — 幕末動乱・盤上決戦",
+  "short_name": "新選組将棋",
+  "description": "幕末の隊士が盤上で戦う、事件札付き将棋ゲーム。",
+  "start_url": "./card-ai-test.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14242d",
+  "theme_color": "#14242d",
+  "icons": [
+    {
+      "src": "./app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

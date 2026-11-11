@@ -1,0 +1,14 @@
+#installAppButton[hidden]{display:none!important}
+.install-app-dialog{position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(92vw,430px);max-height:88dvh;padding:0;overflow:auto;border:1px solid #b99a65;border-radius:12px;background:#f8f0de;color:#242729;box-shadow:0 18px 65px #0009}
+.install-app-dialog::backdrop{background:#07141dc4;backdrop-filter:blur(3px)}
+.install-app-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 17px;background:#233d4b;color:#ffefd4}
+.install-app-head h2{margin:0;font:800 20px/1.3 "Yu Mincho",serif}
+.install-app-close{min-width:40px;min-height:40px;padding:3px;border:1px solid #c7ad80;border-radius:7px;background:#365461;color:white;font-size:23px;cursor:pointer}
+.install-app-body{padding:15px 21px 22px;font:600 15px/1.75 system-ui,sans-serif}
+.install-app-body p{margin:0 0 9px}
+.install-app-body ol{margin:8px 0 14px;padding-left:1.45em}
+.install-app-body li{margin:8px 0}
+.install-app-tip{font-size:13px;color:#605543}
+#installAppConfirm{width:100%;min-height:46px;margin:9px 0 0;padding:10px 12px;border:1px solid #a88b61;border-radius:8px;background:#263f4b;color:#fff1d4;font:800 15px/1.4 system-ui,sans-serif;cursor:pointer}
+#installAppConfirm[hidden]{display:none!important}
+.install-app-dialog button:focus-visible{outline:3px solid #e6b756;outline-offset:2px}
