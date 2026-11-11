@@ -5,17 +5,22 @@
  function initialize(){
   const story=document.getElementById('storyVolume');
   const normal=document.getElementById('sfxToggle');
-  if(!story&&!normal)return;
+  const languageOnly=!story&&!normal&&!!document.querySelector('.language-toggle');
+  if(!story&&!normal&&!languageOnly)return;
   // Keep the rule link: regular matches share the story action row.
   const panel=document.createElement('dialog');
   panel.className='audio-settings-panel';
-  panel.setAttribute('aria-label','音声設定');
+  panel.setAttribute('aria-label','設定');
   panel.innerHTML='<div class="audio-settings-head"><h2>設定</h2><button class="audio-settings-close" type="button" aria-label="設定を閉じる">×</button></div><div class="audio-settings-body"></div>';
   const body=panel.querySelector('.audio-settings-body');
   const trigger=document.createElement('button');
   trigger.type='button';trigger.className='audio-settings-trigger';
   trigger.textContent='⚙ 設定';trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-expanded','false');
-  if(story){
+  if(languageOnly){
+   const hero=document.querySelector('.hero,.story-hero');
+   if(!hero)return;
+   hero.append(trigger);
+  }else if(story){
    const holder=document.querySelector('.story-audio-controls');
    if(!holder)return;
    while(holder.firstChild)body.append(holder.firstChild);
@@ -32,7 +37,9 @@
   }
   // Shared control layout: preserve each mode's original click handlers.
   const actionTop=document.createElement('div');
-  if(story){
+  if(languageOnly){
+   // Collection has no match controls; keep its existing page layout.
+  }else if(story){
    document.querySelector('.story-header')?.classList.add('shared-match-header');
    document.querySelector('#storyBattle .battle-top')?.classList.add('shared-match-top');
    document.querySelector('#storyBattle .battle-bottom')?.classList.add('shared-match-actions');
@@ -56,13 +63,16 @@
    playerHand?.after(actions);
   }
   // Same audio field order and same saved master-volume percentage in both modes.
-  const order=story?['audioToggle','storyVoiceToggle','storyFxToggle']:['bgmToggle','voiceToggle','sfxToggle'];
+  const order=languageOnly?[]:story?['audioToggle','storyVoiceToggle','storyFxToggle']:['bgmToggle','voiceToggle','sfxToggle'];
   for(const id of order){const control=body.querySelector('#'+id);if(control)body.append(control)}
   const slider=body.querySelector(story?'#storyVolume':'#volume');
   const sliderLabel=slider?.closest('label');if(sliderLabel)body.append(sliderLabel);
   const primary=new Set([...order,'volume','storyVolume']);
   const extras=[...body.children].filter(node=>!primary.has(node.id)&&node!==sliderLabel);
   extras.forEach(node=>body.append(node));
+  // Keep the single translation control inside the Settings dialog on every page.
+  const languageButton=document.querySelector('.language-toggle');
+  if(languageButton)body.append(languageButton);
   document.body.append(panel);
   const volumeKey='shinsengumi-shogi-master-volume-v1';
   if(slider){
@@ -80,7 +90,7 @@
   const updateLanguage=()=>{
    let language='ja';try{language=localStorage.getItem('shinsengumi-shogi-language-v1')||'ja'}catch{}
    trigger.textContent=language==='en'?'⚙ Settings':'⚙ 設定';
-   panel.querySelector('h2').textContent=language==='en'?'Audio Settings':'設定';
+   panel.querySelector('h2').textContent=language==='en'?'Settings':'設定';
    panel.querySelector('.audio-settings-close').setAttribute('aria-label',language==='en'?'Close Settings':'設定を閉じる');
   };
   updateLanguage();
