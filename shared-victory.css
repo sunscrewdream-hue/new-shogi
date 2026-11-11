@@ -90,17 +90,13 @@
 #endOverlay.victory-loading #endPanel,
 #storyEndOverlay.victory-loading #storyEndPanel{visibility:hidden!important}
 
-/* Kondo's defeated source is 620x496 vs other kings' 620x659-768.
-   Increase only his rendered frame by 40%, keeping its visual centre aligned. */
+/* Kondo's 620x496 loser art needs a larger visual scale than the
+   other kings' 620x659-768 illustrations. Independent scale preserves
+   the entrance animation transform and avoids max-height constraints. */
 #endOverlay.composite-victory #endPanel #endLoserImage.victory-kondo-loser,
-#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser.victory-kondo-loser{
- width:77vw!important;max-width:910px!important;
- right:calc(24% - 11vw)!important;
-}
-@media(orientation:portrait){
- #endOverlay.composite-victory #endPanel #endLoserImage.victory-kondo-loser,
- #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser.victory-kondo-loser{
-  width:109.2vw!important;max-width:none!important;
-  right:calc(-1% - 15.6vw)!important;
- }
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser.victory-kondo-loser,
+#endOverlay.composite-victory #endPanel #endLoserImage[src*="kondo_loser.webp"],
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser[src*="kondo_loser.webp"]{
+ scale:1.47!important;
+ transform-origin:center bottom!important;
 }
