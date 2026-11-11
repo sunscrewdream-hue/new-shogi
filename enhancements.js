@@ -187,7 +187,7 @@
  }
  makeHandPiece=function(s,t,count){
   const btn=document.createElement('button');btn.type='button';btn.className='hand-piece';
-  btn.setAttribute('aria-label',(gameMode==='local'?(s===0?'先手':'後手'):(s===0?'新選組':'薩長同盟'))+'の持ち駒 '+t+' '+count+'枚');
+  btn.setAttribute('aria-label',(gameMode==='local'?(s===0?'先手':'後手'):(s===0?'新選組':'敵陣'))+'の持ち駒 '+t+' '+count+'枚');
   btn.title=t+' ×'+count;
   btn.disabled=s!==turn||busy||ended||!playerTurnReady||incidentRunning||pendingCardSide!==null;
   const badge=document.createElement('span');badge.className='hand-count';badge.textContent='×'+count;badge.setAttribute('aria-hidden','true');
@@ -402,7 +402,7 @@
   $('rulePreset').value=rulePreset;selectRulePreset(rulePreset);ruleSettings=clone(data.ruleSettings||allRules);
   $('aiLevel').value=String(aiLevel);selectGameMode(gameMode);
   $('titleScreen').classList.add('hidden');document.body.classList.toggle('local-match',gameMode==='local');document.body.classList.toggle('traditional-match',rulePreset==='traditional');
-  $('enemyHandLabel').textContent=gameMode==='local'?'後手の持ち駒':'敵軍の持ち駒';$('playerHandLabel').textContent=gameMode==='local'?'先手の持ち駒':'あなたの持ち駒';
+  $('enemyHandLabel').textContent=gameMode==='local'?'後手の持ち駒':'敵陣の持ち駒';$('playerHandLabel').textContent=gameMode==='local'?'先手の持ち駒':'あなたの持ち駒';
   ended=false;busy=false;pendingCardSide=null;incidentRunning=false;incidentEffect=null;playerTurnReady=false;
   stopTitleMusic();startBgm();render();window.scrollTo(0,0);queueTurnNotice(turn);
   showToast('📂 保存した対局を再開しました');
