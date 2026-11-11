@@ -633,6 +633,7 @@ const battleVoiceUrls={
  mairimashita:'assets/audio/voice_mairimashita.mp3',
  oute:'assets/audio/voice_oute.mp3',
  shobuAtta:'assets/audio/voice_shobu_atta.mp3',
+ defeatMunen:'assets/audio/voice_loss_munen.mp3',
  incidentCalm:'assets/audio/events/incident_voice_calm.mp3',
  incidentEarthquake:'assets/audio/events/incident_voice_earthquake.mp3',
  incidentReinforcement:'assets/audio/events/incident_voice_reinforcement.mp3',
@@ -1222,16 +1223,24 @@ function showVictory(winner,reason='詰み'){
  el('event').textContent=reason==='降参'?'参りました！ 相手の勝利です。':reason==='詰み'?'詰み！ '+(gameMode==='local'?(winner===0?'先手':'後手'):(winner===0?'新選組':'敵陣'))+'の勝利！':'終局：'+reason;
  overlay.classList.add('show');
  const victorious=(winner===0||gameMode==='local');
- if(victorious)bgmAudio.pause();
- const afterVerdict=()=>{if(victorious)playVictoryBgm()};
- playFx('finish');render();
- if(reason==='降参'){
-  playBattleVoice('mairimashita');
-  const e=epoch;
-  setTimeout(()=>{if(e===epoch&&ended&&overlay.classList.contains('show')){if(voiceEnabled)playBattleVoice('shobuAtta',afterVerdict);else afterVerdict()}},1370);
- }else{
-  if(voiceEnabled)playBattleVoice('shobuAtta',afterVerdict);else afterVerdict();
- }
+ bgmAudio.pause();
+ render();
+ const verdictEpoch=epoch;
+ const valid=()=>verdictEpoch===epoch&&ended&&overlay.classList.contains('show');
+ const speak=kind=>new Promise(resolve=>{
+  if(!voiceEnabled||!valid())return resolve();
+  const clip=playBattleVoice(kind,resolve);
+  if(!clip)return resolve();
+  // Safari can miss the ended event; never block the verdict indefinitely.
+  setTimeout(resolve,5500);
+ });
+ void window.SharedVictory.playVerdictSequence({
+  valid,announce:()=>speak('shobuAtta'),
+  metal:()=>playNormalPromotionRise(),
+  playerDefeated:winner===1,
+  defeat:()=>speak('defeatMunen'),
+  complete:()=>{if(victorious)playVictoryBgm()}
+ });
 }
 function previewVictory(winner){
  if(!el('titleScreen').classList.contains('hidden')||ended)return;
