@@ -76,3 +76,13 @@
 .opponent-resign{display:none;box-sizing:border-box;width:min(96vw,520px);min-height:44px;margin:8px auto;padding:9px 12px;border:1px solid #5babbc;border-radius:6px;background:#a9e6f2;color:#153743;box-shadow:0 2px 6px #0005;transform:rotate(180deg);cursor:pointer;align-items:center;justify-content:center}
 body.local-title-mode #opponentResignButton{display:flex}
 @media(max-width:400px){.opponent-resign{min-height:40px}}
+
+/* Independent audio mixer; same component in normal and story settings. */
+.audio-settings-body>.audio-mixer{display:flex;flex-direction:column;gap:9px;margin:0}
+.audio-settings-body>.audio-mixer .audio-mixer-row{display:grid;grid-template-columns:58px minmax(0,1fr) 40px;align-items:center;gap:9px;min-height:44px;margin:0;padding:8px 11px;border:1px solid #bca781;border-radius:7px;background:#fffaf0;font-weight:700}
+.audio-settings-body>.audio-mixer input[type="range"]{width:100%;min-width:0;accent-color:#324c5b}
+.audio-settings-body>.audio-mixer output{font-variant-numeric:tabular-nums;text-align:right;font-weight:800;font-size:13px}
+.audio-settings-body>.audio-mixer-reset{min-height:42px;padding:9px 12px;border:1px solid #97743f;border-radius:7px;background:#e8d5ae;color:#282116;font-weight:850;cursor:pointer}
+.audio-settings-body>.audio-mixer-reset:focus-visible{outline:3px solid #e4b960;outline-offset:2px}
+.audio-settings-body>label:has(>#volume),.audio-settings-body>label:has(>#storyVolume){display:grid;grid-template-columns:58px minmax(0,1fr) 40px;justify-content:stretch;text-align:left;font-weight:700;gap:9px}
+.audio-settings-body>label:has(>#volume)>input,.audio-settings-body>label:has(>#storyVolume)>input{width:100%!important;min-width:0}
