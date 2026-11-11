@@ -31,44 +31,63 @@ window.ShinsengumiTurnPresentation=Object.freeze({
   return !!battle&&!battle.classList.contains("hidden");
  };
  const blockScroll=e=>{if(locked&&e.cancelable)e.preventDefault()};
- const centerStoryBoard=()=>{
+ const currentBoard=()=>{
   const battle=document.getElementById("storyBattle");
   const storyVisible=!!battle&&!battle.classList.contains("hidden");
-  const board=storyVisible?document.getElementById("storyBoard"):document.getElementById("board");
-  if(!board||(!storyVisible&&board.getClientRects().length===0))return false;
+  const board=document.getElementById(storyVisible?"storyBoard":"board");
+  return board&&board.getClientRects().length?board:null;
+ };
+ let anchorY=0,repositioning=false;
+ const updateOverlayPosition=()=>{
+  const board=currentBoard();
+  if(!board)return;
   const rect=board.getBoundingClientRect();
-  if(!rect.height)return false;
-  const viewport=window.visualViewport?.height||window.innerHeight;
-  // Never scroll to center an effect: that visibly jerks the normal match
-  // when a figure enters or leaves the board. Offset overlays in place.
-  document.documentElement.style.setProperty("--game-board-effect-offset",Math.round(rect.top+rect.height/2-viewport/2)+"px");
-  return true;
+  const viewportTop=window.visualViewport?.offsetTop||0;
+  const viewportHeight=window.visualViewport?.height||window.innerHeight;
+  const offset=Math.round(rect.top+rect.height/2-(viewportTop+viewportHeight/2));
+  document.documentElement.style.setProperty("--game-board-effect-offset",offset+"px");
+  window.ShinsengumiTurnPresentation?.place(board,document.getElementById("turnNotice"),"absolute");
+  window.ShinsengumiTurnPresentation?.place(board,document.getElementById("compactTurnNotice"),"offset");
+ };
+ const centerBoardAndHold=()=>{
+  const board=currentBoard();if(!board)return;
+  const rect=board.getBoundingClientRect();if(!rect.height)return;
+  const viewportHeight=window.visualViewport?.height||window.innerHeight;
+  const viewportTop=window.visualViewport?.offsetTop||0;
+  anchorY=Math.max(0,Math.round(window.scrollY+rect.top+rect.height/2-(viewportHeight/2+viewportTop)));
+  repositioning=true;
+  window.scrollTo({top:anchorY,left:0,behavior:"instant"});
+  requestAnimationFrame(()=>{updateOverlayPosition();requestAnimationFrame(()=>{updateOverlayPosition();repositioning=false})});
  };
  const sync=()=>{
   const next=active();if(next===locked)return;
-  const storyVisible=inStoryBattle();
   if(next){
-   // Story opening already anchors the board. Never re-centre it on each
-   // turn banner or card: that causes a visible jump after every move.
-   // Do not toggle overflow: removing the scrollbar changes viewport width
-   // and can shift the board even if scrollY is untouched.
    document.documentElement.classList.add("game-effect-scroll-locked");
    document.body.classList.add("game-effect-scroll-locked");
    locked=true;
-   if(!storyVisible)requestAnimationFrame(centerStoryBoard);
+   // One controlled jump on entering an effect, then hold the board centered.
+   centerBoardAndHold();
   }else{
    document.documentElement.classList.remove("game-effect-scroll-locked");
    document.body.classList.remove("game-effect-scroll-locked");
    locked=false;
-   // Story players retain their own viewport position throughout a match.
-   // Keep normal completed-match centering unchanged.
-   if(!storyVisible)centerStoryBoard();
+   updateOverlayPosition();
   }
+ };
+ const holdScroll=()=>{
+  if(!locked||repositioning||Math.abs(window.scrollY-anchorY)<2)return;
+  window.scrollTo({top:anchorY,left:0,behavior:"instant"});
+ };
+ const blockKeys=e=>{
+  if(!locked)return;
+  if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(e.key)&&!e.target?.closest?.('input,textarea,select,[contenteditable="true"]'))e.preventDefault();
  };
  const start=()=>{
   new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]});
   document.addEventListener("touchmove",blockScroll,{passive:false});
   document.addEventListener("wheel",blockScroll,{passive:false});
+  document.addEventListener("keydown",blockKeys,{passive:false});
+  window.addEventListener("scroll",holdScroll,{passive:true});
   sync();
  };
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
