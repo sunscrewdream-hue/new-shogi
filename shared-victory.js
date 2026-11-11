@@ -97,5 +97,19 @@
    console.error(error);return false;
   });
  }
- global.SharedVictory={show,portrait};
+ // Shared, strictly ordered verdict audio: announcement -> metal -> defeated voice.
+ // Individual game modes supply their existing audio player and volume controls.
+ async function playVerdictSequence({valid=()=>true,announce,metal,defeat,playerDefeated=false,complete=()=>{}}){
+  const safeStep=async step=>{
+   if(!valid()||typeof step!=='function')return;
+   try{await step()}catch(error){console.warn('勝敗音声を復旧',error)}
+  };
+  await safeStep(announce);
+  if(!valid())return;
+  await safeStep(metal);
+  if(!valid())return;
+  if(playerDefeated)await safeStep(defeat);
+  if(valid())complete();
+ }
+ global.SharedVictory={show,portrait,playVerdictSequence};
 })(window);
