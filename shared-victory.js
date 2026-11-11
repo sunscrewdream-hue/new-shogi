@@ -16,6 +16,7 @@
   overlay.classList.add('victory-loading');
   const winnerUrl=portrait(winnerId,'winner'),loserUrl=portrait(loserId,'loser');
   winnerElement.alt=winnerName+'の勝利';loserElement.alt=loserName+'の敗北';
+  loserElement.classList.toggle('victory-kondo-loser',loserId==='kondo');
   winnerElement.removeAttribute('src');loserElement.removeAttribute('src');
   // Never fall back to withdrawn, pre-composited result scenes.
   return Promise.all([preload(winnerUrl),preload(loserUrl)]).then(()=>{
