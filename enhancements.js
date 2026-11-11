@@ -51,15 +51,15 @@
 
  /* PWA, fullscreen button, title/manual/navigation. */
  const extras=document.createElement('div');extras.id='titleExtras';
- const resume=document.createElement('button');resume.type='button';resume.id='continueGame';resume.textContent='▶ 続きから';resume.onclick=()=>loadGame(SAVE_KEY);
- const manualLoad=document.createElement('button');manualLoad.type='button';manualLoad.id='loadGame';manualLoad.textContent='📂 保存した対局';manualLoad.onclick=()=>loadGame(MANUAL_KEY);
+ const resume=document.createElement('button');resume.type='button';resume.id='continueGame';resume.textContent='▶ 続きから';resume.onclick=()=>window.ShinsengumiSaveSlots?.open('normal','load');
+ const manualLoad=document.createElement('button');manualLoad.type='button';manualLoad.id='loadGame';manualLoad.textContent='📂 保存した対局';manualLoad.onclick=()=>window.ShinsengumiSaveSlots?.open('normal','load');
  const titleSettings=document.createElement('button');titleSettings.type='button';titleSettings.id='titleSettingsButton';titleSettings.textContent='⚙ 設定';titleSettings.setAttribute('aria-haspopup','dialog');
  titleSettings.onclick=()=>{const settingsButton=document.querySelector('.audio-settings-trigger');if(settingsButton)settingsButton.click()};
  extras.append(resume,manualLoad,titleSettings);$('startGame').insertAdjacentElement('afterend',extras);
  const collectionLink=$('titleLinks').querySelector('a[href="collection.html"]');if(collectionLink)collectionLink.textContent='人物コレクション';
- const inGameSave=document.createElement('button');inGameSave.type='button';inGameSave.id='quickSave';inGameSave.textContent='💾 対局を保存';inGameSave.onclick=()=>{if(titleIsVisible()||ended){showToast('対局中に保存してください');return}showToast(saveGame(MANUAL_KEY)?'対局を保存しました':'保存できませんでした')};
+ const inGameSave=document.createElement('button');inGameSave.type='button';inGameSave.id='quickSave';inGameSave.textContent='💾 対局を保存';inGameSave.onclick=()=>{if(titleIsVisible()||ended){showToast('対局中に保存してください');return}window.ShinsengumiSaveSlots?.open('normal','save')};
  const gameHelp=document.querySelector('.game-menu-link');gameHelp?.insertAdjacentElement('beforebegin',inGameSave);
- function updateContinueButton(){resume.hidden=!getStorage(SAVE_KEY);manualLoad.hidden=!getStorage(MANUAL_KEY)}
+ function updateContinueButton(){resume.hidden=!getStorage(SAVE_KEY)&&!window.ShinsengumiSaveSlots?.hasSaves('normal');manualLoad.hidden=!getStorage(MANUAL_KEY)&&!window.ShinsengumiSaveSlots?.hasSaves('normal')}
 
  /* Special "abandon the king" rule. It is intentionally not standard shogi. */
  allRules.abandonKing=true;customSettings.abandonKing=true;ruleSettings.abandonKing=rulePreset!=='traditional';
@@ -376,21 +376,22 @@
  testTools.append(awakeningTest,killTest,reinforcementTest,desertionTest);document.querySelector('.special-debug')?.insertAdjacentElement('afterend',testTools);
 
  /* Autosave only at complete turn boundaries; the scene can always be restored. */
- function saveGame(key){
-  if(!b||ended)return false;
-  return putStorage(key,{
+ function snapshotGame(){
+  if(!b||ended)return null;
+  return {
    version:1,date:Date.now(),b:clone(b),h:clone(h),handIdentities:clone(handIdentities),
    turn,ply,used:clone(used),left:clone(left),lastMove:clone(lastMove),positionHistory:clone(positionHistory),
    captureCounts:clone(captureCounts),quakeHoles:clone(quakeHoles),quakeCracks:clone(quakeCracks),
    rulePreset,ruleSettings:clone(ruleSettings),customSettings:clone(customSettings),gameMode,aiLevel
-  });
+  };
  }
+ function saveGame(key){const snapshot=snapshotGame();return !!snapshot&&putStorage(key,snapshot)}
  function loadGame(key){
   const data=getStorage(key);
   if(!data||data.version!==1||!Array.isArray(data.b)||data.b.length!==9||!Array.isArray(data.h)||![0,1].includes(data.turn)){
-   alert('読み込める対局データがありません。');return;
+   alert('読み込める対局データがありません。');return false;
   }
-  if(!titleIsVisible()&&!confirm('現在の対局を中断して保存データを読み込みますか？'))return;
+  if(!titleIsVisible()&&!confirm('現在の対局を中断して保存データを読み込みますか？'))return false;
   reset();
   b=clone(data.b);h=clone(data.h);handIdentities=clone(data.handIdentities||[{},{}]);
   turn=data.turn;ply=data.ply||0;used=clone(data.used||[false,false]);left=clone(data.left||[0,0]);
@@ -404,7 +405,7 @@
   $('enemyHandLabel').textContent=gameMode==='local'?'後手の持ち駒':'敵陣の持ち駒';$('playerHandLabel').textContent=gameMode==='local'?'先手の持ち駒':'あなたの持ち駒';
   ended=false;busy=false;pendingCardSide=null;incidentRunning=false;incidentEffect=null;playerTurnReady=false;
   stopTitleMusic();startBgm();render();window.scrollTo(0,0);queueTurnNotice(turn);
-  showToast('📂 保存した対局を再開しました');
+  showToast('📂 保存した対局を再開しました');return true;
  }
  const baseQueueTurn=queueTurnNotice;
  queueTurnNotice=function(side){if(!ended&&b&&titleIsVisible()===false){saveGame(SAVE_KEY);updateContinueButton()}return baseQueueTurn(side)};
@@ -504,5 +505,18 @@
  const baseDraw=showRepetitionDraw;
  showRepetitionDraw=function(){baseDraw();endStage.classList.add('result-draw')};
 
- syncTitleVolume();updateContinueButton();render();
+ window.ShinsengumiSaveSlots?.register('normal',{
+  legacyKeys:[MANUAL_KEY,SAVE_KEY],
+  capture:()=>snapshotGame(),
+  restore:data=>{
+   const key='shinsengumi-shogi-slot-restore-v1';
+   if(!putStorage(key,data))return false;
+   const ok=loadGame(key);
+   try{localStorage.removeItem(key)}catch{}
+   return ok;
+  },
+  describe:data=>data.gameMode==='local'?'二人対戦':data.rulePreset==='traditional'?'通常将棋':'通常対局',
+  afterSave:()=>{manualLoad.hidden=false;resume.hidden=false}
+ });
+  syncTitleVolume();updateContinueButton();render();
 })();

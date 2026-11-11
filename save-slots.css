@@ -1,0 +1,19 @@
+.save-slots-dialog{position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(95vw,560px);max-height:90dvh;padding:0;overflow:auto;border:1px solid #bca179;border-radius:12px;background:#f7eddb;color:#27231e;box-shadow:0 18px 60px #000a}
+.save-slots-dialog::backdrop{background:#07121cc9;backdrop-filter:blur(3px)}
+.save-slots-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:12px 17px;background:#233d4b;color:#fff0d4}
+.save-slots-head h2{margin:0;font:900 22px/1.3 "Yu Mincho",serif}
+.save-slots-close{min-width:40px;min-height:40px;border:1px solid #d4ba88;border-radius:7px;background:#3a5461;color:#fff;font-size:24px;cursor:pointer}
+.save-slots-body{padding:12px}
+#saveSlotsStatus{margin:4px 4px 12px;font:700 13px/1.5 system-ui,sans-serif;color:#685337}
+#saveSlotsList{display:grid;gap:10px}
+.save-slot{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;align-items:center;padding:10px;border:1px solid #c5a978;border-radius:9px;background:#fffaf0}
+.save-slot-preview{width:88px;height:88px;object-fit:cover;border:1px solid #9a7749;border-radius:5px;background:#d8b785;grid-row:span 2}
+.save-slot-preview.empty{opacity:.35}
+.save-slot-info{display:grid;gap:5px;min-width:0}
+.save-slot-info strong{font:900 15px/1.35 "Yu Mincho",serif}
+.save-slot-info small{font:600 11px/1.4 system-ui,sans-serif;color:#6e6254}
+.save-slot-buttons{display:flex;flex-wrap:wrap;gap:6px;grid-column:2}
+.save-slot-buttons button{flex:1 1 auto;min-height:35px;padding:6px 8px;border:1px solid #a58c66;border-radius:5px;background:#303e43;color:#ffebc9;font:800 12px/1.3 system-ui,sans-serif;cursor:pointer}
+.save-slot-buttons button:last-child:not(:first-child){background:#6d5144}
+.save-slots-disclaimer{margin:15px 6px 5px;padding:10px 12px;border-left:3px solid #bb9b6a;background:#efe3ce;color:#635748;font:600 11px/1.65 system-ui,sans-serif}
+@media(max-width:380px){.save-slot{grid-template-columns:74px minmax(0,1fr);gap:7px;padding:8px}.save-slot-preview{width:74px;height:74px}.save-slot-buttons{gap:4px}.save-slot-buttons button{font-size:11px}}

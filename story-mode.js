@@ -1818,29 +1818,25 @@ $("storyVoicePreview").onclick=()=>{window.StoryBgm?.unlock();if(!voiceEnabled)r
 
 // Story match snapshots are deliberately separate from 9x9 save data.
 const STORY_MATCH_SAVE="shinsengumi-story-match-save-v1";
-function storySaveMatch(){
- if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay){alert("演出が終了してから保存してください。");return}
- try{
-  const snapshot={version:1,stage,at:Date.now(),engine:{
+function captureStoryMatch(){
+ if(!g||ended||busy||compactTurnLocked||compactIncident||pendingWeaponDisplay)return null;
+ const snapshot={version:1,stage,at:Date.now(),engine:{
    board:g.board,hands:g.hands,fallen:g.fallen,holes:g.holes,side:g.side,ply:g.ply,last:g.last,oilPhase:g.oilPhase,oilEnemyReserve:g.oilEnemyReserve,oilItoGunUsed:g.oilItoGunUsed,oilDigCount:g.oilDigCount,kinmonSatsumaReinforced:g.kinmonSatsumaReinforced
   },enemyTurns,playerTurns,weapons,debugModified};
-  localStorage.setItem(STORY_MATCH_SAVE,JSON.stringify(snapshot));
-  alert("この章の対局を保存しました。");
- }catch(e){alert("保存できませんでした。ブラウザの保存設定をご確認ください。")}
+ return snapshot;
 }
-function storyLoadMatch(){
- let data;
- try{data=JSON.parse(localStorage.getItem(STORY_MATCH_SAVE)||"null")}catch(e){}
- if(!data||data.version!==1||!Number.isInteger(data.stage)||data.stage<0||data.stage>=D.chapters.length||!data.engine){alert("読み込める対局データがありません。");return}
+function storySaveMatch(){window.ShinsengumiSaveSlots?.open('story','save')}
+function restoreStoryMatch(data){
+ if(!data||data.version!==1||!Number.isInteger(data.stage)||data.stage<0||data.stage>=D.chapters.length||!data.engine){alert("読み込める対局データがありません。");return false}
  const cfg=D.chapters[data.stage],state=data.engine;
- if(!Array.isArray(state.board)||state.board.length!==cfg.h||!state.board.every(row=>Array.isArray(row)&&row.length===cfg.w)||!Array.isArray(state.hands)||state.hands.length!==2||![0,1].includes(state.side)){alert("保存データの形式が正しくありません。");return}
+ if(!Array.isArray(state.board)||state.board.length!==cfg.h||!state.board.every(row=>Array.isArray(row)&&row.length===cfg.w)||!Array.isArray(state.hands)||state.hands.length!==2||![0,1].includes(state.side)){alert("保存データの形式が正しくありません。");return false}
  if(data.stage===2){
   const enemies=state.board.flat().filter(p=>p?.s===1);
   if(enemies.filter(p=>p.t==="玉").length!==1||(state.oilPhase===1&&enemies.length!==1)){
-   alert("旧版の油小路対局データには駒の重複があります。章選択から再開始してください。");return;
+   alert("旧版の油小路対局データには駒の重複があります。章選択から再開始してください。");return false;
   }
  }
- if(g&&!ended&&!confirm("現在の対局を中断し、保存した対局に戻りますか？"))return;
+ if(g&&!ended&&!confirm("現在の対局を中断し、保存した対局に戻りますか？"))return false;
  battle(data.stage,2);
  g.board=state.board;g.hands=state.hands;g.fallen=Array.isArray(state.fallen)?state.fallen:[[],[]];
  g.holes=Array.isArray(state.holes)?state.holes:[];g.side=state.side;g.ply=Number(state.ply)||0;g.last=state.last||null;
@@ -1854,7 +1850,15 @@ function storyLoadMatch(){
  epoch++;busy=false;compactTurnLocked=false;selected=null;
  hideCompactFx();render();
  window.StoryBgm?.play(data.stage===0||data.stage===2?"battle01":"battle02");
+ return true;
 }
+function storyLoadMatch(){window.ShinsengumiSaveSlots?.open('story','load')}
+window.ShinsengumiSaveSlots?.register('story',{
+ legacyKeys:[STORY_MATCH_SAVE],
+ capture:()=>captureStoryMatch(),
+ restore:data=>restoreStoryMatch(data),
+ describe:data=>D.chapters[data.stage]?.title||'幕末物語'
+});
 window.storySaveMatch=storySaveMatch;window.storyLoadMatch=storyLoadMatch;
 function storyDebugReady(){return g&&!ended&&!busy&&!compactTurnLocked&&g.side===0&&!compactIncident&&!pendingWeaponDisplay&&$("storyPopup").classList.contains("hidden")}
 function storyDebugRun(action,changesBoard=false,renderAfter=true){
