@@ -1376,3 +1376,37 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
 }
 #storyHome .history-note{margin:10px auto 12px;max-width:620px;text-align:center}
 #storyHome .story-dev-controls{margin:12px auto 18px}
+
+
+/* Final verdict: reuse the normal match's two-button footer proportions. */
+#storyEndPanel #storyEndActions{
+ width:100%!important;
+ box-sizing:border-box!important;
+ padding:12px 0 max(25px,env(safe-area-inset-bottom))!important;
+ background:linear-gradient(transparent,#080a11ef)!important;
+ display:flex!important;
+ justify-content:center!important;
+ gap:12px!important;
+ flex-wrap:nowrap!important;
+}
+#storyEndPanel #storyEndActions button{
+ box-sizing:border-box;
+ min-width:126px;
+ font-weight:800;
+ font-size:clamp(16px,4.2vw,20px);
+ padding:12px 16px;
+ background:#e9d1a0;
+ border:2px solid #9a7647;
+ color:#211b17;
+}
+@media(orientation:portrait){
+ #storyEndPanel #storyEndActions{
+  padding-bottom:max(18px,env(safe-area-inset-bottom))!important;
+  gap:8px!important;
+ }
+ #storyEndPanel #storyEndActions button{
+  min-width:0;
+  font-size:14px;
+  padding:10px 12px;
+ }
+}
