@@ -603,7 +603,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAllAudi
 window.addEventListener('pagehide',stopAllAudio);
 window.addEventListener('pageshow',resumeVisibleBgm);
 window.addEventListener('blur',()=>{if(document.hidden)stopAllAudio()});
-bgmAudio.addEventListener('playing',()=>bgmStatus('BGM：honor_in_the_silence（96kbps・ループ再生中）'));
+bgmAudio.addEventListener('playing',()=>bgmStatus('BGM：再生中'));
 /* Mobile audio-session interruptions should not silence a visible, active match. */
 bgmAudio.addEventListener('ended',()=>{
  if(bgmEnabled&&!document.hidden&&el('titleScreen').classList.contains('hidden')){
