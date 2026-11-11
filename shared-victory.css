@@ -89,3 +89,18 @@
 /* Cold-cache loading: prevent old fallback layers from flashing before both portraits decode. */
 #endOverlay.victory-loading #endPanel,
 #storyEndOverlay.victory-loading #storyEndPanel{visibility:hidden!important}
+
+/* Kondo's defeated source is 620x496 vs other kings' 620x659-768.
+   Increase only his rendered frame by 40%, keeping its visual centre aligned. */
+#endOverlay.composite-victory #endPanel #endLoserImage.victory-kondo-loser,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser.victory-kondo-loser{
+ width:77vw!important;max-width:910px!important;
+ right:calc(24% - 11vw)!important;
+}
+@media(orientation:portrait){
+ #endOverlay.composite-victory #endPanel #endLoserImage.victory-kondo-loser,
+ #storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser.victory-kondo-loser{
+  width:109.2vw!important;max-width:none!important;
+  right:calc(-1% - 15.6vw)!important;
+ }
+}
