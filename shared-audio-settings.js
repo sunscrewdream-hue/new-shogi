@@ -6,7 +6,7 @@
   const story=document.getElementById('storyVolume');
   const normal=document.getElementById('sfxToggle');
   if(!story&&!normal)return;
-  document.querySelector('.game-menu-link[href="rules.html"]')?.remove();
+  // Keep the rule link: regular matches share the story action row.
   const panel=document.createElement('dialog');
   panel.className='audio-settings-panel';
   panel.setAttribute('aria-label','音声設定');
@@ -29,6 +29,46 @@
     document.getElementById('audioStatus'),document.getElementById('bgmStatus')
    ];
    for(const control of controls){if(control){if(control.id==='audioStatus'||control.id==='bgmStatus')control.classList.add('audio-settings-status');body.append(control)}}
+  }
+  // Shared control layout: preserve each mode's original click handlers.
+  const actionTop=document.createElement('div');
+  if(story){
+   document.querySelector('.story-header')?.classList.add('shared-match-header');
+   document.querySelector('#storyBattle .battle-top')?.classList.add('shared-match-top');
+   document.querySelector('#storyBattle .battle-bottom')?.classList.add('shared-match-actions');
+  }else{
+   const enemy=document.getElementById('enemyOfficerPanel');
+   const playerHand=document.getElementById('playerHandShell');
+   const findAction=action=>[...document.querySelectorAll('button[onclick="'+action+'()"]')].find(b=>!b.closest('#endOverlay'));
+   const back=findAction('returnToTitle'),restart=findAction('restartGame'),resign=findAction('surrender');
+   const rules=document.querySelector('.game-menu-link[href="rules.html"]');
+   const header=document.createElement('div');header.className='shared-match-header normal-match-header';
+   if(back){back.textContent='タイトルへ戻る';header.append(back)}
+   header.append(trigger);
+   enemy?.before(header);
+   actionTop.className='shared-match-top normal-match-top';
+   const label=document.createElement('span');label.textContent='通常対局';actionTop.append(label);
+   header.after(actionTop);
+   const actions=document.createElement('div');actions.className='shared-match-actions normal-match-actions';
+   if(rules){rules.textContent='操作・ルール';actions.append(rules)}
+   if(restart){restart.textContent='最初から';actions.append(restart)}
+   if(resign){resign.textContent='降参する';actions.append(resign)}
+   playerHand?.after(actions);
+  }
+  // Same audio field order and same saved master-volume percentage in both modes.
+  const order=story?['audioToggle','storyVoiceToggle','storyFxToggle']:['bgmToggle','voiceToggle','sfxToggle'];
+  for(const id of order){const control=document.getElementById(id);if(control)body.append(control)}
+  const slider=story?document.getElementById('storyVolume'):document.getElementById('volume');
+  const sliderLabel=slider?.closest('label');if(sliderLabel)body.append(sliderLabel);
+  const primary=new Set([...order,'volume','storyVolume']);
+  const extras=[...body.children].filter(node=>!primary.has(node.id)&&node!==sliderLabel);
+  extras.forEach(node=>body.append(node));
+  const volumeKey='shinsengumi-shogi-master-volume-v1';
+  if(slider){
+   let saved=35;
+   try{const raw=localStorage.getItem(volumeKey);if(raw!==null&&Number.isFinite(Number(raw)))saved=Math.max(0,Math.min(100,Number(raw)))}catch{}
+   slider.value=String(saved);slider.dispatchEvent(new Event('input',{bubbles:true}));
+   slider.addEventListener('input',()=>{try{localStorage.setItem(volumeKey,slider.value)}catch{}});
   }
   document.body.append(panel);
   const close=()=>panel.close();

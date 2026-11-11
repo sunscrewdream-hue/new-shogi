@@ -1326,3 +1326,9 @@ html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
  #storyBattle #battleChapter{padding:0 74px;font-size:clamp(10px,2.7vw,12px)}
  #storyBattle .battle-top #battleQuit{font-size:11px;padding:5px 7px}
 }
+
+/* Read the six wooden chapter choices from right (prologue) to left (epilogue). */
+#storyChapters.chapter-grid{direction:rtl}
+#storyChapters .chapter{direction:ltr;font-weight:900}
+#storyChapters .chapter small,#storyChapters .chapter strong,
+#storyChapters .chapter em,#storyChapters .chapter .chapter-board{font-weight:900!important}
