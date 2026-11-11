@@ -1766,8 +1766,7 @@ function finish(winner,reason){
  const opponent={miyabe:"miyabe",kusaka:"kusaka",ito:"ito",saigo:"saigo"}[king];
  const winnerId=win?"kondo":opponent,loserId=win?opponent:"kondo";
  window.SharedVictory.show({overlay,winnerElement:$("storyEndWinner"),loserElement:$("storyEndLoser"),
-  winnerId,loserId,winnerName:win?"近藤勇":ch.boss,loserName:win?ch.boss:"近藤勇",
-  onCross:()=>compactSound("slash")});
+  winnerId,loserId,winnerName:win?"近藤勇":ch.boss,loserName:win?ch.boss:"近藤勇"});
  $("storyEndText").textContent="勝負あった！";
  overlay.classList.toggle("enemy-win",!win);
  const actions=$("storyEndActions");actions.replaceChildren();
@@ -1781,11 +1780,22 @@ function finish(winner,reason){
   actions.append(button);
  }
  overlay.classList.remove("hidden");
- // 勝利音楽は「勝負あった！」の声の後。敗北には鳴らさない。
+ // All four chapters share the normal match's spoken verdict -> metal -> loss order.
  window.StoryBgm?.stop();
- playStoryClip("assets/audio/sfx/taiko_dodon.mp3","fx");
- if(win)sfx("win",()=>{if(ended&&overlay.classList.contains('hidden')===false)playStoryVictoryBgm()});
- else sfx("loss");
+ const verdictEpoch=epoch;
+ const valid=()=>verdictEpoch===epoch&&ended&&!overlay.classList.contains("hidden");
+ const playVoice=path=>new Promise(resolve=>{
+  if(!voiceEnabled||!valid())return resolve();
+  playStoryClip(path,"voice",resolve);
+ });
+ void window.SharedVictory.playVerdictSequence({
+  valid,
+  announce:()=>playVoice("assets/audio/voice_shobu_atta.mp3"),
+  metal:()=>playPromotionRise(),
+  playerDefeated:!win,
+  defeat:()=>playVoice("assets/audio/voice_loss_munen.mp3"),
+  complete:()=>{if(win)playStoryVictoryBgm()}
+ });
 }
 function leave(){
  if(ended){screenHome();return}
