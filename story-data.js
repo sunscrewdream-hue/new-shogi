@@ -45,4 +45,30 @@ window.StoryData={
  ]},
  epilogue:{title:"誠の行方",era:"慶応四年〜明治二年・1868〜1869年",scene:"tobafushimi",intro:[["語り","鳥羽・伏見から退いた新選組。\n甲陽鎮撫隊として\n再起を図るが、\n戦局は厳しくなる。"],["語り","近藤勇は下総流山で\n新政府軍に投降し、\n慶応四年四月、\n板橋で刑死した。"],["語り","土方歳三は会津を経て箱館へ。\n榎本武揚らとともに\n最後の戦いに臨んだ。"],["語り","明治二年五月、\n土方歳三は箱館で戦死。\n新選組の歴史は\n終焉を迎えた。"],["語り","誠の心は時代を越え、\n静かに語り継がれる。"]]}
 };
+// Adopted collection numbers are also the corresponding dialogue-banner numbers.
+// Keep historical stage rosters linked to the actual portraits, not card backs.
+const adoptedBannerNumbers={
+ "石川潤次郎":41,"吉田稔麿":42,"北添佶摩":43,"望月亀弥太":44,
+ "松田重助":45,"大高又次郎":46,"広岡浪秀":47,"杉山松助":48,"福岡祐次郎":49,
+ "来島又兵衛":50,"真木和泉":51,"国司信濃":52,"福原越後":53,"益田右衛門介":54,
+ "入江九一":55,"寺島忠三郎":56,"児玉小民部":57,"楳本仙之助":58,"湯川庄蔵":59,
+ "有川常槌":60,"三隅竜雄":61,"内田弥三郎":62,"若杉弘之進":63,"中村恒次郎":64,
+ "澄川謙蔵":65,"中尾易三郎":66,"中村総治":67,"吉井友実":68,"服部武雄":69,
+ "毛内有之助":70,"鈴木三樹三郎":71,"篠原泰之進":72,"加納鷲雄":73,
+ "富山弥兵衛":74,"大石鍬次郎":75,"横倉甚五郎":76,"宮川信吉":77,
+ "三浦常三郎":78,"岸島芳太郎":79,"伊地知正治":80,"篠原国幹":81,
+ "野津鎮雄":82,"市来勘兵衛":83,"鈴木武五郎":84,"辺見十郎太":85,
+ "樺山資紀":86,"川路利良":87,"山田顕義":88,"福田侠平":89,
+ "世良修蔵":90,"三浦梧楼":91,"安富才助":92,"佐川官兵衛":93,
+ "林権助":94,"田中土佐":95,"堀半右衛門":96,"生駒五兵衛":97,
+ "上田八郎右衛門":98,"白井五郎太夫":99,"小原宇右衛門":100,
+ "佐藤織之助":101,"中澤常左衛門":102,"宮部鼎蔵":103,"伊東甲子太郎":104
+};
+for(const roster of ["tobaAllies","tobaRoster","oilRaiders","oilDefenders","kinmonAllies","kinmonRoster"]){
+ for(const person of window.StoryData[roster]){
+  if(!person.art?.includes("/cards/back/"))continue;
+  const number=adoptedBannerNumbers[person.name];
+  if(number)person.art=`assets/dialogue_banners/person_${String(number).padStart(2,"0")}.webp`;
+ }
+}
 })();
