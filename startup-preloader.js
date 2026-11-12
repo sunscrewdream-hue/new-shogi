@@ -125,8 +125,19 @@
    const progress=overlay.querySelector('#startupPreloadProgress');
    progress.value=0;
    const ok=await prepare(mode,chapter,(completed,total)=>{progress.value=Math.round(completed/total*100);status.textContent='素材の読み込み中 '+completed+' / '+total});
-   if(ok){start();return}
+   if(ok){
+    // If a user had to wait, a final real tap preserves iOS audio activation.
+    // Auto-starting from a settled Promise may lose that browser gesture.
+    if(overlay.hidden){start();return}
+    status.textContent='準備完了。出陣できます。';
+    retryButton.hidden=true;
+    continueButton.textContent='いざ、出陣';
+    overlay.querySelector('#startupPreloadActions').hidden=false;
+    return;
+   }
    overlay.hidden=false;
+   retryButton.hidden=false;
+   continueButton.textContent='このまま開始';
    status.textContent='一部の素材を読み込めませんでした。通信を確認して再試行してください。';
    overlay.querySelector('#startupPreloadActions').hidden=false;
   };
@@ -145,6 +156,9 @@
     ?event.target.closest?.('#storyChapters button.chapter')
     :event.target.closest?.('#startGame');
    if(!button||button.disabled||bypass.has(button)){if(button)bypass.delete(button);return}
+   // Unlock the story WebAudio context while the original touch is still live.
+   if(mode==='story')window.StoryBgm?.unlock?.();
+   else window.unlockAudio?.();
    const chapter=mode==='story'?[...document.querySelectorAll('#storyChapters button.chapter')].indexOf(button)-1:null;
    const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
    if(successful.has(key))return;
