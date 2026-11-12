@@ -1236,9 +1236,9 @@ function showVictory(winner,reason='詰み'){
  el('endLoserImage').alt=(winner===0?'西郷隆盛':'近藤勇')+'の敗北';
  overlay.classList.remove('enemy-win');
  if(winner===1)overlay.classList.add('enemy-win');
- el('endSurrender').textContent=reason==='降参'?'参りました！':'';
+ el('endSurrender').textContent=''; // 降参時の余分な見出しは表示しない（千日手表示は維持）
  el('endText').textContent=(gameMode==='local'?(winner===0?'先手':'後手'):(winner===0?'新選組':'敵陣'))+'の勝利！';
- el('event').textContent=reason==='降参'?'参りました！ 相手の勝利です。':reason==='詰み'?'詰み！ '+(gameMode==='local'?(winner===0?'先手':'後手'):(winner===0?'新選組':'敵陣'))+'の勝利！':'終局：'+reason;
+ el('event').textContent=reason==='降参'?'降参により相手の勝利です。':reason==='詰み'?'詰み！ '+(gameMode==='local'?(winner===0?'先手':'後手'):(winner===0?'新選組':'敵陣'))+'の勝利！':'終局：'+reason;
  overlay.classList.add('show');
  const victorious=(winner===0||gameMode==='local');
  bgmAudio.pause();
