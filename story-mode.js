@@ -1757,7 +1757,7 @@ async function fire(kind,ownerSide=1){
 }
 const storyVictoryBgmClip=new Audio('assets/audio/bgm/victory_thunder_pass_4s.mp3');
 storyVictoryBgmClip.preload='auto';
-const storyDefeatBgmClip=new Audio('assets/audio/bgm/defeat_bgm_7s.mp3');
+const storyDefeatBgmClip=new Audio('assets/audio/bgm/defeat_full.mp3');
 storyDefeatBgmClip.preload='auto';storyDefeatBgmClip.playsInline=true;
 function stopStoryVictoryBgm(){
  for(const clip of [storyVictoryBgmClip,storyDefeatBgmClip]){clip.pause();clip.currentTime=0}

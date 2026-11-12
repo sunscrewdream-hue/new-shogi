@@ -16,10 +16,9 @@
  function updateMediaGains(){
   if(!mediaContext)return;
   for(const route of mediaRoutes.values()){
-   if(route.gain){
-    const level=Math.max(0,Math.min(1,values[route.kind]/100*route.scale));
-    route.gain.gain.setTargetAtTime(level,mediaContext.currentTime,.012);
-   }
+   if(!route.gain)continue;
+   const level=Math.max(0,Math.min(1,values[route.kind]/100*route.scale));
+   route.gain.gain.setTargetAtTime(level,mediaContext.currentTime,.012);
   }
  }
  function unlockMedia(){
@@ -29,27 +28,46 @@
    if(!C)return;
    try{mediaContext=new C()}catch(error){console.warn('iOS音量制御の初期化',error);return}
   }
-  for(const [clip,route] of mediaRoutes){
-   if(route.gain)continue;
-   try{
-    const source=mediaContext.createMediaElementSource(clip),gain=mediaContext.createGain();
-    source.connect(gain).connect(mediaContext.destination);route.gain=gain;
-    clip.volume=1;
-   }catch(error){console.warn('iOS音量制御の接続',error)}
-  }
-  updateMediaGains();
+  // Do not connect every registered voice and FX on the first touch:
+  // on iOS that causes a synchronous stall and may silence ongoing media.
   if(mediaContext.state==='suspended')mediaContext.resume().catch(()=>{});
  }
+ function connectPlayingMedia(clip){
+  if(!iosMedia)return;
+  unlockMedia();
+  if(!mediaContext)return;
+  const route=mediaRoutes.get(clip);
+  if(!route||route.gain)return;
+  try{
+   const source=mediaContext.createMediaElementSource(clip),gain=mediaContext.createGain();
+   source.connect(gain).connect(mediaContext.destination);
+   route.gain=gain;
+   // Web Audio is authoritative on iOS. On PC the original element
+   // volume adjustment is untouched.
+   clip.volume=1;
+   updateMediaGains();
+   if(mediaContext.state==='suspended')mediaContext.resume().catch(()=>{});
+  }catch(error){
+   // Do not silence the regular audio path if routing is unsupported.
+   console.warn('iOS音量制御を使えない音源',error);
+  }
+ }
  if(iosMedia){
-  document.addEventListener('pointerdown',unlockMedia,{passive:true,capture:true});
-  document.addEventListener('touchstart',unlockMedia,{passive:true,capture:true});
+  const gesture=()=>unlockMedia();
+  document.addEventListener('pointerdown',gesture,{passive:true,capture:true});
+  document.addEventListener('touchstart',gesture,{passive:true,capture:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)unlockMedia()});
+  window.addEventListener('pageshow',unlockMedia);
  }
  const mixer={
   registerMedia:(clip,kind,scale=1)=>{
    if(!iosMedia||!clip||!Object.prototype.hasOwnProperty.call(defaults,kind))return;
-   if(!mediaRoutes.has(clip))mediaRoutes.set(clip,{kind,scale,gain:null});
-   else Object.assign(mediaRoutes.get(clip),{kind,scale});
-   if(mediaContext)unlockMedia();
+   if(!mediaRoutes.has(clip)){
+    mediaRoutes.set(clip,{kind,scale,gain:null});
+    clip.addEventListener('play',()=>connectPlayingMedia(clip));
+    if(!clip.paused)connectPlayingMedia(clip);
+   }else Object.assign(mediaRoutes.get(clip),{kind,scale});
+   updateMediaGains();
   },
   defaults, get:kind=>values[kind]??0,
   ratio:kind=>(values[kind]??0)/100,

@@ -601,7 +601,7 @@ const bgmAudio=new Audio('./assets/audio/bgm/honor_in_the_silence_96kbps.mp3');
 bgmAudio.loop=true;bgmAudio.preload='auto';bgmAudio.playsInline=true;
 function bgmStatus(message){let node=el('bgmStatus');if(node)node.textContent=message}
 function syncBgmVolume(){bgmAudio.volume=Math.min(1,(window.ShinsengumiAudioMixer?.ratio('bgm')??Number(el('volume').value)/100)*.60)}
-function startBgm(){if(!bgmEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;syncBgmVolume();bgmStatus('BGM：読み込み・再生中…');let playing=bgmAudio.play();if(playing&&playing.catch)playing.catch(()=>bgmStatus('BGM：再生できません。BGMボタンをもう一度押してください'))}
+function startBgm(){if(ended||!bgmEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;syncBgmVolume();bgmStatus('BGM：読み込み・再生中…');let playing=bgmAudio.play();if(playing&&playing.catch)playing.catch(()=>bgmStatus('BGM：再生できません。BGMボタンをもう一度押してください'))}
 function stopBgm(){bgmAudio.pause();bgmAudio.currentTime=0;bgmStatus('BGM：停止中')}
 function toggleBgm(){bgmEnabled=!bgmEnabled;el('bgmToggle').textContent=bgmEnabled?'♪ BGM：ON':'♪ BGM：OFF';if(bgmEnabled)startBgm();else stopBgm()}
 function stopAllAudio(){
@@ -612,7 +612,7 @@ function stopAllAudio(){
  if(audioCtx&&audioCtx.state==='running')audioCtx.suspend().catch(()=>{});
 }
 function resumeVisibleBgm(){
- if(!document.hidden&&bgmEnabled&&el('titleScreen').classList.contains('hidden'))startBgm();
+ if(!ended&&!document.hidden&&bgmEnabled&&el('titleScreen').classList.contains('hidden'))startBgm();
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAllAudio();else resumeVisibleBgm()});
 window.addEventListener('pagehide',stopAllAudio);
@@ -621,15 +621,15 @@ window.addEventListener('blur',()=>{if(document.hidden)stopAllAudio()});
 bgmAudio.addEventListener('playing',()=>bgmStatus('BGM：再生中'));
 /* Mobile audio-session interruptions should not silence a visible, active match. */
 bgmAudio.addEventListener('ended',()=>{
- if(bgmEnabled&&!document.hidden&&el('titleScreen').classList.contains('hidden')){
+ if(!ended&&bgmEnabled&&!document.hidden&&el('titleScreen').classList.contains('hidden')){
   bgmAudio.currentTime=0;startBgm();
  }
 });
 bgmAudio.addEventListener('pause',()=>{
- if(!bgmEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;
+ if(ended||!bgmEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;
  const e=epoch;
  setTimeout(()=>{
-  if(e===epoch&&bgmEnabled&&!document.hidden&&el('titleScreen').classList.contains('hidden')&&bgmAudio.paused!==false){
+  if(e===epoch&&!ended&&bgmEnabled&&!document.hidden&&el('titleScreen').classList.contains('hidden')&&bgmAudio.paused!==false){
    startBgm();
   }
  },450);
@@ -1222,7 +1222,7 @@ function repetitionVerdict(){
 }
 function showRepetitionDraw(){
  if(ended)return;
- ended=true;busy=false;playerTurnReady=false;noticeSerial++;noticeQueue++;
+ ended=true;bgmAudio.pause();busy=false;playerTurnReady=false;noticeSerial++;noticeQueue++;
  const box=el('endOverlay');
  el('endWinnerImage').style.display='none';el('endLoserImage').style.display='none';
  el('endSurrender').textContent='千日手';
@@ -1232,7 +1232,7 @@ function showRepetitionDraw(){
 }
 const victoryBgmClip=new Audio('assets/audio/bgm/victory_thunder_pass_4s.mp3');
 victoryBgmClip.preload='auto';
-const defeatBgmClip=new Audio('assets/audio/bgm/defeat_bgm_7s.mp3');
+const defeatBgmClip=new Audio('assets/audio/bgm/defeat_full.mp3');
 defeatBgmClip.preload='auto';defeatBgmClip.playsInline=true;
 function stopVictoryBgm(){
  for(const clip of [victoryBgmClip,defeatBgmClip]){clip.pause();clip.currentTime=0}
@@ -1962,4 +1962,4 @@ window.addEventListener('scroll',()=>{if(window.scrollX)keepTitleAtLeft()},{pass
 setInterval(()=>{const d=new Date();const month=d.getMonth()+1;const desired=Math.floor(((month-3+12)%12)/3);if(desired!==currentSeasonIndex)setKyotoSeason(desired)},60*60*1000);reset();
 /* Attempt the opening title cue once when the browser permits autoplay. */
 setTimeout(()=>{if(!document.hidden&&!el('titleScreen').classList.contains('hidden'))playTitleIntro()},240);
-</script><link rel="stylesheet" href="shared-victory.css?v=kondo-scale-corrected-20261112b"><script src="shared-victory.js?v=verdict-sequence-20261112"></script><link rel="stylesheet" href="story-unlocks.css?v=20261109-two-player-only"><script src="story-unlocks.js?v=picker-readable-20261110" defer></script><script src="game-language.js?v=language-settings-20261112" defer></script><link rel="stylesheet" href="page-navigation.css?v=20261110-makimono"><link rel="stylesheet" href="shared-audio-settings.css?v=inline-toggle-mixer-20261112"><script src="shared-audio-settings.js?v=inline-toggle-mixer-20261112" defer></script><script defer src="game-effect-scroll-lock.js?v=pwa-scroll-recovery-20261112"></script><style id="portrait-only-style">@media screen and (orientation:landscape) and (pointer:coarse){#portraitOnlyGuard{display:flex!important}}#portraitOnlyGuard{display:none;position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;text-align:center;background:#0b1720;color:#f5e6c5;padding:24px;font:bold clamp(20px,4vw,32px)/1.7 system-ui,sans-serif;box-sizing:border-box}#portraitOnlyGuard span{display:block;font-size:.65em;font-weight:normal;margin-top:10px}</style><div id="portraitOnlyGuard" role="alert" aria-label="縦画面でプレイしてください"><div>📱 縦画面に戻してください<span>新選組将棋は縦画面専用です</span></div></div><script defer src="startup-preloader.js?v=sortie-gate-20261112"></script></html>
+</script><link rel="stylesheet" href="shared-victory.css?v=kondo-scale-corrected-20261112b"><script src="shared-victory.js?v=verdict-sequence-20261112"></script><link rel="stylesheet" href="story-unlocks.css?v=20261109-two-player-only"><script src="story-unlocks.js?v=picker-readable-20261110" defer></script><script src="game-language.js?v=language-settings-20261112" defer></script><link rel="stylesheet" href="page-navigation.css?v=20261110-makimono"><link rel="stylesheet" href="shared-audio-settings.css?v=inline-toggle-mixer-20261112"><script src="shared-audio-settings.js?v=mobile-audio-recovery-20261112" defer></script><script defer src="game-effect-scroll-lock.js?v=pwa-scroll-recovery-20261112"></script><style id="portrait-only-style">@media screen and (orientation:landscape) and (pointer:coarse){#portraitOnlyGuard{display:flex!important}}#portraitOnlyGuard{display:none;position:fixed;inset:0;z-index:2147483647;align-items:center;justify-content:center;text-align:center;background:#0b1720;color:#f5e6c5;padding:24px;font:bold clamp(20px,4vw,32px)/1.7 system-ui,sans-serif;box-sizing:border-box}#portraitOnlyGuard span{display:block;font-size:.65em;font-weight:normal;margin-top:10px}</style><div id="portraitOnlyGuard" role="alert" aria-label="縦画面でプレイしてください"><div>📱 縦画面に戻してください<span>新選組将棋は縦画面専用です</span></div></div><script defer src="startup-preloader.js?v=sortie-gate-20261112"></script></html>
