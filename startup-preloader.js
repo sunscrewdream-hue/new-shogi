@@ -15,7 +15,7 @@
   'assets/visuals/intro_shinsengumi_team_pc.webp?v=clash-art-20261111b'
  ];
  const titleVoice='assets/audio/voice_iza_shutsujin.mp3';
- const cache=new Map(),resources=new Map(),successful=new Set(),bypass=new WeakSet();
+ const cache=new Map(),resources=new Map(),successful=new Set(),bypass=new WeakSet(),temporaryBypass=new Set();
  let starting=false,overlay=null,status=null,retryButton=null,continueButton=null;
  function imageReady(src){
   return new Promise(resolve=>{
@@ -117,7 +117,8 @@
   let done=false;
   const start=()=>{
    if(done)return;done=true;overlay.hidden=true;starting=false;
-   action();
+   if(!successful.has(key))temporaryBypass.add(key);
+   try{action()}finally{temporaryBypass.delete(key)}
   };
   const attempt=async()=>{
    overlay.querySelector('#startupPreloadActions').hidden=true;
@@ -166,6 +167,6 @@
    void run(mode,chapter,()=>{bypass.add(button);button.click()});
   },true);
  }
- window.ShinsengumiStartup={prepare,run,isReady:(mode,chapter)=>successful.has(mode+':'+(Number.isInteger(chapter)?chapter:'home'))};
+ window.ShinsengumiStartup={prepare,run,isReady:(mode,chapter)=>{const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');return successful.has(key)||temporaryBypass.has(key)}};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
 })();
