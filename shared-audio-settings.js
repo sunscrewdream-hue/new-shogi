@@ -8,11 +8,53 @@
  let values={...defaults};
  try{const data=JSON.parse(localStorage.getItem(key)||'null');if(data&&typeof data==='object')for(const k of Object.keys(defaults))if(Number.isFinite(Number(data[k])))values[k]=clamp(data[k])}catch{}
  const listeners=new Set();
+ // iOS Safari and installed home-screen apps may ignore HTMLAudio.volume.
+ // Use Web Audio gain stages only on iOS; leave PC/Android unchanged.
+ const iosMedia=/iPhone|iPad|iPod/.test(navigator.userAgent)||
+  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const mediaRoutes=new Map();let mediaContext=null;
+ function updateMediaGains(){
+  if(!mediaContext)return;
+  for(const route of mediaRoutes.values()){
+   if(route.gain){
+    const level=Math.max(0,Math.min(1,values[route.kind]/100*route.scale));
+    route.gain.gain.setTargetAtTime(level,mediaContext.currentTime,.012);
+   }
+  }
+ }
+ function unlockMedia(){
+  if(!iosMedia)return;
+  if(!mediaContext){
+   const C=window.AudioContext||window.webkitAudioContext;
+   if(!C)return;
+   try{mediaContext=new C()}catch(error){console.warn('iOS音量制御の初期化',error);return}
+  }
+  for(const [clip,route] of mediaRoutes){
+   if(route.gain)continue;
+   try{
+    const source=mediaContext.createMediaElementSource(clip),gain=mediaContext.createGain();
+    source.connect(gain).connect(mediaContext.destination);route.gain=gain;
+    clip.volume=1;
+   }catch(error){console.warn('iOS音量制御の接続',error)}
+  }
+  updateMediaGains();
+  if(mediaContext.state==='suspended')mediaContext.resume().catch(()=>{});
+ }
+ if(iosMedia){
+  document.addEventListener('pointerdown',unlockMedia,{passive:true,capture:true});
+  document.addEventListener('touchstart',unlockMedia,{passive:true,capture:true});
+ }
  const mixer={
+  registerMedia:(clip,kind,scale=1)=>{
+   if(!iosMedia||!clip||!Object.prototype.hasOwnProperty.call(defaults,kind))return;
+   if(!mediaRoutes.has(clip))mediaRoutes.set(clip,{kind,scale,gain:null});
+   else Object.assign(mediaRoutes.get(clip),{kind,scale});
+   if(mediaContext)unlockMedia();
+  },
   defaults, get:kind=>values[kind]??0,
   ratio:kind=>(values[kind]??0)/100,
-  set:(kind,value)=>{if(!(kind in defaults))return;values[kind]=clamp(value);try{localStorage.setItem(key,JSON.stringify(values))}catch{};for(const fn of listeners)fn({...values})},
-  reset:()=>{values={...defaults};try{localStorage.setItem(key,JSON.stringify(values))}catch{};for(const fn of listeners)fn({...values})},
+  set:(kind,value)=>{if(!(kind in defaults))return;values[kind]=clamp(value);try{localStorage.setItem(key,JSON.stringify(values))}catch{};updateMediaGains();for(const fn of listeners)fn({...values})},
+  reset:()=>{values={...defaults};try{localStorage.setItem(key,JSON.stringify(values))}catch{};updateMediaGains();for(const fn of listeners)fn({...values})},
   subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)}
  };
  window.ShinsengumiAudioMixer=mixer;
@@ -148,10 +190,10 @@
    mixer.subscribe(sync);
   }
   const close=()=>panel.close();
-  trigger.addEventListener('click',()=>{panel.showModal();trigger.setAttribute('aria-expanded','true');panel.querySelector('.audio-settings-close').focus()});
+  trigger.addEventListener('click',()=>{document.body.classList.add('audio-settings-active');panel.showModal();trigger.setAttribute('aria-expanded','true');panel.querySelector('.audio-settings-close').focus()});
   panel.querySelector('.audio-settings-close').addEventListener('click',close);
   panel.addEventListener('click',event=>{if(event.target===panel)close()});
-  panel.addEventListener('close',()=>{trigger.setAttribute('aria-expanded','false');trigger.focus()});
+  panel.addEventListener('close',()=>{document.body.classList.remove('audio-settings-active');trigger.setAttribute('aria-expanded','false');trigger.focus()});
   // Keep the label bilingual without affecting any original game audio handler.
   const updateLanguage=()=>{
    let language='ja';try{language=localStorage.getItem('shinsengumi-shogi-language-v1')||'ja'}catch{}

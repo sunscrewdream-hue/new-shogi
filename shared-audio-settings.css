@@ -86,3 +86,7 @@ body.local-title-mode #opponentResignButton{display:flex}
 .audio-settings-body>.audio-mixer-reset:focus-visible{outline:3px solid #e4b960;outline-offset:2px}
 .audio-settings-body>label:has(>#volume),.audio-settings-body>label:has(>#storyVolume){display:grid;grid-template-columns:58px minmax(0,1fr) 40px;justify-content:stretch;text-align:left;font-weight:700;gap:9px}
 .audio-settings-body>label:has(>#volume)>input,.audio-settings-body>label:has(>#storyVolume)>input{width:100%!important;min-width:0}
+
+/* iOS stand-alone web app: parent pan-y must not consume slider drags. */
+body.audio-settings-active{touch-action:auto!important}
+.audio-settings-panel input[type="range"]{touch-action:manipulation;overscroll-behavior:contain}

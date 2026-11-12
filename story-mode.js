@@ -71,7 +71,9 @@ function playStoryClip(path,channel="fx",onDone=null){
  if(!path){onDone?.();return null}
  if(channel==="voice"?!voiceEnabled:!fxEnabled){onDone?.();return null}
  if(document.hidden){onDone?.();return null}
- let a=storyClipCache.get(path);if(!a){a=new Audio(path);a.preload=channel==="voice"?"auto":"none";a.playsInline=true;storyClipCache.set(path,a)}
+ let a=storyClipCache.get(path);if(!a){a=new Audio(path);a.preload=channel==="voice"?"auto":"none";a.playsInline=true;storyClipCache.set(path,a);
+  window.ShinsengumiAudioMixer?.registerMedia?.(a,channel==="voice"?"voice":"fx",channel==="voice" ? .75 : .50)
+ }
  stopStoryClip(channel);a.currentTime=0;a.volume=channel==="voice"?voiceLevel():fxLevel();
  if(channel==="voice")activeStoryVoice=a;else activeStoryFx=a;
  let settled=false,watchdog=null;const finish=()=>{if(settled)return;settled=true;if(watchdog!==null)clearTimeout(watchdog);a.removeEventListener("ended",finish);a.removeEventListener("error",finish);a.removeEventListener("pause",finish);onDone?.()};
@@ -1975,6 +1977,12 @@ const connectStoryAudioMixer=()=>{
   storyDefeatBgmClip.volume=values.bgm/100*.70;
  };
  mixer.subscribe(apply);
+ // iOS routes HTML media through Web Audio; existing decoded FX already use GainNode.
+ mixer.registerMedia?.(promotionRiseSound,'fx',.50);
+ mixer.registerMedia?.(cannonImpactAudio,'fx',.75);
+ mixer.registerMedia?.(storyQuakeBattle,'fx',.50);
+ mixer.registerMedia?.(storyVictoryBgmClip,'bgm',.70);
+ mixer.registerMedia?.(storyDefeatBgmClip,'bgm',.70);
  apply({bgm:mixer.get('bgm'),voice:mixer.get('voice'),fx:mixer.get('fx')});
 };
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',connectStoryAudioMixer,{once:true});
