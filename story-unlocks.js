@@ -74,9 +74,12 @@
   for(const field of battlefields){
    const allowed=testAllStages||wins>=field.required;
    const button=document.createElement('button');button.type='button';
-   button.className='story-unlock-choice'+(field.id===selected?' selected':'');
+   button.className='story-unlock-choice'+(field.id===selected?' selected':'')+(allowed?'':' stage-locked');
    button.disabled=!allowed;button.setAttribute('aria-pressed',String(field.id===selected));
-   button.textContent=field.name;
+   // Locked fields contain only a key: never render their decorative scroll or chapter name.
+   // Keep the name and unlock requirement available to assistive technology.
+   button.textContent=allowed?field.name:'🔒';
+   button.setAttribute('aria-label',allowed?field.name+'・選択可能':field.name+'・未解放。'+field.hint);
    button.title=allowed?'この戦場を選ぶ':field.hint;
    button.addEventListener('click',()=>{
     if(!allowed)return;
