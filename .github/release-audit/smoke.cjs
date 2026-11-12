@@ -39,6 +39,43 @@ const fs=require('fs'),{chromium}=require('/tmp/shogi-playwright/node_modules/pl
   }
   await ctx.close();
  }
+
+ for(const mode of ['desktop','mobile']){
+  const ctx=await browser.newContext(mode==='mobile'?{viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2}:{viewport:{width:1365,height:820}});
+  for(const route of ['card-ai-test.html','story-mode.html']){
+   const page=await ctx.newPage();const js=[];
+   page.on('pageerror',e=>js.push(e.message.slice(0,230)));
+   try{
+    await page.goto(base+route,{waitUntil:'domcontentloaded',timeout:30000});
+    const mix=await page.evaluate(()=>{
+     const range=document.getElementById('audioMixvoice');
+     const mixer=window.ShinsengumiAudioMixer;
+     if(!range||!mixer)return 'missing UI or mixer';
+     const before=mixer.get('voice');
+     range.value='37';range.dispatchEvent(new Event('input',{bubbles:true}));
+     const observed=mixer.get('voice');mixer.set('voice',before);
+     return observed===37?'ok':'input did not update voice: '+observed;
+    });
+    if(mix!=='ok')report.errors.push(mode+' '+route+' real-time audio fader: '+mix);
+    if(route==='card-ai-test.html'){
+     await page.locator('#startGame').click({timeout:15000});
+     await page.waitForFunction(()=>document.getElementById('titleScreen')?.classList.contains('hidden'),null,{timeout:20000});
+     await page.waitForTimeout(900);
+     const cells=await page.locator('#board .sq').count();
+     if(cells!==81)report.errors.push(mode+' normal match board cells: '+cells+' (expected 81)');
+    }else{
+     await page.locator('#storyChapters .chapter').nth(1).click({timeout:15000});
+     await page.waitForFunction(()=>!document.getElementById('storyDialogue')?.classList.contains('hidden'),null,{timeout:26000});
+     const heading=await page.locator('#dialogueTitle').innerText();
+     if(!heading.trim())report.errors.push(mode+' first story chapter dialogue missing');
+    }
+    if(js.length)report.errors.push(mode+' '+route+' gameplay navigation JS: '+js.join(' | '));
+    report.pages.push({mode,interactive:route,status:'checked'});
+   }catch(e){report.errors.push(mode+' '+route+' interactive smoke: '+e.message.slice(0,250));}
+   await page.close();
+  }
+  await ctx.close();
+ }
  await browser.close();
  fs.mkdirSync('/tmp/shogi-finalqa',{recursive:true});
  fs.writeFileSync('/tmp/shogi-finalqa/browser.json',JSON.stringify(report,null,2));

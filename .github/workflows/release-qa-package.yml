@@ -45,3 +45,5 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+# Final rerun after removing empty unused asset and tightening interactive smoke tests.
