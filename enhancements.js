@@ -64,7 +64,7 @@
  const baseRestart=restartGame;
  restartGame=function(){baseRestart();stopTitleMusic()};
  const baseReset=reset;
- reset=function(){baseReset();captureCounts={};for(const seal of hitokiriSeals)seal.classList.remove('active','preview');visibleBannerPersons.fill(null);awakeningPreviewSide=null;awakeningTest.textContent='⚔ 人斬り覚醒テスト'};
+ reset=function(){baseReset();pendingAwakeningStamps.fill(false);completedAwakeningStampKeys.clear();captureCounts={};for(const seal of hitokiriSeals)seal.classList.remove('active','preview');visibleBannerPersons.fill(null);awakeningPreviewSide=null;awakeningTest.textContent='⚔ 人斬り覚醒テスト'};
  $('volume').addEventListener('input',syncTitleVolume);
 
  /* PWA, fullscreen button, title/manual/navigation. */
@@ -234,19 +234,23 @@
  };
  /* The seal belongs to a particular historical person and follows their capture counter. */
  const visibleBannerPersons=[null,null],hitokiriSeals=[];
+ const pendingAwakeningStamps=[false,false],completedAwakeningStampKeys=new Set();
  for(const side of [0,1]){
   const seal=document.createElement('img');seal.className='hitokiri-stamp';seal.src='assets/visuals/hitokiri_red_calligraphy.webp';seal.alt='人斬り覚醒';seal.setAttribute('aria-hidden','true');
   $(side===0?'officerPanel':'enemyOfficerPanel').append(seal);hitokiriSeals[side]=seal;
  }
  function syncHitokiriSeal(side){
   const person=visibleBannerPersons[side];
-  const key=person&&Number.isInteger(person.cid)?String(person.originSide??person.s)+':'+String(person.cid):null;
-  const active=!!(ruleSettings.hitokiri&&key&&Number(captureCounts[key]||0)>=3);
+  const key=person?window.ShinsengumiBattleRules.fighterKey(person):null;
+  const active=!!(ruleSettings.hitokiri&&key&&Number(captureCounts[key]||0)>=3&&!pendingAwakeningStamps[side]);
   hitokiriSeals[side].classList.toggle('active',active);
  }
  const baseSetCharacterBanner=setCharacterBanner;
  setCharacterBanner=function(side,p,caption='',duration=2500){
   visibleBannerPersons[side]=p;const result=baseSetCharacterBanner(side,p,caption,duration);
+  const sealKey=window.ShinsengumiBattleRules.fighterKey(p),captures=Number(captureCounts[sealKey]||0);
+  if(captures<3)completedAwakeningStampKeys.delete(sealKey);
+  if(ruleSettings.hitokiri&&captures===3&&!completedAwakeningStampKeys.has(sealKey))pendingAwakeningStamps[side]=true;
   syncHitokiriSeal(side);return result;
  };
  flashHitokiri=function(message,side=turn){
@@ -255,10 +259,14 @@
   const name=awakening?'人斬り覚醒！':'斬殺！';
   const image=document.createElement('img');image.src=awakening?'assets/visuals/hitokiri_red_calligraphy.webp':'assets/visuals/hitokiri_kill_calligraphy.webp';image.alt=name;
   notice.replaceChildren(image);
-  const ep=epoch;
-  syncHitokiriSeal(side);
+  const ep=epoch,awakeningKey=window.ShinsengumiBattleRules.fighterKey(visibleBannerPersons[side]);
+  if(awakening){pendingAwakeningStamps[side]=true;syncHitokiriSeal(side)}
   const id=++noticeSerialHitokiri;notice.classList.add('show');
-  setTimeout(()=>{if(ep===epoch&&id===noticeSerialHitokiri)notice.classList.remove('show')},window.ShinsengumiBattlePresentation.timing.awakening);
+  setTimeout(()=>{
+   if(ep!==epoch||id!==noticeSerialHitokiri)return;
+   notice.classList.remove('show');
+   if(awakening){if(awakeningKey)completedAwakeningStampKeys.add(awakeningKey);pendingAwakeningStamps[side]=false;syncHitokiriSeal(side)}
+  },window.ShinsengumiBattlePresentation.timing.awakening);
  };
 
  /* These visual tests leave the actual match and character counters unchanged. */
