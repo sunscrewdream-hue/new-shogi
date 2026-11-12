@@ -4,7 +4,7 @@
  const timing=Object.freeze({quietMove:850,promotionMove:350,promotionPause:220,promotionRise:1050,
   awakening:1600,killResult:850,turnNotice:1800,enemyTurnDelay:1400,playerTurnDelay:1800,
   enemyThink:1050,escort:1450,desertion:2600,holeFade:1350,incidentTitle:1300});
- function moveVoices({board,side,y,x,source,captured=false,lethal=false,gaveCheck=false,captureAlreadyPlayed=false,promoted=false,random=Math.random}){
+ function moveVoices({board,side,y,x,source,captured=false,lethal=false,gaveCheck=false,captureAlreadyPlayed=false,promoted=false,satsuma=false,random=Math.random}){
   const cues=root.ShinsengumiBattleRules.voiceCues({captured,lethal,gaveCheck,captureAlreadyPlayed});
   if(captured||lethal||cues.length)return cues;
   const origin=source?.originSide??source?.origin;
@@ -12,7 +12,7 @@
    :origin===1&&source?.cid===0?'saigo':origin===1&&source?.cid===2?'kido':null;
   if(dedicated)return [dedicated];
   const nearby=board.some((row,Y)=>row.some((p,X)=>p&&p.s!==side&&Math.max(Math.abs(Y-y),Math.abs(X-x))<=1));
-  return nearby&&random()<.45?[side===0?'move0':promoted?'sacchoPromote':random()<.3?'sacchoUryaa':'sacchoChesto']:[];
+  return nearby&&random()<.45?[side===0?'move0':promoted?'sacchoPromote':satsuma&&random()>=.3?'sacchoChesto':'sacchoUryaa']:[];
  }
  function animateEscort({cell,jail,layer,side,tokenSelector,valid=()=>true,onContact=()=>{},onFinished=()=>{}}){
   const rect=cell?.getBoundingClientRect(),goal=jail?.getBoundingClientRect();
