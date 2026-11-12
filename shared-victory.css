@@ -100,3 +100,16 @@
  scale:1.47!important;
  transform-origin:center bottom!important;
 }
+
+/* 2026-11-13: defeated officer portraits are half the prior rendered size.
+   Winner artwork, verdict lettering and entrance motion keep their scale. */
+#endOverlay.composite-victory #endPanel #endLoserImage,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser{
+ scale:.5!important;transform-origin:center bottom!important;
+}
+#endOverlay.composite-victory #endPanel #endLoserImage.victory-kondo-loser,
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser.victory-kondo-loser,
+#endOverlay.composite-victory #endPanel #endLoserImage[src*="kondo_loser.webp"],
+#storyEndOverlay.composite-victory #storyEndPanel #storyEndLoser[src*="kondo_loser.webp"]{
+ scale:.735!important;transform-origin:center bottom!important;
+}
