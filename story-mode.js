@@ -250,6 +250,7 @@ function compactPickCard(side){
 }
 function compactCardInterval(){return stage===3?3:4}
 function compactCardDue(actor){
+ if(localTwoPlayer)return false; // Visual-stage human matches never trigger incident cards.
  if(stage===2)return g?.oilPhase===2&&g.ply>0&&g.ply%4===0;
  if(stage===3)return g.ply>=5&&(g.ply-5)%3===0; // Alternate sides; avoid back-to-back incidents.
  const cycle=compactCardInterval()*2;return g.ply%cycle===(actor===0?cycle-1:0);
@@ -269,9 +270,10 @@ function compactEligible(owner,types=null){
 }
 function compactPlanQuake(){return window.ShinsengumiIncidentRules.planQuake({board:g.board,isHole:(y,x)=>g.isHole(y,x),safe:compactSafeBoard})}
 function compactCardStart(side){
+ if(localTwoPlayer)return; // Keep card animations exclusive to the authored story.
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");$("compactCardArtwork").src="assets/cards/back/card-back-saccho-1024x1536.webp";
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");$("compactCardArtwork").src="assets/cards/back/card-back-king-neutral.webp";
  $("compactCardHeading").textContent="";$("compactCardText").textContent="";$("compactCardPrompt").textContent="";
  const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
@@ -1181,7 +1183,7 @@ function battle(i,oilFormation=null,retry=false){
   if(g.check(g.board,0)||g.check(g.board,1)||!g.legal(0).length||!g.legal(1).length)
    [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
  }
- if(i===2)g.startOilAmbush();
+ if(i===2&&!localTwoPlayer)g.startOilAmbush(); // Human match: full 5x6 opposing rosters from move one.
  const ch=D.chapters[i];$("battleChapter").textContent=ch.era;$("battleTitle").textContent=ch.title+(localTwoPlayer?' ／ 二人対戦':'');
  if(localTwoPlayer){
   document.body.classList.add('story-two-player');
@@ -1210,7 +1212,7 @@ function battle(i,oilFormation=null,retry=false){
 // First-act Aburanokoji abilities were previously AI-only.  The second
 // human player receives the same bounded actions, without the AI choosing for them.
 function ensureLocalItoControls(){
- if(!localTwoPlayer)return;
+ if(!localTwoPlayer||g?.oilPhase!==1)return;
  let bar=$("localItoControls");if(bar)return;
  bar=document.createElement('div');bar.id='localItoControls';bar.hidden=true;
  bar.style.cssText='flex-wrap:wrap;gap:8px;justify-content:center;max-width:520px;margin:8px auto';
@@ -1345,7 +1347,7 @@ function render(){
    if(s===active&&defendingDrops?.has(t))b.classList.add("check-defender");
    if(s===active&&selected?.drop&&selected.t===t)b.classList.add("selected");b.onclick=()=>{if(b.disabled)return;selected={drop:true,t};render()};hand.append(b)}
  }
- const countdown=stage===2&&g?.oilPhase===1?"伊東甲子太郎を討て！":compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
+ const countdown=localTwoPlayer?"":stage===2&&g?.oilPhase===1?"伊東甲子太郎を討て！":compactMode()&&!ended?(compactIncident?"動乱の刻・事件札を確認中":`動乱の刻まで${compactCardRemaining()}手`):"";
  const turnText=ended?'対局終了':busy?'演出中…':localTwoPlayer?
   (g.side?'後手・敵軍の手番！':'先手・新選組の手番！')+(g.check(g.board,g.side)?'　⚠王手！':''):
   g.side?'敵軍、思案中…'+(g.check(g.board,1)?'　⚠王手':''):'新選組の手番！'+(g.check(g.board,0)?'　⚠王手！ 防ぐか、覚悟して主君を見捨てる':'');
@@ -1561,7 +1563,7 @@ function makeMove(m,prom,capturePreplayed=false){
  let moveVoiceDone=Promise.resolve(),triggerCaptureVoice=null;
  const announce=(kind,player=compactSound)=>{moveVoiceDone=moveVoiceDone.then(()=>new Promise(resolve=>player(kind,resolve)))};
  const key=compactFighterKey(source),before=compactCaptures[key]||0;
- const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()});
+ const capturePlan=window.ShinsengumiBattleRules.captureResult({captured:!m.drop&&!!g.board[m.Y][m.X],drop:!!m.drop,previous:before,hitokiri:compactMode()&&!localTwoPlayer});
  const oilItoCapture=stage===2&&g.oilPhase===1&&!m.drop&&g.board[m.Y][m.X]?.king==="ito";
  const willKill=capturePlan.lethal||oilItoCapture;
  const prePromotionPiece=showPromotion&&!m.drop?{...source,p:false}:null;
@@ -1788,7 +1790,7 @@ function weaponCard(kind,ownerSide=1,debug=false){
  // Weapon cards share the same front-only reveal used by ordinary incidents.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
  overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");
- $("compactCardArtwork").src="assets/cards/back/card-back-saccho-1024x1536.webp";
+ $("compactCardArtwork").src="assets/cards/back/card-back-king-neutral.webp";
  $("compactCardHeading").textContent="";$("compactCardText").textContent="";
  $("compactCardPrompt").textContent="";
  stageLayer.classList.remove("hidden");const id=epoch;
