@@ -654,5 +654,20 @@ body.local-title-mode #storyUnlockExplanation{
  }
 }
 
-/* Keep the four title scroll links as one centered group. */
-#titleScreen #titleLinks{grid-template-columns:repeat(4,minmax(0,1fr))!important;width:min(92vw,316px)!important;margin-left:auto!important;margin-right:auto!important;justify-content:center!important}
+/* Five title scrolls: always a single row, centered on PC and phones. */
+#titleScreen #titleLinks{
+ display:grid!important;
+ grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ width:min(96vw,390px)!important;
+ max-width:390px!important;
+ gap:4px!important;
+ margin-left:auto!important;
+ margin-right:auto!important;
+ justify-content:center!important;
+ align-items:stretch!important;
+}
+#titleScreen #titleLinks>a{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+@media(max-width:360px){
+ #titleScreen #titleLinks{width:min(96vw,340px)!important;gap:2px!important}
+ #titleScreen #titleLinks>a{font-size:12px!important;letter-spacing:0!important}
+}
