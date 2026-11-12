@@ -1033,7 +1033,11 @@ function talk(i){
  if(i===3)window.StoryBgm?.preload?.("toba").catch(error=>console.warn("鳥羽・伏見BGMを先読みできません",error));
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
  if(i>=0&&i<4)selectIntroArtwork(i);
- dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>battle(i);
+ dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>{
+  // The final 「いざ、出陣」 always enters through the loading transition.
+  if(window.ShinsengumiStartup)void window.ShinsengumiStartup.run('story',i,()=>battle(i),{forceOverlay:true,minVisibleMs:420});
+  else battle(i);
+ };
  $("dialogueScene").className="scene-art scene-"+ch.scene;$("dialogueDate").textContent=storyKanjiNumerals(ch.era);$("dialogueTitle").textContent=ch.title;chooseView("storyDialogue");line();
 }
 // The same approved Shinsengumi side is paired with each stage's own enemy art.

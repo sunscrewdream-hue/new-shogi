@@ -109,11 +109,12 @@
   retryButton=overlay.querySelector('#startupPreloadRetry');
   continueButton=overlay.querySelector('#startupPreloadContinue');
  }
- async function run(mode,chapter,action){
+ async function run(mode,chapter,action,{forceOverlay=false,minVisibleMs=420}={}){
   if(starting)return;
   starting=true;createOverlay();
   const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
-  if(!successful.has(key))overlay.hidden=false;
+  if(forceOverlay||!successful.has(key))overlay.hidden=false;
+  const shownAt=overlay.hidden?0:Date.now();
   let done=false;
   const start=()=>{
    if(done)return;done=true;overlay.hidden=true;starting=false;
@@ -127,8 +128,9 @@
    progress.value=0;
    const ok=await prepare(mode,chapter,(completed,total)=>{progress.value=Math.round(completed/total*100);status.textContent='素材の読み込み中 '+completed+' / '+total});
    if(ok){
-    // Continue automatically once the selected chapter's artwork and audio
-    // are ready; the loading screen must not require a second tap.
+    // Show a real loading transition after sortie, even for cached assets.
+    // There is no second button: proceed automatically when ready.
+    if(shownAt)await new Promise(resolve=>setTimeout(resolve,Math.max(0,minVisibleMs-(Date.now()-shownAt))));
     start();
     return;
    }
@@ -180,9 +182,9 @@
    else window.unlockAudio?.();
    const chapter=mode==='story'?[...document.querySelectorAll('#storyChapters button.chapter')].indexOf(button)-1:null;
    const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
-   if(successful.has(key))return;
+   if(mode==='story'&&successful.has(key))return;
    event.preventDefault();event.stopImmediatePropagation();
-   void run(mode,chapter,()=>{bypass.add(button);button.click()});
+   void run(mode,chapter,()=>{bypass.add(button);button.click()},{forceOverlay:mode==='normal'});
   },true);
  }
  window.ShinsengumiStartup={prepare,run,isReady:(mode,chapter)=>{const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');return successful.has(key)||temporaryBypass.has(key)}};
