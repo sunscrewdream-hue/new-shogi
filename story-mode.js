@@ -1777,19 +1777,34 @@ const storyVictoryBgmClip=new Audio('assets/audio/bgm/victory_thunder_pass_4s.mp
 storyVictoryBgmClip.preload='auto';
 const storyDefeatBgmClip=new Audio('assets/audio/bgm/defeat_full.mp3');
 storyDefeatBgmClip.preload='auto';storyDefeatBgmClip.playsInline=true;
+let storyEndBgmKind=null,storyEndBgmShouldResume=false;
 function stopStoryVictoryBgm(){
+ storyEndBgmKind=null;storyEndBgmShouldResume=false;
  for(const clip of [storyVictoryBgmClip,storyDefeatBgmClip]){clip.pause();clip.currentTime=0}
+}
+function storyEndBgmClip(){return storyEndBgmKind==='victory'?storyVictoryBgmClip:storyEndBgmKind==='defeat'?storyDefeatBgmClip:null}
+function pauseStoryEndBgmOnHide(){
+ const clip=storyEndBgmClip();if(!clip)return;
+ // Preserve the position across mobile tab/PWA suspension.
+ if(!clip.ended)storyEndBgmShouldResume=true;
+ clip.pause();
+}
+function resumeStoryEndBgm(){
+ if(!storyEndBgmShouldResume||!ended||soundOff||document.hidden||$("storyEndOverlay").classList.contains("hidden"))return;
+ const clip=storyEndBgmClip();if(!clip)return;
+ storyEndBgmShouldResume=false;
+ clip.play().catch(error=>{storyEndBgmShouldResume=true;console.warn('物語の終局BGM復帰待ち',error)});
 }
 function playStoryVictoryBgm(){
  if(soundOff||document.hidden||!ended||$("storyEndOverlay").classList.contains("hidden"))return;
- stopStoryVictoryBgm();
+ stopStoryVictoryBgm();storyEndBgmKind='victory';
  storyVictoryBgmClip.volume=Math.min(.7,(window.ShinsengumiAudioMixer?.ratio('bgm')??storyVolume/100)*.70);
  storyVictoryBgmClip.play().catch(()=>{});
 }
 
 function playStoryDefeatBgm(){
  if(soundOff||document.hidden||!ended||$("storyEndOverlay").classList.contains("hidden"))return;
- stopStoryVictoryBgm();
+ stopStoryVictoryBgm();storyEndBgmKind='defeat';
  storyDefeatBgmClip.volume=Math.min(.7,(window.ShinsengumiAudioMixer?.ratio('bgm')??storyVolume/100)*.70);
  storyDefeatBgmClip.play().catch(error=>console.warn('敗北BGMは未取得または再生できません',error));
 }
@@ -1974,8 +1989,14 @@ $("debugFx").onclick=()=>storyDebugRun(()=>{compactSound("slash");const id=epoch
 let debugVoiceIndex=[0,0];
 $("debugVoice0").onclick=()=>storyDebugRun(()=>{if(voiceEnabled)playStoryClip(voiceSamples[debugVoiceIndex[0]++%3],"voice")});
 $("debugVoice1").onclick=()=>storyDebugRun(()=>{if(voiceEnabled)playStoryClip(voiceSamples[3+debugVoiceIndex[1]++%3],"voice")});
-document.addEventListener("visibilitychange",()=>{if(document.hidden){stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()}});
-window.addEventListener("pagehide",()=>{stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()});
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden){stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();pauseStoryEndBgmOnHide()}
+ else resumeStoryEndBgm();
+});
+window.addEventListener("pagehide",()=>{stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();pauseStoryEndBgmOnHide()});
+window.addEventListener("pageshow",resumeStoryEndBgm);
+window.addEventListener("focus",resumeStoryEndBgm);
+document.addEventListener("pointerdown",resumeStoryEndBgm,{passive:true,capture:true});
 $("storyVolume").value=String(storyVolume);$("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
 // The shared mixer is loaded as a deferred script after story-mode.js.
 // Subscribe once all deferred scripts have run; otherwise the optional-chain
