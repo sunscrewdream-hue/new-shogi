@@ -1,0 +1,47 @@
+name: Final game QA and standalone website package
+on:
+  push:
+    branches:
+      - release/preview-20261108
+    paths:
+      - .github/workflows/release-qa-package.yml
+permissions:
+  contents: read
+jobs:
+  final-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install analysis tools and browser
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          mkdir -p /tmp/shogi-playwright /tmp/shogi-finalqa
+          cd /tmp/shogi-playwright
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1.56.1 >/dev/null
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROME_EXEC=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Check syntax, file references, and all story BGM segments
+        run: python3 .github/release-audit/static.py
+      - name: Browser smoke test on desktop and mobile
+        run: |
+          python3 -m http.server 8765 >/tmp/shogi-site-server.log 2>&1 &
+          sleep 2
+          node .github/release-audit/smoke.cjs
+      - name: Build and checksum separate-server release package
+        if: always()
+        run: python3 .github/release-audit/package.py
+      - name: Upload verified package and detailed QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shinsengumi-shogi-web-release-20261112
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
