@@ -223,7 +223,7 @@ function hideCompactFx(){
  compactTurnLocked=false;
  $("compactTurnNotice").classList.remove("show");
  $("compactAwakenNotice").classList.remove("show");
- compactArrival=null;promotionRise=null;promotionCapturePreview=null;promotionVisualHold=null;
+ compactArrival=null;promotionRise=null;promotionCapturePreview=null;promotionVisualHold=null;pendingStoryAwakeningKey=null;
  compactIncident=null;compactIncidentEffect=null;compactIncidentMarks=[];compactQuakeMove=null;compactQuakeLanding=null;compactQuakeCracks=[];compactClosingHoles=[];compactHoleFading=false;compactBloodMarks=[];debugAwakenKey=null;pendingWeaponDisplay=null;$("compactCardFace").blur();$("compactCardOverlay").classList.add("hidden");$("compactIncidentStage").classList.add("hidden");$("compactCardFace").classList.remove("revealed");
  $("compactIntroClash").classList.remove("show");$("compactActionLayer").replaceChildren();
 }
@@ -234,6 +234,7 @@ function compactPickCard(side){
  // Do not draw a card that cannot affect the current legal position.
  // A silent no-op was especially confusing for defection on small boards.
  const deck=base.filter(([kind])=>{
+  if(localTwoPlayer&&kind==="援軍")return false; // Human-vs-human plays without reinforcement.
   if(kind==="寝返り")return compactEligible(1-side).length>0;
   if(kind==="脱走")return compactEligible(side).length>0;
   if(kind==="粛清")return compactEligible(side,["歩","香","桂","銀"]).length>0;
@@ -390,6 +391,7 @@ async function ikedayaReinforcementArrival(){
   playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
+   closeStoryReinforcementBanner(0); // The previous portrait leaves before the next rider moves.
    const {runner,boardHeight,cellHeight,width}=createStoryReinforcementRunner(entry);
    let feet=true;
    const active=()=>feet&&game===epoch&&!ended;
@@ -450,6 +452,7 @@ async function kinmonSatsumaArrival(){
   playGestureAudio("assets/audio/sfx/battle_charge_mono_64kbps.mp3",null,"voice",2.5,()=>game===epoch&&!ended);
   for(const entry of arrivals){
    if(game!==epoch||ended)return;
+   closeStoryReinforcementBanner(0); // The previous portrait leaves before the next rider moves.
    const {runner,boardHeight,cellHeight,width}=createStoryReinforcementRunner(entry);
    let feet=true;
    const active=()=>feet&&game===epoch&&!ended;
@@ -495,8 +498,8 @@ async function kinmonSatsumaArrival(){
 }
 function compactResumeTurn(){
  if(ended)return;
- if(stage===0&&g?.ply>=3&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}
- if(stage===1&&g?.ply>=3&&!g.kinmonSatsumaReinforced){kinmonSatsumaArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
+ if(!localTwoPlayer&&stage===0&&g?.ply>=3&&!g.ikedayaReinforced){ikedayaReinforcementArrival();return}
+ if(!localTwoPlayer&&stage===1&&g?.ply>=3&&!g.kinmonSatsumaReinforced){kinmonSatsumaArrival();return}busy=false;compactTurnLocked=true;render();const game=epoch;
  // The finished match queues the turn illustration 1.4s (enemy) / 1.8s
  // (player) after the preceding action, then shows the artwork for 1.8s.
  const side=g.side;
@@ -840,6 +843,7 @@ function person(p){
  const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/characters/mobs/"+m[2]};
 }
 const storyBannerTimers=[null,null];
+let pendingStoryAwakeningKey=null;
 // Reinforcement portraits use banner(..., true), which has no auto-dismiss timer.
 // Clear that hold before compactResumeTurn queues the next turn illustration.
 function closeStoryReinforcementBanner(side){
@@ -850,7 +854,7 @@ function closeStoryReinforcementBanner(side){
 function banner(s,p,hold=false){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
- const awakened=compactMode()&&((compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));
+ const awakened=compactMode()&&compactFighterKey(p)!==pendingStoryAwakeningKey&&((compactCaptures[compactFighterKey(p)]||0)>=3||debugAwakenKey===compactFighterKey(p));
  $(prefix+"StoryBanner").classList.toggle("compact-awakened",awakened);
  $(prefix+"StoryName").textContent=a.name;
  const caption=document.createElement('span');caption.className='story-role-caption';caption.textContent=a.role;
@@ -1113,6 +1117,18 @@ function battle(i,oilFormation=null,retry=false){
  // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
  if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
+ // A human-vs-human battle begins with the authored reserve officers already
+ // deployed. Skip scripted arrivals without leaving either side short-handed.
+ if(localTwoPlayer){
+  if(i===0&&Array.isArray(g.ikedayaReserve)){
+   for(const entry of g.ikedayaReserve)if(!g.board[entry.y][entry.x])g.board[entry.y][entry.x]=entry.piece;
+   g.ikedayaReinforced=true;
+  }
+  if(i===1&&Array.isArray(g.kinmonSatsumaReserve)){
+   for(const entry of g.kinmonSatsumaReserve)if(!g.board[entry.y][entry.x])g.board[entry.y][entry.x]=entry.piece;
+   g.kinmonSatsumaReinforced=true;
+  }
+ }
  if(i===2&&[1,3].includes(oilFormation)){
   const front=g.board[4];
   [front[2],front[oilFormation]]=[front[oilFormation],front[2]];
@@ -1513,10 +1529,11 @@ function makeMove(m,prom,capturePreplayed=false){
  const {unit,captured}=g.move(m,prom,willKill);
  if(prePromotionPiece)promotionVisualHold={y:m.Y,x:m.X,piece:prePromotionPiece};
  if(compactMode())compactClosingHoles=holesBefore.filter(h=>!g.holes.some(v=>v.x===h.x&&v.y===h.y));
- if(compactMode()&&!showPromotion)compactArrival={y:m.Y,x:m.X};
+ if(compactMode()&&!showPromotion&&!captured)compactArrival={y:m.Y,x:m.X}; // No re-triggered landing flash during escort.
  if(compactMode()&&captured){
   compactCaptures[key]=capturePlan.next;
   justAwakened=capturePlan.awakened;
+  if(justAwakened)pendingStoryAwakeningKey=key;
  }
  const gaveCheck=g.check(g.board,1-actor);
  const deferCheck=(showPromotion||!!captured)&&gaveCheck;
@@ -1549,7 +1566,7 @@ function makeMove(m,prom,capturePreplayed=false){
  const oilFirstActVictory=stage===2&&g.oilPhase===1&&!g.king(1);
  // Being cornered without legal moves is not Ito's death.
  const rawResult=g.state();
- const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(stage===0&&g.ply>=3&&!g.ikedayaReinforced&&g.king(0)&&g.king(1)&&rawResult&&rawResult.why!=="主君討死")?null:rawResult;
+ const result=(stage===2&&g.oilPhase===1&&g.king(1)&&rawResult?.winner===0)||(!localTwoPlayer&&stage===0&&g.ply>=3&&!g.ikedayaReinforced&&g.king(0)&&g.king(1)&&rawResult&&rawResult.why!=="主君討死")?null:rawResult;
  if(compactMode()){
   busy=true;render();const id=epoch;
   // Capture and the awakening seal must finish before the next turn or verdict.
@@ -1566,7 +1583,12 @@ function makeMove(m,prom,capturePreplayed=false){
    }
    if(justAwakened){
     compactCalligraphy(false);
-    await playKabukiVoice("awakening");
+    const awakeningVoice=playKabukiVoice("awakening");
+    await later(window.ShinsengumiBattlePresentation.timing.awakening);
+    if(id!==epoch||ended)return;
+    pendingStoryAwakeningKey=null;
+    if(unit)banner(actor,unit); // Only now is the persistent stamp revealed.
+    await awakeningVoice;
     if(id!==epoch||ended)return;
    }
    if(!oilFirstActVictory)await compactFadeExpiredHoles(id);
@@ -1601,7 +1623,7 @@ function makeMove(m,prom,capturePreplayed=false){
     valid,
     animate:(done,contact)=>animateCompactEscort(actor,m.Y,m.X,captured,done,contact),
     onContact:()=>{
-     if(promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.piece=unit;promotionCapturePreview.hide=false;render()}
+     if(promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.piece=prePromotionPiece||unit;promotionCapturePreview.hide=false;render()}
      compactSound("slash");triggerCaptureVoice?.();
     },
     onFinished:()=>{promotionCapturePreview=null;render();afterFx()}
@@ -1835,8 +1857,9 @@ function finish(winner,reason){
   actions.append(button);
  }
  overlay.classList.remove("hidden");
- // All four chapters share the normal match's spoken verdict -> metal -> loss order.
+ // Start the victory/defeat score with the reveal; voices remain sequential.
  window.StoryBgm?.stop();
+ if(win||localTwoPlayer)playStoryVictoryBgm();else playStoryDefeatBgm();
  const verdictEpoch=epoch;
  const valid=()=>verdictEpoch===epoch&&ended&&!overlay.classList.contains("hidden");
  const playVoice=path=>new Promise(resolve=>{
@@ -1849,7 +1872,7 @@ function finish(winner,reason){
   metal:()=>playPromotionRise(),
   playerDefeated:!localTwoPlayer&&!win,
   defeat:()=>playVoice("assets/audio/voice_loss_munen.mp3"),
-  complete:()=>{if(win)playStoryVictoryBgm();else playStoryDefeatBgm()}
+  complete:()=>{} // BGM began immediately at the visible verdict.
  });
 }
 function leave(){
@@ -1962,9 +1985,13 @@ async function storyDebugHitokiri(kill){
  try{
   if(!kill){
    const officer=g.board.flat().find(p=>p?.s===0&&p.t==="玉");
-   debugAwakenKey=compactFighterKey(officer);banner(0,officer);
+   debugAwakenKey=compactFighterKey(officer);pendingStoryAwakeningKey=debugAwakenKey;banner(0,officer);
    compactCalligraphy(false);
-   await Promise.race([playKabukiVoice("awakening"),later(3500)]);
+   const awakenedVoice=Promise.race([playKabukiVoice("awakening"),later(3500)]);
+   await later(window.ShinsengumiBattlePresentation.timing.awakening);
+   if(id!==epoch||ended)return;
+   pendingStoryAwakeningKey=null;banner(0,officer);
+   await awakenedVoice;
    if(id!==epoch||ended)return;
    // Let the tester see the persistent stamp on the officer banner.
    await later(1200);
