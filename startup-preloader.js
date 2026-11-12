@@ -15,7 +15,7 @@
   'assets/visuals/intro_shinsengumi_team_pc.webp?v=clash-art-20261111b'
  ];
  const titleVoice='assets/audio/voice_iza_shutsujin.mp3';
- const cache=new Map(),successful=new Set(),bypass=new WeakSet();
+ const cache=new Map(),resources=new Map(),successful=new Set(),bypass=new WeakSet();
  let starting=false,overlay=null,status=null,retryButton=null,continueButton=null;
  function imageReady(src){
   return new Promise(resolve=>{
@@ -66,6 +66,16 @@
    assets.push({src:chapter===3?'toba':chapter===0||chapter===2?'battle01':'battle02',kind:'bgm'});
   return assets;
  }
+ function warm(item){
+  const key=item.kind+':'+item.src;
+  if(resources.has(key))return resources.get(key);
+  const job=Promise.resolve().then(()=>
+   item.kind==='image'?imageReady(item.src):
+   item.kind==='bgm'?bgmReady(item.src):audioReady(item.src)
+  ).then(ok=>{if(!ok)resources.delete(key);return ok},()=>{resources.delete(key);return false});
+  resources.set(key,job);
+  return job;
+ }
  function prepare(mode,chapter,onProgress){
   const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
   if(successful.has(key)){onProgress?.(1,1);return Promise.resolve(true)}
@@ -74,7 +84,7 @@
   const workers=Array.from({length:Math.min(3,list.length)},async()=>{
    while(next<list.length){
     const item=list[next++];
-    const ok=await (item.kind==='image'?imageReady(item.src):item.kind==='bgm'?bgmReady(item.src):audioReady(item.src));
+    const ok=await warm(item);
     if(!ok)failures++;
     onProgress?.(++completed,list.length);
    }
