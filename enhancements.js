@@ -265,7 +265,11 @@
   setTimeout(()=>{
    if(ep!==epoch||id!==noticeSerialHitokiri)return;
    notice.classList.remove('show');
-   if(awakening){if(awakeningKey)completedAwakeningStampKeys.add(awakeningKey);pendingAwakeningStamps[side]=false;syncHitokiriSeal(side)}
+   if(awakening){
+    if(awakeningKey)completedAwakeningStampKeys.add(awakeningKey);
+    pendingAwakeningStamps[side]=false;syncHitokiriSeal(side);
+    playFx('card'); // Approved taiko DON on the permanent banner stamp, not the giant calligraphy.
+   }
   },window.ShinsengumiBattlePresentation.timing.awakening);
  };
 
