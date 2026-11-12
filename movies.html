@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#102330">
 
-<title>名シーンムービー｜新選組将棋</title>
+<title>壬生狼(みぶろ)シアター｜新選組将棋</title>
 <link rel="stylesheet" href="page-navigation.css?v=20261108a">
 <script defer src="navigation-page-flip.js?v=20261111"></script>
 <style>
@@ -32,18 +32,18 @@ a{color:#f0d6a5}a:focus-visible,button:focus-visible,video:focus-visible{outline
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MABII GAMES">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:title" content="名シーンムービー｜新選組将棋">
+<meta property="og:title" content="壬生狼(みぶろ)シアター｜新選組将棋">
 <meta property="og:description" content="幕末の隊士が盤上で戦う、事件札付き将棋ゲーム。通常対局・ストーリーモード・図鑑をブラウザで楽しめます。">
 <meta property="og:url" content="https://mabii.net/games/shinsengumishogi/movies.html">
 <meta property="og:image" content="https://mabii.net/games/shinsengumishogi/app-icon-512.png">
-<meta property="og:image:alt" content="名シーンムービー｜新選組将棋">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="名シーンムービー｜新選組将棋"><meta name="twitter:description" content="幕末の隊士が盤上で戦う、事件札付き将棋ゲーム。通常対局・ストーリーモード・図鑑をブラウザで楽しめます。"><meta name="twitter:image" content="https://mabii.net/games/shinsengumishogi/app-icon-512.png">
+<meta property="og:image:alt" content="壬生狼(みぶろ)シアター｜新選組将棋">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="壬生狼(みぶろ)シアター｜新選組将棋"><meta name="twitter:description" content="幕末の隊士が盤上で戦う、事件札付き将棋ゲーム。通常対局・ストーリーモード・図鑑をブラウザで楽しめます。"><meta name="twitter:image" content="https://mabii.net/games/shinsengumishogi/app-icon-512.png">
 </head>
 <body>
 <div class="container">
 <header class="topbar"><a class="page-return" href="card-ai-test.html">タイトルへ戻る</a></header>
 <main>
-<section class="hero" aria-labelledby="movie-title"><p class="eyebrow">SHINSENGUMI SHOGI · CINEMA</p><h1 id="movie-title">名シーンムービー</h1><p>志と絆が交差する、幕末の記憶。</p></section>
+<section class="hero" aria-labelledby="movie-title"><p class="eyebrow">SHINSENGUMI SHOGI · CINEMA</p><h1 id="movie-title">壬生狼(みぶろ)シアター</h1><p>志と絆が交差する、幕末の記憶。</p></section>
 <section aria-label="公開中の作品">
 <article class="film" id="yamanami">
 <div class="film-head">
@@ -64,5 +64,17 @@ a{color:#f0d6a5}a:focus-visible,button:focus-visible,video:focus-visible{outline
 <nav class="bottom-links" aria-label="関連ページ"><a href="card-ai-test.html">タイトルへ戻る</a><a href="history.html">新選組の歴史</a></nav>
 </main><footer class="copyright">© 2026 Mabii · 新選組将棋</footer>
 </div>
+<script>
+// Default soundtrack is 50% of the video's original level; viewer changes win.
+document.querySelectorAll('video').forEach(video=>{
+ const setInitialVolume=()=>{
+  if(video.dataset.initialMovieVolume)return;
+  video.dataset.initialMovieVolume='1';
+  try{video.volume=.5}catch(error){console.warn('端末の動画音量制限',error)}
+ };
+ video.addEventListener('loadedmetadata',setInitialVolume,{once:true});
+ video.addEventListener('play',setInitialVolume,{once:true});
+});
+</script>
 </body>
 </html>
