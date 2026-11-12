@@ -73,10 +73,22 @@
   const current=battlefields.find(f=>f.id===selected);
   explanation.textContent=current.id==='classic'
    ?'未解放の戦場は物語の各章で勝利すると選べます。'
-   :current.name+'の戦場を選択中。通常対戦の9×9ルールと駒配置は維持します。';
+   :current.name+'の戦場を選択中。いざ、出陣で専用盤面の二人対戦を開始します。';
   updateAppearance();
  }
- render();
+  render();
+  // Actual historical battleboards run in the shared StoryEngine, never in the
+  // regular 9x9 engine.  Stop the inline startGame() handler for these fields.
+  const sortie=document.getElementById('startGame');
+  sortie?.addEventListener('click',event=>{
+   if(!document.getElementById('modeLocal')?.classList.contains('selected')||selected==='classic')return;
+   const field=battlefields.find(item=>item.id===selected);
+   if(!field||cleared()<field.required)return;
+   event.preventDefault();event.stopImmediatePropagation();
+   // Preserve the unlocked progress in localStorage; each two-player match
+   // starts from the stage's exact authored formation and incident rules.
+   window.location.assign('story-mode.html?twoPlayer='+encodeURIComponent(field.id));
+  },true);
  // Pages restored from browser history must show the latest story victory.
  window.addEventListener('pageshow',()=>{render();syncModeVisibility()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
