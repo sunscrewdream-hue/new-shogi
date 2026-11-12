@@ -277,7 +277,9 @@ function compactCardStart(side){
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
  compactSound("banner");
  setTimeout(()=>{if(game!==epoch||compactIncident!==incident||incident.revealed)return;
-  stage.classList.add("hidden");overlay.classList.remove("hidden");sfx("card");compactCardReveal();
+  stage.classList.add("hidden");overlay.classList.remove("hidden");sfx("card");
+  // The authored card back must be visible briefly before the front flips.
+  setTimeout(()=>{if(game===epoch&&compactIncident===incident&&!incident.revealed)compactCardReveal()},520);
  },1300);
 }
 function compactCardReveal(){
