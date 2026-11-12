@@ -614,6 +614,18 @@ bgmAudio.loop=true;bgmAudio.preload='auto';bgmAudio.playsInline=true;
 function bgmStatus(message){let node=el('bgmStatus');if(node)node.textContent=message}
 function syncBgmVolume(){bgmAudio.volume=Math.min(1,(window.ShinsengumiAudioMixer?.ratio('bgm')??Number(el('volume').value)/100)*.60)}
 function startBgm(){if(ended||!bgmEnabled||document.hidden||!el('titleScreen').classList.contains('hidden'))return;syncBgmVolume();if(!bgmAudio.paused)return;bgmStatus('BGM：読み込み・再生中…');const playing=bgmAudio.play();if(playing?.catch)playing.catch(error=>{if(!document.hidden&&bgmEnabled)bgmStatus('BGM：音声復帰待機中');if(error?.name!=='NotAllowedError')console.warn('通常対局BGM再生失敗',error)})}
+// A normal 「いざ、出陣」 click is the only activation needed: begin the
+// approved battle music during the loading gate, before Safari loses gesture activation.
+function primeBattleBgmFromStartGesture(){
+ if(!bgmEnabled||document.hidden)return;
+ syncBgmVolume();
+ if(!bgmAudio.paused)return;
+ const p=bgmAudio.play();
+ if(p?.catch)p.catch(error=>{if(error?.name!=='NotAllowedError')console.warn('出陣BGMの初期再生を再試行します',error)});
+}
+document.addEventListener('click',event=>{
+ if(event.target.closest?.('#startGame'))primeBattleBgmFromStartGesture();
+},true);
 function stopBgm(){bgmAudio.pause();bgmAudio.currentTime=0;bgmStatus('BGM：停止中')}
 function toggleBgm(){bgmEnabled=!bgmEnabled;el('bgmToggle').textContent=bgmEnabled?'♪ BGM：ON':'♪ BGM：OFF';if(bgmEnabled)startBgm();else stopBgm()}
 let endingBgmToResume=null,normalBgmRestoreSerial=0;
