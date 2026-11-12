@@ -1025,6 +1025,10 @@ function screenHome(){
  }
 }
 function talk(i){
+ // Direct chapter clicks and "物語を進める" must both wait for this chapter's assets.
+ if(window.ShinsengumiStartup&&!window.ShinsengumiStartup.isReady('story',i)){
+  void window.ShinsengumiStartup.run('story',i,()=>talk(i));return;
+ }
  window.StoryBgm?.play(i===4?"ending":"prologue");
  if(i===3)window.StoryBgm?.preload?.("toba").catch(error=>console.warn("鳥羽・伏見BGMを先読みできません",error));
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
