@@ -99,12 +99,28 @@
    const field=battlefields.find(item=>item.id===selected);
    if(!field||(!testAllStages&&cleared()<field.required))return;
    event.preventDefault();event.stopImmediatePropagation();
-   // Preserve the unlocked progress in localStorage; each two-player match
-   // starts from the stage's exact authored formation and incident rules.
-   window.location.assign('story-mode.html?twoPlayer='+encodeURIComponent(field.id)+(testAllStages?'&previewAll=1':''));
+   // Match the ordinary match: the actual user click starts its approved
+   // 「いざ出陣」 voice and BGM before the cross-page navigation. Waiting until
+   // the destination loads loses gesture activation on mobile Safari.
+   if(sortie.dataset.twoPlayerLaunching==='1')return;
+   sortie.dataset.twoPlayerLaunching='1';
+   sortie.disabled=true;
+   try{sessionStorage.setItem('shinsengumi-two-player-sortie-cue','1')}catch(e){}
+   const destination='story-mode.html?twoPlayer='+encodeURIComponent(field.id)+(testAllStages?'&previewAll=1':'');
+   let navigated=false;
+   const depart=()=>{if(navigated)return;navigated=true;window.location.assign(destination)};
+   const cue=typeof sortieVoiceAudio!=='undefined'?sortieVoiceAudio:null;
+   if(typeof playSortieVoice==='function'&&voiceEnabled!==false){
+    // The same mastered recording and 0.65 voice mix as the 9×9 sortie.
+    const started=playSortieVoice();
+    cue?.addEventListener('ended',depart,{once:true});
+    cue?.addEventListener('error',depart,{once:true});
+    if(started?.catch)started.catch(()=>{try{sessionStorage.removeItem('shinsengumi-two-player-sortie-cue')}catch(e){};setTimeout(depart,120)});
+    setTimeout(depart,3400); // Never trap launch when Safari omits ended.
+   }else depart();
   },true);
  // Pages restored from browser history must show the latest story victory.
- window.addEventListener('pageshow',()=>{render();syncModeVisibility()});
+ window.addEventListener('pageshow',()=>{if(sortie){sortie.dataset.twoPlayerLaunching='';sortie.disabled=false;}render();syncModeVisibility()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
  if(typeof window.returnToTitle==='function'){
   const original=window.returnToTitle;
