@@ -1148,6 +1148,7 @@ function battle(i,oilFormation=null,retry=false){
  // Only swap the friendly rook with one front-rank pawn; all other pieces stay fixed.
  // Start Oil-koji in the standard formation without a selection popup.
  if(i===2&&oilFormation===null)oilFormation=2;
+ stopStoryVictoryBgm();
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
  document.body.classList.remove("story-opening-viewport-lock");
  hideCompactFx();compactCaptures={};oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();kinmonSatsumaReinforcing=false;kinmonSatsumaPendingPositions.clear();
@@ -1754,7 +1755,11 @@ async function fire(kind,ownerSide=1){
 }
 const storyVictoryBgmClip=new Audio('assets/audio/bgm/victory_thunder_pass_4s.mp3');
 storyVictoryBgmClip.preload='auto';
-function stopStoryVictoryBgm(){storyVictoryBgmClip.pause();storyVictoryBgmClip.currentTime=0}
+const storyDefeatBgmClip=new Audio('assets/audio/bgm/defeat_bgm_7s.mp3');
+storyDefeatBgmClip.preload='auto';storyDefeatBgmClip.playsInline=true;
+function stopStoryVictoryBgm(){
+ for(const clip of [storyVictoryBgmClip,storyDefeatBgmClip]){clip.pause();clip.currentTime=0}
+}
 function playStoryVictoryBgm(){
  if(soundOff||document.hidden||!ended||$("storyEndOverlay").classList.contains("hidden"))return;
  stopStoryVictoryBgm();
@@ -1762,6 +1767,12 @@ function playStoryVictoryBgm(){
  storyVictoryBgmClip.play().catch(()=>{});
 }
 
+function playStoryDefeatBgm(){
+ if(soundOff||document.hidden||!ended||$("storyEndOverlay").classList.contains("hidden"))return;
+ stopStoryVictoryBgm();
+ storyDefeatBgmClip.volume=Math.min(.7,(window.ShinsengumiAudioMixer?.ratio('bgm')??storyVolume/100)*.70);
+ storyDefeatBgmClip.play().catch(error=>console.warn('敗北BGMは未取得または再生できません',error));
+}
 function finish(winner,reason){
  if(ended)return;const wasCompact=compactMode();epoch++;hideCompactFx();ended=true;busy=false;render();$("storyPopup").classList.toggle("compact-finale",wasCompact);if(winner===-1){popup("引き分け","対局は引き分けです。再挑戦できます。",[["再挑戦",()=>battle(stage,null,true)],["章選択",screenHome]]);return}const win=winner===0,ch=D.chapters[stage],king=ch.king;
  if(win&&!devPreview&&!debugModified){
@@ -1802,7 +1813,7 @@ function finish(winner,reason){
   metal:()=>playPromotionRise(),
   playerDefeated:!win,
   defeat:()=>playVoice("assets/audio/voice_loss_munen.mp3"),
-  complete:()=>{if(win)playStoryVictoryBgm()}
+  complete:()=>{if(win)playStoryVictoryBgm();else playStoryDefeatBgm()}
  });
 }
 function leave(){
@@ -1961,6 +1972,7 @@ const connectStoryAudioMixer=()=>{
   cannonImpactAudio.volume=values.fx/100*.75;
   storyQuakeBattle.volume=values.fx/100*.50;
   storyVictoryBgmClip.volume=values.bgm/100*.70;
+  storyDefeatBgmClip.volume=values.bgm/100*.70;
  };
  mixer.subscribe(apply);
  apply({bgm:mixer.get('bgm'),voice:mixer.get('voice'),fx:mixer.get('fx')});

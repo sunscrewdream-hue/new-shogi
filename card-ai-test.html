@@ -832,6 +832,7 @@ function applyLiveAudioMix(values){
  const voice=Math.max(0,Math.min(1,values.voice/100));
  syncBgmVolume();
  victoryBgmClip.volume=bgm*.70;
+ defeatBgmClip.volume=bgm*.70;
  if(activeVoice)activeVoice.volume=voice*.75;
  if(incidentAudioGain)incidentAudioGain.gain.value=voice*.75;
  if(activeSampleSfx)activeSampleSfx.volume=fx*.50;
@@ -1220,7 +1221,11 @@ function showRepetitionDraw(){
 }
 const victoryBgmClip=new Audio('assets/audio/bgm/victory_thunder_pass_4s.mp3');
 victoryBgmClip.preload='auto';
-function stopVictoryBgm(){victoryBgmClip.pause();victoryBgmClip.currentTime=0}
+const defeatBgmClip=new Audio('assets/audio/bgm/defeat_bgm_7s.mp3');
+defeatBgmClip.preload='auto';defeatBgmClip.playsInline=true;
+function stopVictoryBgm(){
+ for(const clip of [victoryBgmClip,defeatBgmClip]){clip.pause();clip.currentTime=0}
+}
 function playVictoryBgm(){
  if(!bgmEnabled||document.hidden||!ended||!el('endOverlay').classList.contains('show'))return;
  stopVictoryBgm();
@@ -1228,6 +1233,12 @@ function playVictoryBgm(){
  victoryBgmClip.play().catch(()=>{});
 }
 
+function playDefeatBgm(){
+ if(!bgmEnabled||document.hidden||!ended||!el('endOverlay').classList.contains('show'))return;
+ stopVictoryBgm();
+ defeatBgmClip.volume=Math.min(.7,Math.max(0,(window.ShinsengumiAudioMixer?.ratio('bgm')??Number(el('volume').value)/100)*.70));
+ defeatBgmClip.play().catch(error=>console.warn('敗北BGMは未取得または再生できません',error));
+}
 function showVictory(winner,reason='詰み'){
  if(ended)return;
  ended=true;busy=false;playerTurnReady=false;
@@ -1272,7 +1283,7 @@ function showVictory(winner,reason='詰み'){
   metal:()=>playNormalPromotionRise(),
   playerDefeated:winner===1,
   defeat:()=>speak('defeatMunen'),
-  complete:()=>{if(victorious)playVictoryBgm()}
+  complete:()=>{if(victorious)playVictoryBgm();else playDefeatBgm()}
  });
 }
 function previewVictory(winner){
