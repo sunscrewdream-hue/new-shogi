@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102330">
+<meta name="description" content="新選組将棋の名シーンムービー。山南敬助と沖田総司、誠の別れを描いた短編映像を公開。">
+<title>名シーンムービー｜新選組将棋</title>
+<link rel="stylesheet" href="page-navigation.css?v=20261108a">
+<script defer src="navigation-page-flip.js?v=20261111"></script>
+<style>
+:root{color-scheme:dark;--ink:#0b1a23;--panel:#152832;--gold:#d8b77d;--text:#f5eddb;--muted:#cfbfaa}
+*{box-sizing:border-box}html{min-height:100%;background:var(--ink)}body{margin:0;padding:0 16px 26px;padding-bottom:max(26px,env(safe-area-inset-bottom));color:var(--text);font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;background:radial-gradient(ellipse at top,#294653 0%,#132632 42%,#08141c 85%);min-height:100dvh;line-height:1.7}
+a{color:#f0d6a5}a:focus-visible,button:focus-visible,video:focus-visible{outline:3px solid #f7df9e;outline-offset:4px}
+.container{max-width:980px;margin:auto}.topbar{padding:16px 0 0}.topbar .page-return{min-width:160px}
+.hero{text-align:center;margin:clamp(22px,5vw,52px) auto 32px}.eyebrow{margin:0 0 10px;color:var(--gold);letter-spacing:.27em;font:700 12px system-ui,sans-serif}.hero h1{margin:0;font-size:clamp(32px,7vw,60px);font-weight:700;letter-spacing:.09em;line-height:1.25;text-shadow:0 3px 24px #0009}.hero h1::after{content:"";display:block;width:108px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:18px auto}.hero p{margin:0;color:#e0d3bd;font-size:clamp(13px,3.3vw,17px)}
+.film{background:linear-gradient(155deg,#213743,#0f1e28);border:1px solid #bba07170;box-shadow:0 18px 42px #0006;overflow:hidden;border-radius:12px}
+.film-head{padding:clamp(18px,4vw,32px) clamp(16px,5vw,40px) 18px}.episode-line{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--gold);font:700 12px system-ui,sans-serif;letter-spacing:.12em}.episode-line .status{color:#c8dcd5;font-size:11px;font-weight:600}
+.film h2{margin:14px 0 2px;font-size:clamp(28px,6.1vw,43px);font-weight:700;letter-spacing:.06em;line-height:1.35}.film .sub{margin:0;color:#ebddc3;font-size:clamp(16px,4vw,21px)}.film .date{color:var(--gold);font:600 clamp(12px,3vw,15px)/1.7 "Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.07em;margin:14px 0 0}
+.screen{position:relative;background:#050809;border-block:1px solid #6d5b46}.screen video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#06090d;object-fit:contain}
+.film-bottom{padding:16px clamp(16px,5vw,40px) 28px}.film-bottom .technical{font:500 11px system-ui,sans-serif;letter-spacing:.05em;color:#9cb3b9;margin:0 0 12px}.synopsis{font-size:clamp(14px,3.5vw,17px);margin:0 0 12px;line-height:2}.historical-note{font:400 12px/1.8 system-ui,sans-serif;color:#b7b9b7;margin:20px 0 0;padding-top:14px;border-top:1px solid #ffffff20}.historical-note a{color:#d8c79f}
+.next{margin:28px auto 0;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:0;min-height:170px;border:1px dashed #a5916880;border-radius:11px;overflow:hidden;background:linear-gradient(125deg,#1f3440,#11212c)}
+.next-art{display:flex;align-items:center;justify-content:center;min-height:170px;background:linear-gradient(130deg,#ffffff06,#ffffff00),repeating-linear-gradient(115deg,#b4a37c13 0px,#b4a37c13 1px,transparent 1px,transparent 8px);position:relative}.next-art:before{content:"誠";color:#d5b5782b;font:800 clamp(72px,15vw,132px)/1 serif}.next-art:after{content:"次回公開予定";position:absolute;color:#ddc8a5aa;font:600 13px serif;letter-spacing:.2em;bottom:20px}
+.next-info{padding:20px;display:flex;align-items:flex-start;justify-content:center;flex-direction:column;border-left:1px solid #a5916830}.next-info .caption{color:#d7bd84;letter-spacing:.2em;font:700 11px system-ui,sans-serif}.next-info h2{font:700 clamp(20px,4.3vw,29px) serif;color:#efe0c1;letter-spacing:.06em;margin:10px 0}.next-info p{color:#c7c0b7;font:400 13px/1.8 system-ui,sans-serif;margin:0}
+.footnote{text-align:center;font:400 12px/1.7 system-ui,sans-serif;color:#b7b1a7;margin:20px 0 0}.bottom-links{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:34px auto}.bottom-links a{min-width:180px;display:inline-flex;justify-content:center;align-items:center;padding:12px 18px;text-decoration:none;border:1px solid #a98a5b;border-radius:6px;background:#1e3541;color:#f4e3c1;font:700 14px system-ui,sans-serif}.bottom-links a:hover{background:#2c4b5a}
+.copyright{text-align:center;color:#8c9496;font:400 11px system-ui,sans-serif;letter-spacing:.1em;margin:0 0 12px}
+@media(max-width:560px){body{padding-inline:12px}.topbar{padding-top:11px}.hero{margin:24px auto 22px}.film-head{padding-bottom:16px}.next{grid-template-columns:1fr}.next-art{min-height:116px}.next-info{border-left:0;border-top:1px solid #a5916830;align-items:center;text-align:center;padding:16px}.next-info h2{margin:6px 0}.bottom-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.bottom-links a{min-width:0;padding:12px 5px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="topbar"><a class="page-return" href="card-ai-test.html">タイトルへ戻る</a></header>
+<main>
+<section class="hero" aria-labelledby="movie-title"><p class="eyebrow">SHINSENGUMI SHOGI · CINEMA</p><h1 id="movie-title">名シーンムービー</h1><p>志と絆が交差する、幕末の記憶。</p></section>
+<section aria-label="公開中の作品">
+<article class="film" id="yamanami">
+<div class="film-head">
+<div class="episode-line"><span>第一景 ／ 山南敬助</span><span class="status">公開中 · 2026</span></div>
+<h2>誠の別れ</h2><p class="sub">― 山南敬助、最期の日 ―</p>
+<p class="date">元治二年 二月二十三日 <span aria-hidden="true">／</span> <time datetime="1865-03-20">1865年3月20日（新暦）</time></p>
+</div>
+<div class="screen"><video controls playsinline preload="none" poster="assets/movies/yamanami-final-1865-poster.webp" aria-label="短編映画 誠の別れ 山南敬助 最期の日" controlsList="nodownload"><source src="assets/movies/yamanami-final-1865.mp4" type="video/mp4">このブラウザでは動画を再生できません。<a href="assets/movies/yamanami-final-1865.mp4">動画を開く</a></video></div>
+<div class="film-bottom">
+<p class="technical">上映時間 00:17 · 音声あり · タップで再生</p>
+<p class="synopsis">茶屋で笑い合った、かつての二人。<br>守るべき掟と、捨てられない情。<br>沖田総司が見届けた、山南敬助の最後の刻。</p>
+<p class="historical-note">※ この作品は史実を題材にした創作映像です。歴史上、山南敬助は元治二年二月二十三日に旧前川邸の一室で最期を迎えたと伝わります。映像の庭での場面や降雪は演出上の表現です。 <a href="https://kyu-maekawatei.com/shiseki/yamanami/" target="_blank" rel="noopener noreferrer">史実の解説</a></p>
+</div>
+</article>
+</section>
+<section class="next" aria-label="次回作品は準備中"><div class="next-art" aria-hidden="true"></div><div class="next-info"><span class="caption">NEXT MOVIE</span><h2>Coming Soon</h2><p>次の物語は、いつかまた。<br>新作は不定期に公開します。</p></div></section>
+<p class="footnote">名シーンは、作品が完成するたびに追加していきます。</p>
+<nav class="bottom-links" aria-label="関連ページ"><a href="card-ai-test.html">タイトルへ戻る</a><a href="history.html">新選組の歴史</a></nav>
+</main><footer class="copyright">© 2026 Mabii · 新選組将棋</footer>
+</div>
+</body>
+</html>
