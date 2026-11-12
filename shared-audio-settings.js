@@ -44,10 +44,11 @@
    const controls=[
     document.getElementById('sfxToggle'),document.getElementById('voiceToggle'),
     document.getElementById('bgmToggle'),document.getElementById('volume')?.closest('label'),
-    ...document.querySelectorAll('button[onclick^="previewVoiceClips"]'),
-    document.getElementById('audioStatus'),document.getElementById('bgmStatus')
+    ...document.querySelectorAll('button[onclick^="previewVoiceClips"]')
    ];
-   for(const control of controls){if(control){if(control.id==='audioStatus'||control.id==='bgmStatus')control.classList.add('audio-settings-status');body.append(control)}}
+   // Legacy playback-status nodes are deliberately excluded from Settings.
+   // Their DOM IDs remain available to existing audio event handlers.
+   for(const control of controls){if(control)body.append(control)}
   }
   // Shared control layout: preserve each mode's original click handlers.
   const actionTop=document.createElement('div');
