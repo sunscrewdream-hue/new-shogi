@@ -14,10 +14,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
+      - name: Install required video tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Prepare playable MP4 and thumbnail
         shell: bash
         env:
-          MOV_SOURCE: 'https://sdmntpraustraliaeast.oaiusercontent.com/files/00000000-7188-81fa-9deb-e7c0c1a76c0c/raw?se=2026-11-12T05%3A44%3A00Z&sp=r&sv=2026-06-06&sr=b&scid=c2e296e5-c89d-5541-8d97-309ccc80fbe4&skoid=8cb40e9f-389f-4cf6-afaa-e5bd4c7fd98c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-12T02%3A01%3A55Z&ske=2026-11-13T02%3A01%3A55Z&sks=b&skv=2026-06-06&sig=g1uVFgK1X7DkTyf7GZbQVSbzAMsFNHJIYIRtGinnVh8%3D'
+          MOV_SOURCE: 'https://sdmntpraustraliaeast.oaiusercontent.com/files/00000000-8a28-81fa-a84a-d498716f5474/raw?se=2026-11-12T05%3A46%3A06Z&sp=r&sv=2026-06-06&sr=b&scid=bdf1560b-b4f7-5853-a3c1-97c5626680b8&skoid=8cb40e9f-389f-4cf6-afaa-e5bd4c7fd98c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-12T01%3A11%3A55Z&ske=2026-11-13T01%3A11%3A55Z&sks=b&skv=2026-06-06&sig=GULtCjU0v/0S8rIPcpX3OituWEmDxdGjSlpkBYZJMQI%3D'
         run: |
           set -euo pipefail
           mkdir -p assets/movies
