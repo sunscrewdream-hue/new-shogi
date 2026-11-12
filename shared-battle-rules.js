@@ -66,7 +66,11 @@
    let settled=false,motion=null;
    const finish=()=>{if(settled)return;settled=true;try{motion?.cancel()}catch{}resolve()};
    try{
-    motion=token.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px)`,opacity:.9},{transform:"translate(0,0)",opacity:1}],{duration,easing:"ease-out"});
+    // The opposite-facing shogi token already has rotate(180deg) in CSS.
+    // Keep that base orientation during the translation preview for both players.
+    const computed=root.getComputedStyle?.(token)?.transform||'none';
+    const base=computed==='none'?'':(' '+computed);
+    motion=token.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px)`+base,opacity:.9},{transform:computed==='none'?'translate(0,0)':computed,opacity:1}],{duration,easing:"ease-out"});
     motion.onfinish=finish;motion.oncancel=finish;
    }catch{finish()}
    setTimeout(finish,duration+140);
