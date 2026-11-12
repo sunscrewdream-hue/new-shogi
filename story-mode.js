@@ -271,7 +271,7 @@ function compactPlanQuake(){return window.ShinsengumiIncidentRules.planQuake({bo
 function compactCardStart(side){
  if(!compactMode()||ended)return;compactIncident={side,kind:null,revealed:false,voiceDone:true,closeRequested:false};
  busy=true;compactTurnLocked=true;selected=null;render();
- const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");$("compactCardArtwork").removeAttribute("src");
+ const overlay=$("compactCardOverlay"),face=$("compactCardFace");overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");$("compactCardArtwork").src="assets/cards/back/card-back-saccho-1024x1536.webp";
  $("compactCardHeading").textContent="";$("compactCardText").textContent="";$("compactCardPrompt").textContent="";
  const stage=$("compactIncidentStage"),banner=$("compactIncidentBanner"),game=epoch,incident=compactIncident;
  stage.classList.remove("hidden");banner.style.animation="none";void banner.offsetWidth;banner.style.animation="";
@@ -303,8 +303,12 @@ function compactCardReveal(){
   }
  }
  const face=$("compactCardFace");face.style.backgroundImage="none";
- // The paper-flip sound accompanies the illustrated front entering the screen.
- face.classList.remove("card-text-ready");$("compactCardArtwork").src=compactCardFaces[kind];face.classList.add("revealed");
+ // Keep the painted back visible until the front has decoded, even on cold-cache Safari.
+ const cardArt=$("compactCardArtwork"),imageUrl=compactCardFaces[kind],loadedFront=new Image();
+ loadedFront.onload=()=>{if(compactIncident===state)cardArt.src=imageUrl};
+ loadedFront.onerror=()=>console.warn("事件札の表面を読み込めません",imageUrl);
+ loadedFront.src=imageUrl;
+ face.classList.remove("card-text-ready");face.classList.add("revealed");
  $("compactCardHeading").textContent=kind;$("compactCardText").textContent="";
  window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
   $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
@@ -336,7 +340,10 @@ $("compactCardFace").onclick=()=>{
    const detail=item.kind==="cannon"
     ?"【大砲・砲撃】相手の陣地のランダムな２か所へ、砲弾が１発ずつ落ちる。命中した駒は消滅。着弾地点には穴が開き、３手番のあいだ駒の移動も配置もできない。"
     :"【鉄砲・銃撃】発射側の４段目のランダムな列から、相手陣地へ向けて発砲する。進路上で最初に命中した駒が消滅する。途中に駒がなければ空振りとなる。";
-   $("compactCardArtwork").src=`assets/cards/weapons/${item.kind}-v2.webp`;face.classList.add("revealed");$("compactCardText").textContent="";
+   const url=`assets/cards/weapons/${item.kind}-v2.webp`,front=new Image();
+   front.onload=()=>{if(pendingWeaponDisplay===item)$("compactCardArtwork").src=url};
+   front.onerror=()=>console.warn("兵器札の表面を読み込めません",url);
+   front.src=url;face.classList.add("revealed");$("compactCardText").textContent="";
    window.ShinsengumiBattleRules.revealAfterTurn(face,"storyCardTurn",()=>{
     $("compactCardText").textContent=detail;face.classList.add("card-text-ready");
    },{valid:()=>pendingWeaponDisplay===item});
@@ -945,15 +952,46 @@ const storyPieceHover=window.ShinsengumiPieceHover.bind({
  onClear:restoreStoryHover
 });
 const label=p=>p.p?({飛:"龍",角:"馬",銀:"全",桂:"圭",香:"杏",歩:"と"}[p.t]||p.t):p.t;
+const scenePreloadManifest={'-1':['assets/scenes/prologue-page-01-tenchu.webp','assets/scenes/prologue-page-02-ronin-road.webp','assets/scenes/prologue-page-03-shintokuji.webp','assets/scenes/prologue-page-04-mibu-resolve.webp?v=20261110-approved'],0:['assets/scenes/ikedaya-scene01-hijikata-yamazaki.webp?v=20261110-approved','assets/scenes/ikedaya-scene02-yamazaki-listening.webp?v=20261110-approved','assets/scenes/ikedaya-scene03-gathering.webp?v=20261110-approved','assets/scenes/ikedaya-scene04-kondo-entry.webp?v=20261110-approved'],1:['assets/scenes/kinmon-scene01-choshu-march.webp','assets/scenes/kinmon-scene02-gosho-defense.webp','assets/scenes/kinmon-scene03-shinsengumi-advance.webp?v=20261110-approved','assets/scenes/kinmon-scene04-kondo-rally.webp?v=20261110-approved'],2:['assets/scenes/aburanokoji-scene01-ito-departure.webp?v=20261110-approved','assets/scenes/aburanokoji-scene02-ito-speech.webp?v=20261110-approved','assets/scenes/aburanokoji-scene03-messenger-report.webp?v=20261110-approved','assets/scenes/aburanokoji-scene04-06-kondo-hijikata-talk.webp?v=20261110-approved','assets/scenes/aburanokoji-scene07-ito-todo.webp?v=20261110-approved','assets/scenes/aburanokoji-scene08-hijikata-resolve.webp?v=20261110-approved'],3:['assets/scenes/tobafushimi-scene01-taiseihokan.webp','assets/scenes/tobafushimi-scene03-satcho-nobori.webp','assets/scenes/tobafushimi-scene05-satcho-advance.webp','assets/scenes/tobafushimi-scene07-shinsengumi-ensemble.webp?v=20261110-approved'],4:['assets/scenes/epilogue-makoto-rain-flag.webp','assets/scenes/epilogue-yagi-dinner.webp?v=20261110-approved']};
+const warmedStoryScenes=new Map();
+function warmStoryScene(url){
+ if(warmedStoryScenes.has(url))return warmedStoryScenes.get(url);
+ const job=new Promise(resolve=>{
+  const img=new Image();let done=false;
+  const finish=ok=>{if(done)return;done=true;resolve(ok)};
+  img.onload=()=>{if(img.decode)img.decode().then(()=>finish(true),()=>finish(true));else finish(true)};
+  img.onerror=()=>finish(false);img.src=url;
+ });
+ warmedStoryScenes.set(url,job);return job;
+}
+function warmChapterScenes(chapter,firstOnly=false){
+ const scenes=scenePreloadManifest[chapter]||[];
+ if(scenes.length)void warmStoryScene(scenes[0]);
+ if(!firstOnly&&scenes.length>1){
+  // One at a time: the next spread is decoded before the reader turns the page.
+  scenes.slice(1).reduce((promise,url)=>promise.then(()=>warmStoryScene(url)),Promise.resolve());
+ }
+}
+// Start with the prologue and unlocked chapters on the selection screen;
+// this does not block chapter selection or flood mobile bandwidth.
+function warmStoryHomeArt(){
+ warmChapterScenes(-1,true);
+ const unlocked=Math.max(0,Math.min(4,unlock));
+ setTimeout(()=>{if(!document.hidden)warmChapterScenes(0,true)},320);
+ for(let i=1;i<unlocked;i++)setTimeout(()=>{if(!document.hidden)warmChapterScenes(i,true)},950+i*650);
+}
+
 function screenHome(){
  stopStoryVictoryBgm();storyPieceHover.reset();
  stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle();
  $("storyPopup").classList.remove("compact-finale","compact-promotion");
- hideCompactFx();compactCaptures={};restoreStoryHover();window.StoryBgm?.stop();
+ hideCompactFx();compactCaptures={};restoreStoryHover();
+ // Chapter selection uses the existing restrained prologue score, never a new competing audio channel.
+ if(localTwoPlayer)window.StoryBgm?.stop();else void window.StoryBgm?.play("prologue");
  $("storyDevToggle").textContent=devPreview?"🛠 開発テスト：終了して通常表示へ":"🛠 開発テスト：全章を表示";
  $("storyDevToggle").setAttribute("aria-pressed",String(devPreview));
  $("storyDevNote").hidden=!devPreview;
- chooseView("storyHome");document.body.style.backgroundImage="";const el=$("storyChapters");el.replaceChildren();
+ chooseView("storyHome");warmStoryHomeArt();document.body.style.backgroundImage="";const el=$("storyChapters");el.replaceChildren();
  addButton("序章","壬生の誓い","物語のみ",true,false,()=>talk(-1));
  D.chapters.forEach((v,i)=>addButton("第"+(i+1)+"章",v.title,v.w+"×"+v.h+"盤",devPreview||unlock>=i,unlock>i,()=>talk(i)));
  addButton("終章",D.epilogue.title,"物語のみ",devPreview||unlock>=4,false,()=>talk(4));
@@ -992,6 +1030,7 @@ function talk(i){
  }
  window.StoryBgm?.play(i===4?"ending":"prologue");
  if(i===3)window.StoryBgm?.preload?.("toba").catch(error=>console.warn("鳥羽・伏見BGMを先読みできません",error));
+ warmChapterScenes(i);
  stage=i;const ch=i===-1?D.prologue:i===4?D.epilogue:D.chapters[i];
  if(i>=0&&i<4)selectIntroArtwork(i);
  dialog=ch.intro;at=0;onEnd=i===-1||i===4?screenHome:()=>{
@@ -1048,7 +1087,11 @@ const storyRubyReadings=[
 const storyRubyPattern=new RegExp(storyRubyReadings.map(p=>p[0]).sort((a,b)=>b.length-a.length).join("|"),"g");
 const storyRubyMap=new Map(storyRubyReadings);
 function renderStoryNarration(textValue){
- const target=$("dialogueBody"),text=storyKanjiNumerals(textValue),fragment=document.createDocumentFragment();
+ const target=$("dialogueBody");
+ // These editorial line breaks were composed for desktop. On small phones they
+ // become separate columns and clip the paper; retain every character and ruby.
+ const compactText=window.matchMedia?.('(max-width:600px)').matches?String(textValue).replace(/\n/g,''):textValue;
+ const text=storyKanjiNumerals(compactText),fragment=document.createDocumentFragment();
  let start=0,match;
  storyRubyPattern.lastIndex=0;
  while((match=storyRubyPattern.exec(text))!==null){
@@ -1333,14 +1376,9 @@ function square(y,x){
      const previewThenChoose=async(capturePreplayed=false,capture=null)=>{
       const game=epoch;busy=true;selected=null;
       const valid=()=>game===epoch&&!ended&&!$("storyBattle").classList.contains("hidden");
-      const movePreview=async()=>{
-       promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,hide:false,showMover:true,piece:unit};render();
-       const cells=$("storyBoard").querySelectorAll(".sq");
-       await window.ShinsengumiBattleRules.animateMovePreview(cells[m.y*g.w+m.x],cells[m.Y*g.w+m.X],cells[m.Y*g.w+m.X]?.querySelector(".story-token"),{valid});
-      };
       try{
        await window.ShinsengumiBattleRules.runCapturePromotionSequence({
-        capture,movePreview,valid,
+        capture,valid,
         choose:()=>{busy=false;render();showPromotionChoice(capturePreplayed)}
        });
       }catch(error){console.error("物語・成り演出復旧",error);if(valid()){busy=false;promotionCapturePreview=null;render()}}
@@ -1351,7 +1389,7 @@ function square(y,x){
      if(captive&&!capturePlan.lethal&&!(stage===2&&g.oilPhase===1&&captive.king==='ito')){
       const game=epoch;busy=true;selected=null;
       promotionCapturePreview={y:m.Y,x:m.X,hide:false};render();
-      const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,piece:unit,showMover:true,hide:false};render()}};
+      const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview={y:m.Y,x:m.X,hide:true};render()}};
       const capture=async()=>{
        await new Promise(resolve=>{
         let escortDone=false,voiceDone=false;
@@ -1558,7 +1596,7 @@ function makeMove(m,prom,capturePreplayed=false){
   if(!localTwoPlayer&&actor===0)collect(captured);banner(1-actor,captured);
  }else{
   if(!showPromotion)sfx("move");
-   const cues=window.ShinsengumiBattlePresentation.moveVoices({board:g.board,side:actor,y:m.Y,x:m.X,source,captured:false,lethal:willKill,gaveCheck:gaveCheck&&!delayedCheck&&!deferCheck,promoted:showPromotion});
+   const cues=window.ShinsengumiBattlePresentation.moveVoices({board:g.board,side:actor,y:m.Y,x:m.X,source,captured:false,lethal:willKill,gaveCheck:gaveCheck&&!delayedCheck&&!deferCheck,promoted:showPromotion,satsuma:actor===1&&/薩摩/.test(person(source).role)});
    for(const cue of cues)announce(cue);
  }
  promotionCapturePreview=captured&&!willKill&&!capturePreplayed?{y:m.Y,x:m.X,piece:captured,showMover:true,hide:false}:null;
@@ -1587,8 +1625,9 @@ function makeMove(m,prom,capturePreplayed=false){
     await later(window.ShinsengumiBattlePresentation.timing.awakening);
     if(id!==epoch||ended)return;
     pendingStoryAwakeningKey=null;
-    if(unit)banner(actor,unit); // Only now is the persistent stamp revealed.
-    await awakeningVoice;
+     if(unit)banner(actor,unit); // Only now is the persistent stamp revealed.
+     sfx("card"); // DON: the permanent red seal lands after the main announcement.
+    await Promise.all([awakeningVoice,later(1100)]); // Hold the printed seal before play resumes.
     if(id!==epoch||ended)return;
    }
    if(!oilFirstActVictory)await compactFadeExpiredHoles(id);
@@ -1747,7 +1786,7 @@ function weaponCard(kind,ownerSide=1,debug=false){
  // Weapon cards share the same front-only reveal used by ordinary incidents.
  const face=$("compactCardFace"),overlay=$("compactCardOverlay"),stageLayer=$("compactIncidentStage");
  overlay.classList.add("hidden");face.classList.remove("revealed","card-text-ready");
- $("compactCardArtwork").removeAttribute("src");
+ $("compactCardArtwork").src="assets/cards/back/card-back-saccho-1024x1536.webp";
  $("compactCardHeading").textContent="";$("compactCardText").textContent="";
  $("compactCardPrompt").textContent="";
  stageLayer.classList.remove("hidden");const id=epoch;
@@ -1990,7 +2029,7 @@ async function storyDebugHitokiri(kill){
    const awakenedVoice=Promise.race([playKabukiVoice("awakening"),later(3500)]);
    await later(window.ShinsengumiBattlePresentation.timing.awakening);
    if(id!==epoch||ended)return;
-   pendingStoryAwakeningKey=null;banner(0,officer);
+   pendingStoryAwakeningKey=null;banner(0,officer);sfx("card");
    await awakenedVoice;
    if(id!==epoch||ended)return;
    // Let the tester see the persistent stamp on the officer banner.
