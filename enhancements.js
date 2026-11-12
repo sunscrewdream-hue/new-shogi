@@ -16,19 +16,32 @@
  const toast=document.createElement('div');toast.className='collection-toast';toast.setAttribute('role','status');document.body.append(toast);
  function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),3100)}
 
- /* A phone cannot autoplay without a gesture. The first title interaction unlocks it. */
+ /* Try sound immediately when allowed; regular game interactions recover it on restricted browsers. */
  function syncTitleVolume(){const volume=$('volume')||document.querySelector('.audio-settings-panel #volume');if(!volume)return;titleAudio.volume=Math.min(.6,Number(volume.value)/100)*(titleIntroAudio.paused?1:.18)}
  titleIntroAudio.addEventListener('play',syncTitleVolume);
  titleIntroAudio.addEventListener('ended',syncTitleVolume);
  titleIntroAudio.addEventListener('pause',syncTitleVolume);
  function playTitleMusic(){
   if(!bgmEnabled||document.hidden||!titleIsVisible())return;
-  syncTitleVolume();const p=titleAudio.play();if(p?.catch)p.catch(()=>{});
+  syncTitleVolume();
+  if(!titleAudio.paused)return;
+  const p=titleAudio.play();if(p?.catch)p.catch(error=>{
+   if(error?.name!=='NotAllowedError')console.warn('タイトルBGM復帰待ち',error);
+  });
  }
  function stopTitleMusic(){titleAudio.pause();titleAudio.currentTime=0}
- document.addEventListener('pointerdown',()=>{if(titleIsVisible())playTitleMusic()},{passive:true});
- document.addEventListener('keydown',()=>{if(titleIsVisible())playTitleMusic()});
- // Browsers with autoplay permission can start immediately; iOS retries on touch.
+ const restoreTitleMusic=()=>{
+  if(!bgmEnabled||document.hidden||!titleIsVisible())return;
+  playTitleMusic();
+  // iOS may restore its audio session slightly after returning to the tab.
+  setTimeout(()=>{if(titleAudio.paused)playTitleMusic()},650);
+ };
+ document.addEventListener('pointerdown',restoreTitleMusic,{passive:true,capture:true});
+ document.addEventListener('touchstart',restoreTitleMusic,{passive:true,capture:true});
+ document.addEventListener('keydown',restoreTitleMusic);
+ window.addEventListener('pageshow',restoreTitleMusic);
+ window.addEventListener('focus',restoreTitleMusic);
+ // Browsers that permit autoplay can begin before any input.
  playTitleMusic();
  const baseSyncVolume=syncBgmVolume;
  syncBgmVolume=function(){baseSyncVolume();syncTitleVolume()};
@@ -37,8 +50,8 @@
  const baseToggleBgm=toggleBgm;
  toggleBgm=function(){baseToggleBgm();if(titleIsVisible()&&bgmEnabled)playTitleMusic();else if(!bgmEnabled)stopTitleMusic()};
  const baseStopAll=stopAllAudio;
- stopAllAudio=function(){stopTitleMusic();baseStopAll()};
- document.addEventListener('visibilitychange',()=>{if(!document.hidden&&titleIsVisible())playTitleMusic()});
+ stopAllAudio=function(){titleAudio.pause();baseStopAll()};
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreTitleMusic()});
  const baseReturn=returnToTitle;
  returnToTitle=function(){baseReturn();playTitleMusic();updateContinueButton()};
  const baseStart=startGame;
