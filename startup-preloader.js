@@ -150,8 +150,30 @@
   createOverlay();
   const mode=document.getElementById('storyHome')?'story':'normal';
   // Start immediately on every page opening, including stand-alone homescreen launch.
-  prepare(mode,mode==='story'?0:null).catch(()=>{});
-  if(mode==='story')prepare('story',null).catch(()=>{});
+  // When a cold home-screen launch is slow, cover unfinished artwork until the
+  // first visible screen's core assets arrive. Never trap an offline player.
+  const bootPromise=prepare(mode,null);
+  if(mode==='story')prepare('story',0).catch(()=>{});
+  let bootDone=false,bootVisible=false;
+  const bootOverlayTimer=setTimeout(()=>{
+   if(bootDone||starting)return;
+   bootVisible=true;
+   overlay.hidden=false;
+   status.textContent='初期画面の素材を読み込んでいます…';
+   overlay.querySelector('#startupPreloadProgress').value=0;
+   overlay.querySelector('#startupPreloadActions').hidden=true;
+  },200);
+  const bootSafetyTimer=setTimeout(()=>{
+   bootDone=true;clearTimeout(bootOverlayTimer);
+   if(bootVisible&&!starting)overlay.hidden=true;
+  },12000);
+  bootPromise.then(()=>{
+   bootDone=true;clearTimeout(bootOverlayTimer);clearTimeout(bootSafetyTimer);
+   if(bootVisible&&!starting)overlay.hidden=true;
+  },()=>{
+   bootDone=true;clearTimeout(bootOverlayTimer);clearTimeout(bootSafetyTimer);
+   if(bootVisible&&!starting)overlay.hidden=true;
+  });
   document.addEventListener('click',event=>{
    const button=mode==='story'
     ?event.target.closest?.('#storyChapters button.chapter')
