@@ -1945,18 +1945,28 @@ $("debugVoice1").onclick=()=>storyDebugRun(()=>{if(voiceEnabled)playStoryClip(vo
 document.addEventListener("visibilitychange",()=>{if(document.hidden){stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()}});
 window.addEventListener("pagehide",()=>{stopStoryClip("voice");stopStoryClip("fx");stopStoryQuakeBattle()});
 $("storyVolume").value=String(storyVolume);$("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
-window.StoryBgm?.setVolume(window.ShinsengumiAudioMixer?.get('bgm')??storyVolume);
-window.ShinsengumiAudioMixer?.subscribe(values=>{
- window.StoryBgm?.setVolume(values.bgm);
- if(activeStoryVoice)activeStoryVoice.volume=voiceLevel();
- if(activeStoryFx)activeStoryFx.volume=fxLevel();
- if(battleVoiceGain)battleVoiceGain.gain.value=Math.min(1,voiceLevel()*battleVoiceBoost);
- if(battleImpactGain)battleImpactGain.gain.value=Math.min(1,fxLevel()*battleImpactBoost);
- promotionRiseSound.volume=fxLevel();
- cannonImpactAudio.volume=values.fx/100*.75;
- storyQuakeBattle.volume=values.fx/100*.50;
- storyVictoryBgmClip.volume=values.bgm/100*.70;
-});
+// The shared mixer is loaded as a deferred script after story-mode.js.
+// Subscribe once all deferred scripts have run; otherwise the optional-chain
+// silently skips registration and faders cannot change currently playing clips.
+const connectStoryAudioMixer=()=>{
+ const mixer=window.ShinsengumiAudioMixer;
+ if(!mixer){console.warn('共通音量ミキサーの初期化を確認できません');return}
+ const apply=values=>{
+  window.StoryBgm?.setVolume(values.bgm);
+  if(activeStoryVoice)activeStoryVoice.volume=voiceLevel();
+  if(activeStoryFx)activeStoryFx.volume=fxLevel();
+  if(battleVoiceGain)battleVoiceGain.gain.value=Math.min(1,voiceLevel()*battleVoiceBoost);
+  if(battleImpactGain)battleImpactGain.gain.value=Math.min(1,fxLevel()*battleImpactBoost);
+  promotionRiseSound.volume=fxLevel();
+  cannonImpactAudio.volume=values.fx/100*.75;
+  storyQuakeBattle.volume=values.fx/100*.50;
+  storyVictoryBgmClip.volume=values.bgm/100*.70;
+ };
+ mixer.subscribe(apply);
+ apply({bgm:mixer.get('bgm'),voice:mixer.get('voice'),fx:mixer.get('fx')});
+};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',connectStoryAudioMixer,{once:true});
+else connectStoryAudioMixer();
 $("storyVolume").addEventListener("input",event=>{
  storyVolume=Math.max(0,Math.min(100,Number(event.target.value)||0));
  $("storyVolumeValue").value=String(storyVolume);$("storyVolumeValue").textContent=String(storyVolume);
