@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
- <rect width="512" height="512" rx="90" fill="#172f3c"/>
- <rect x="28" y="28" width="456" height="456" rx="65" fill="none" stroke="#c9a66b" stroke-width="11"/>
- <path d="M65 140h382M65 380h382" stroke="#bca17b" stroke-width="5" opacity=".7"/>
- <text x="256" y="335" font-family="Noto Serif CJK JP,serif" font-size="265" font-weight="900" fill="#f3e2bc" text-anchor="middle">誠</text>
-</svg>
