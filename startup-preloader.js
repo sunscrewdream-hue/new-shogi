@@ -127,13 +127,9 @@
    progress.value=0;
    const ok=await prepare(mode,chapter,(completed,total)=>{progress.value=Math.round(completed/total*100);status.textContent='素材の読み込み中 '+completed+' / '+total});
    if(ok){
-    // If a user had to wait, a final real tap preserves iOS audio activation.
-    // Auto-starting from a settled Promise may lose that browser gesture.
-    if(overlay.hidden){start();return}
-    status.textContent='準備完了。出陣できます。';
-    retryButton.hidden=true;
-    continueButton.textContent='いざ、出陣';
-    overlay.querySelector('#startupPreloadActions').hidden=false;
+    // Continue automatically once the selected chapter's artwork and audio
+    // are ready; the loading screen must not require a second tap.
+    start();
     return;
    }
    overlay.hidden=false;
