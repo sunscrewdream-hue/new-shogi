@@ -671,3 +671,7 @@ body.local-title-mode #storyUnlockExplanation{
  #titleScreen #titleLinks{width:min(96vw,340px)!important;gap:2px!important}
  #titleScreen #titleLinks>a{font-size:12px!important;letter-spacing:0!important}
 }
+
+/* 2026-11-13: 縦書きの巻物は右から左へ読む。HTMLの論理順は維持する。 */
+#titleScreen #titleLinks{direction:rtl!important}
+#titleScreen #titleLinks>a{direction:ltr!important}
