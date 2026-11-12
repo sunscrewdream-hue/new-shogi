@@ -1306,7 +1306,7 @@ function square(y,x){
      if(captive&&!capturePlan.lethal&&!(stage===2&&g.oilPhase===1&&captive.king==='ito')){
       const game=epoch;busy=true;selected=null;
       promotionCapturePreview={y:m.Y,x:m.X,hide:false};render();
-      const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}};
+      const takeCaptive=()=>{if(game===epoch&&promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,piece:unit,showMover:true,hide:false};render()}};
       const capture=async()=>{
        await new Promise(resolve=>{
         let escortDone=false,voiceDone=false;
@@ -1576,7 +1576,7 @@ function makeMove(m,prom,capturePreplayed=false){
     valid,
     animate:(done,contact)=>animateCompactEscort(actor,m.Y,m.X,captured,done,contact),
     onContact:()=>{
-     if(promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.hide=true;render()}
+     if(promotionCapturePreview?.y===m.Y&&promotionCapturePreview.x===m.X){promotionCapturePreview.piece=unit;promotionCapturePreview.hide=false;render()}
      compactSound("slash");triggerCaptureVoice?.();
     },
     onFinished:()=>{promotionCapturePreview=null;render();afterFx()}

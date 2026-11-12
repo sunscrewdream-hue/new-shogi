@@ -1067,7 +1067,7 @@ function askPromotion(move,preplayedCapture=false){
   window.ShinsengumiBattleRules.runCaptureEscort({
    valid,
    animate:(done,contact)=>animateCaptureEscort(turn,move.Y,move.X,captive,done,contact),
-   onContact:()=>{normalCaptureHidden={y:move.Y,x:move.X};render()},
+   onContact:()=>{normalCaptureHidden={y:move.Y,x:move.X,fromY:move.y,fromX:move.x,piece:{...fighter}};render()},
    onFinished:()=>{normalCaptureHidden=null;resolve()}
   });
  }):null;
@@ -1376,7 +1376,7 @@ let noticeQueue=0;function commit(m,prom=false,preplayedCapture=false){
   window.ShinsengumiBattleRules.runCaptureEscort({
    valid:()=>epoch===captureEpoch&&ply===capturePly,
    animate:(done,contact)=>animateCaptureEscort(turn,m.Y,m.X,cap,done,contact),
-   onContact:()=>{normalCaptureHidden={y:m.Y,x:m.X};render()},
+   onContact:()=>{normalCaptureHidden={y:m.Y,x:m.X,fromY:m.y,fromX:m.x,piece:{...speaker}};render()},
    onFinished:()=>{
     captureEscortPending=null;normalCaptureHidden=null;
     commit(m,prom,true);
@@ -1861,7 +1861,8 @@ el('checkHint').textContent=threats.kings.size
  ?'⚠ 王手！ 王の移動・攻め駒の捕獲・合駒で防いでください。'
  :'';
 let hints=[];if(sel)hints=legalMoves(b,h,turn).filter(m=>sel.drop?m.drop&&m.t===sel.t:!m.drop&&m.y===sel.y&&m.x===sel.x).map(m=>m.Y+','+m.X);let root=el('board');root.classList.toggle('input-locked',!playerTurnReady);root.setAttribute('aria-disabled',String(!playerTurnReady));root.innerHTML='';for(let y=0;y<9;y++)for(let x=0;x<9;x++){let d=document.createElement('div'),p=b[y][x];
- if(normalCaptureHidden?.y===y&&normalCaptureHidden.x===x)p=null;
+ if(normalCaptureHidden?.fromY===y&&normalCaptureHidden.fromX===x)p=null;
+ if(normalCaptureHidden?.y===y&&normalCaptureHidden.x===x)p=normalCaptureHidden.piece||null;
  if(normalPromotionPreview){const m=normalPromotionPreview.m;if(m.y===y&&m.x===x)p=null;if(m.Y===y&&m.X===x)p=normalPromotionPreview.piece}
  if(normalPromotionHold?.y===y&&normalPromotionHold.x===x)p=normalPromotionHold.piece;
  d.className='sq'+(threats.kings.has(y+','+x)?' check-king':'')+(threats.attackers.has(y+','+x)?' check-attacker':'')+(threats.rays.has(y+','+x)?' check-ray':'')+(quakeMarks.includes(y+','+x)?' quake-mark':'')+(quakeCracks.some(v=>v.y===y&&v.x===x)?' quake-crack':'')+(isQuakeHole(y,x)?' quake-hole':'')+(quakeMove&&quakeMove.y===y&&quakeMove.x===x?' quake-origin':'')+(quakeMove&&quakeMove.Y===y&&quakeMove.X===x?' quake-destination':'')+(quakeLanding&&quakeLanding.y===y&&quakeLanding.x===x?' quake-landing':'')+(sel&&!sel.drop&&sel.y===y&&sel.x===x?' sel':'')+(hints.includes(y+','+x)?(p&&p.s===1?' capture-hint':' hint'):'')+(lastMove&&lastMove.y===y&&lastMove.x===x?' last-move':'')+(incidentTarget&&incidentTarget.y===y&&incidentTarget.x===x?' incident-target':'')+(bloodMarks.includes(y+','+x)?' blood-mark':'');if(quakeMove&&quakeMove.y===y&&quakeMove.x===x){d.style.setProperty('--quake-dx',(quakeMove.X-x)*100+'%');d.style.setProperty('--quake-dy',(quakeMove.Y-y)*100+'%')}if(normalPromotionRise?.y===y&&normalPromotionRise.x===x)d.classList.add('normal-promotion-rise');if(p){
