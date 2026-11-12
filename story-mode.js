@@ -401,6 +401,8 @@ async function ikedayaReinforcementArrival(){
    banner(0,entry.piece,true);
    await later(260);
   }
+  // Let the last arriving officer be seen before retiring the character portrait.
+  await later(700);
  }finally{
   layer.replaceChildren();ikedayaPendingPositions.clear();
   // Never leave an officer invisible or missing if mobile animation aborts.
@@ -410,6 +412,8 @@ async function ikedayaReinforcementArrival(){
    ikedayaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
    render();
    storyBannerMessage("援軍四騎、盤上に到着！",0);
+   // A held reinforcement portrait must be retired before the next turn art.
+   closeStoryReinforcementBanner(0);
    if(g.check(g.board,0))compactSound("check");
    else if(g.check(g.board,1))compactSound("check");
    compactResumeTurn();
@@ -456,6 +460,8 @@ async function kinmonSatsumaArrival(){
    banner(0,entry.piece,true);
    await later(260);
   }
+  // Let the last arriving officer be seen before retiring the character portrait.
+  await later(700);
  }finally{
   layer.replaceChildren();kinmonSatsumaPendingPositions.clear();
   // Never leave an officer invisible or missing if mobile animation aborts.
@@ -465,6 +471,8 @@ async function kinmonSatsumaArrival(){
    kinmonSatsumaReinforcing=false;busy=false;compactTurnLocked=false;selected=null;
    render();
    storyBannerMessage("薩摩の援軍三騎、盤上に到着！",0);
+   // A held reinforcement portrait must be retired before the next turn art.
+   closeStoryReinforcementBanner(0);
    if(g.check(g.board,0))compactSound("check");
    else if(g.check(g.board,1))compactSound("check");
    compactResumeTurn();
@@ -818,6 +826,13 @@ function person(p){
  const m=D.mobs[(p.mob||0)%8];return{name:m[0],role:m[1],img:"assets/characters/mobs/"+m[2]};
 }
 const storyBannerTimers=[null,null];
+// Reinforcement portraits use banner(..., true), which has no auto-dismiss timer.
+// Clear that hold before compactResumeTurn queues the next turn illustration.
+function closeStoryReinforcementBanner(side){
+ clearTimeout(storyBannerTimers[side]);
+ const panel=$(side===0?"playerStoryBanner":"enemyStoryBanner");
+ panel.classList.remove("show-character");
+}
 function banner(s,p,hold=false){
  if(!p)return;
  const a=person(p),prefix=s===0?"player":"enemy",image=$(prefix+"StoryArt");
