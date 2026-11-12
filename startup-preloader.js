@@ -2,6 +2,14 @@
    Warm critical artwork before the first match, not the entire game catalogue. */
 (function(){
  'use strict';
+ const firstStoryArt={
+  '-1':['assets/scenes/prologue-page-01-tenchu.webp','assets/scenes/prologue-page-02-ronin-road.webp'],
+  '0':['assets/scenes/ikedaya-scene01-hijikata-yamazaki.webp?v=20261110-approved','assets/scenes/ikedaya-scene02-yamazaki-listening.webp?v=20261110-approved'],
+  '1':['assets/scenes/kinmon-scene01-choshu-march.webp','assets/scenes/kinmon-scene02-gosho-defense.webp'],
+  '2':['assets/scenes/aburanokoji-scene01-ito-departure.webp?v=20261110-approved','assets/scenes/aburanokoji-scene02-ito-speech.webp?v=20261110-approved'],
+  '3':['assets/scenes/tobafushimi-scene01-taiseihokan.webp','assets/scenes/tobafushimi-scene03-satcho-nobori.webp'],
+  '4':['assets/scenes/epilogue-makoto-rain-flag.webp','assets/scenes/epilogue-yagi-dinner.webp?v=20261110-approved']
+ };
  const chapterKeys=['ikedaya','kinmon','aburanokoji','toba_fushimi'];
  const common=[
   'assets/sprites/figures/shinsengumi_back.webp',
@@ -59,6 +67,9 @@
     'assets/visuals/intro_shinsengumi_team_mobile.webp',
     'assets/visuals/intro_shinsengumi_team_pc.webp');
   }
+  // Decode the opening paper-story spreads *before* the first illustrated page.
+  if(story&&Number.isInteger(chapter)&&firstStoryArt[String(chapter)])
+   names.push(...firstStoryArt[String(chapter)]);
   const assets=[...new Set(names)].map(src=>({src,kind:'image'}))
    .concat([{src:titleVoice,kind:'audio'}]);
   // Decode only the selected chapter soundtrack before entering its story.
@@ -151,7 +162,7 @@
   // When a cold home-screen launch is slow, cover unfinished artwork until the
   // first visible screen's core assets arrive. Never trap an offline player.
   const bootPromise=prepare(mode,null);
-  if(mode==='story')prepare('story',0).catch(()=>{});
+  if(mode==='story'){prepare('story',-1).catch(()=>{});prepare('story',0).catch(()=>{});}
   let bootDone=false,bootVisible=false;
   const bootOverlayTimer=setTimeout(()=>{
    if(bootDone||starting)return;
