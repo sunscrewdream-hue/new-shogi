@@ -91,6 +91,28 @@ function duck(){
  master.gain.setTargetAtTime(gainLevel()*.5,t,.1);
  master.gain.setTargetAtTime(gainLevel(),t+1.6,.22);
 }
+// Direct two-player previews can open a battle without any initial tap.
+// Browsers suspend Web Audio until a user gesture; a retry on that gesture
+// allows the requested soundtrack to begin without toggling settings.
+let gestureRecoveryPending=false;
+function resumeBgmFromGesture(){
+ if(!wanted||muted||document.hidden||gestureRecoveryPending)return;
+ const c=audioContext();if(!c)return;
+ if(c.state==="running"&&source)return;
+ gestureRecoveryPending=true;
+ Promise.resolve(c.resume()).then(()=>{
+  gestureRecoveryPending=false;
+  // The initial play may have been blocked before its source was created.
+  // A fresh attempt is safe: play() invalidates previous requests by epoch.
+  if(wanted&&!muted&&!document.hidden&&!source&&!pending.has(wanted))void play(wanted);
+ }).catch(error=>{
+  gestureRecoveryPending=false;
+  console.warn("Story BGM gesture resume failed",error);
+ });
+}
+document.addEventListener("pointerdown",resumeBgmFromGesture,{passive:true});
+document.addEventListener("touchstart",resumeBgmFromGesture,{passive:true});
+document.addEventListener("keydown",resumeBgmFromGesture);
 document.addEventListener("visibilitychange",()=>{
  if(!ctx)return;
  if(document.hidden)ctx.suspend().catch(()=>{});
