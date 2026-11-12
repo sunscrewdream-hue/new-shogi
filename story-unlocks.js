@@ -31,7 +31,7 @@
  syncModeVisibility();
  const choices=panel.querySelector('#storyUnlockChoices');
  const explanation=panel.querySelector('#storyUnlockExplanation');
- const cleared=()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
+ const cleared=()=>{if(new URLSearchParams(location.search).has('previewAll'))return 4;try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
  const cssAssets={
   ikedaya:'assets/backgrounds/story/ikedaya-bg-v2.webp',
   kinmon:'assets/backgrounds/story/kinmon-bg-v2.webp',
@@ -87,7 +87,7 @@
    event.preventDefault();event.stopImmediatePropagation();
    // Preserve the unlocked progress in localStorage; each two-player match
    // starts from the stage's exact authored formation and incident rules.
-   window.location.assign('story-mode.html?twoPlayer='+encodeURIComponent(field.id));
+   window.location.assign('story-mode.html?twoPlayer='+encodeURIComponent(field.id)+(new URLSearchParams(location.search).has('previewAll')?'&previewAll=1':''));
   },true);
  // Pages restored from browser history must show the latest story victory.
  window.addEventListener('pageshow',()=>{render();syncModeVisibility()});

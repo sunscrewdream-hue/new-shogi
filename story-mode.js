@@ -1986,7 +1986,7 @@ $("storyVolume").addEventListener("input",event=>{
 screenHome();
 if(localTwoPlayer){
  const earned=(()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(SAVE))||0))}catch{return 0}})();
- if(localStage+1>earned){
+ if(localStage+1>earned&&!new URLSearchParams(location.search).has('previewAll')){
   popup('未解放の戦場','この戦場は幕末物語で勝利すると2人対戦で遊べます。',[["タイトルへ",localExit]]);
  }else{
   // The StoryEngine setup is shared with the story chapter, not a visual skin.
