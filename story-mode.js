@@ -15,7 +15,8 @@ let storyVolume=10;try{const saved=localStorage.getItem("shinsengumi-story-volum
 const voiceLevel=()=>Math.min(.75,(window.ShinsengumiAudioMixer?.ratio('voice')??storyVolume/100)*.75);
 // Match finished match's SFX gain (.021 per slider point; capped at .5).
 const fxLevel=()=>Math.min(.5,(window.ShinsengumiAudioMixer?.ratio('fx')??storyVolume/100)*.50);
-const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null;
+const storyClipCache=new Map();let activeStoryVoice=null,activeStoryFx=null,activeStoryVoiceBoost=1;
+const sortieGainBoost=13/15; // .75 * 13/15 == the approved 9×9 0.65 voice gain.
 // Enemy moves run from timers, outside a touch gesture. A gesture-unlocked
 // Web Audio voice channel keeps capture and check shouts playable on iOS.
 let battleVoiceContext=null,battleVoiceActive=null,battleImpactActive=null,battleVoiceGain=null,battleImpactGain=null,battleVoiceBoost=1,battleImpactBoost=1;
@@ -49,6 +50,7 @@ function playGestureAudio(path,onDone,channel="voice",gainBoost=1,isStillValid=n
  }).catch(()=>playStoryClip(path,channel,finish));
 }
 function playBattleShout(path,onDone){playGestureAudio(path,onDone,"voice")}
+function playStorySortieVoice(){if(!voiceEnabled)return;return playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice",null,sortieGainBoost)}
 // Cannon impact needs its own channel: shot, hit cry and other FX must not
 // interrupt the explosion halfway through.
 const cannonImpactAudio=new Audio("assets/audio/story/master_explosion.mp3");
@@ -74,14 +76,14 @@ function stopStoryClip(channel){
   if(battleImpactActive){try{battleImpactActive.stop()}catch(e){}battleImpactActive=null;battleImpactGain=null}
  }
 }
-function playStoryClip(path,channel="fx",onDone=null){
+function playStoryClip(path,channel="fx",onDone=null,gainBoost=1){
  if(!path){onDone?.();return null}
  if(channel==="voice"?!voiceEnabled:!fxEnabled){onDone?.();return null}
  if(document.hidden){onDone?.();return null}
  let a=storyClipCache.get(path);if(!a){a=new Audio(path);a.preload=channel==="voice"?"auto":"none";a.playsInline=true;storyClipCache.set(path,a);
   window.ShinsengumiAudioMixer?.registerMedia?.(a,channel==="voice"?"voice":"fx",channel==="voice" ? .75 : .50)
  }
- stopStoryClip(channel);a.currentTime=0;a.volume=channel==="voice"?voiceLevel():fxLevel();
+ stopStoryClip(channel);a.currentTime=0;if(channel==="voice")activeStoryVoiceBoost=gainBoost;a.volume=Math.min(1,(channel==="voice"?voiceLevel():fxLevel())*gainBoost);
  if(channel==="voice")activeStoryVoice=a;else activeStoryFx=a;
  let settled=false,watchdog=null;const finish=()=>{if(settled)return;settled=true;if(watchdog!==null)clearTimeout(watchdog);a.removeEventListener("ended",finish);a.removeEventListener("error",finish);a.removeEventListener("pause",finish);onDone?.()};
  if(onDone){a.addEventListener("ended",finish);a.addEventListener("error",finish);a.addEventListener("pause",finish);watchdog=setTimeout(()=>{console.warn("音声終了通知タイムアウト",path);finish()},9000)}
@@ -1162,7 +1164,7 @@ function battle(i,oilFormation=null,retry=false){
  hideCompactFx();compactCaptures={};oilAmbushAnimating=false;ikedayaReinforcing=false;ikedayaPendingPositions.clear();kinmonSatsumaReinforcing=false;kinmonSatsumaPendingPositions.clear();
  window.StoryBgm?.play(i===3?"toba":i===0||i===2?"battle01":"battle02");
  // A retry bypasses the sortie dialogue, so explicitly repeat its voice cue.
- if(retry){window.StoryBgm?.unlock();playBattleShout("assets/audio/voice_iza_shutsujin.mp3")};
+ if(retry){window.StoryBgm?.unlock();playStorySortieVoice()};
  epoch++;stage=i;g=new window.StoryEngine(i);selected=null;busy=false;ended=false;weapons=[];debugModified=false;
  // A human-vs-human battle begins with the authored reserve officers already
  // deployed. Skip scripted arrivals without leaving either side short-handed.
@@ -1930,7 +1932,7 @@ $("dialogueNext").onclick=()=>{
  if(at<dialog.length-1)sfx("flip");
  if(sortie&&voiceEnabled){
   window.StoryBgm?.duck();
-  playStoryClip("assets/audio/voice_iza_shutsujin.mp3","voice");
+  playStorySortieVoice();
  }
  at++;line();
 };
@@ -2076,7 +2078,7 @@ const connectStoryAudioMixer=()=>{
  if(!mixer){console.warn('共通音量ミキサーの初期化を確認できません');return}
  const apply=values=>{
   window.StoryBgm?.setVolume(values.bgm);
-  if(activeStoryVoice)activeStoryVoice.volume=voiceLevel();
+  if(activeStoryVoice)activeStoryVoice.volume=Math.min(1,voiceLevel()*activeStoryVoiceBoost);
   if(activeStoryFx)activeStoryFx.volume=fxLevel();
   if(battleVoiceGain)battleVoiceGain.gain.value=Math.min(1,voiceLevel()*battleVoiceBoost);
   if(battleImpactGain)battleImpactGain.gain.value=Math.min(1,fxLevel()*battleImpactBoost);
@@ -2111,6 +2113,9 @@ if(localTwoPlayer){
  }else{
   // The StoryEngine setup is shared with the story chapter, not a visual skin.
   // Human players take both sides, with no AI turn scheduled.
+  const fromSortie=(()=>{try{return sessionStorage.getItem('shinsengumi-two-player-sortie-cue')==='1'}catch{return false}})();
+  try{sessionStorage.removeItem('shinsengumi-two-player-sortie-cue')}catch(e){}
+  if(!fromSortie)playStorySortieVoice(); // Direct deep links still attempt the cue.
   battle(localStage);
  }
 }
