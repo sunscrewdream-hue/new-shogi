@@ -15,7 +15,7 @@
   'assets/visuals/intro_shinsengumi_team_pc.webp?v=clash-art-20261111b'
  ];
  const titleVoice='assets/audio/voice_iza_shutsujin.mp3';
- const cache=new Map(),resources=new Map(),successful=new Set(),bypass=new WeakSet();
+ const cache=new Map(),resources=new Map(),successful=new Set(),bypass=new WeakSet(),temporaryBypass=new Set();
  let starting=false,overlay=null,status=null,retryButton=null,continueButton=null;
  function imageReady(src){
   return new Promise(resolve=>{
@@ -109,15 +109,17 @@
   retryButton=overlay.querySelector('#startupPreloadRetry');
   continueButton=overlay.querySelector('#startupPreloadContinue');
  }
- async function run(mode,chapter,action){
+ async function run(mode,chapter,action,{forceOverlay=false,minVisibleMs=420}={}){
   if(starting)return;
   starting=true;createOverlay();
   const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
-  if(!successful.has(key))overlay.hidden=false;
+  if(forceOverlay||!successful.has(key))overlay.hidden=false;
+  const shownAt=overlay.hidden?0:Date.now();
   let done=false;
   const start=()=>{
    if(done)return;done=true;overlay.hidden=true;starting=false;
-   action();
+   if(!successful.has(key))temporaryBypass.add(key);
+   try{action()}finally{temporaryBypass.delete(key)}
   };
   const attempt=async()=>{
    overlay.querySelector('#startupPreloadActions').hidden=true;
@@ -126,13 +128,10 @@
    progress.value=0;
    const ok=await prepare(mode,chapter,(completed,total)=>{progress.value=Math.round(completed/total*100);status.textContent='素材の読み込み中 '+completed+' / '+total});
    if(ok){
-    // If a user had to wait, a final real tap preserves iOS audio activation.
-    // Auto-starting from a settled Promise may lose that browser gesture.
-    if(overlay.hidden){start();return}
-    status.textContent='準備完了。出陣できます。';
-    retryButton.hidden=true;
-    continueButton.textContent='いざ、出陣';
-    overlay.querySelector('#startupPreloadActions').hidden=false;
+    // Show a real loading transition after sortie, even for cached assets.
+    // There is no second button: proceed automatically when ready.
+    if(shownAt)await new Promise(resolve=>setTimeout(resolve,Math.max(0,minVisibleMs-(Date.now()-shownAt))));
+    start();
     return;
    }
    overlay.hidden=false;
@@ -149,8 +148,30 @@
   createOverlay();
   const mode=document.getElementById('storyHome')?'story':'normal';
   // Start immediately on every page opening, including stand-alone homescreen launch.
-  prepare(mode,mode==='story'?0:null).catch(()=>{});
-  if(mode==='story')prepare('story',null).catch(()=>{});
+  // When a cold home-screen launch is slow, cover unfinished artwork until the
+  // first visible screen's core assets arrive. Never trap an offline player.
+  const bootPromise=prepare(mode,null);
+  if(mode==='story')prepare('story',0).catch(()=>{});
+  let bootDone=false,bootVisible=false;
+  const bootOverlayTimer=setTimeout(()=>{
+   if(bootDone||starting)return;
+   bootVisible=true;
+   overlay.hidden=false;
+   status.textContent='初期画面の素材を読み込んでいます…';
+   overlay.querySelector('#startupPreloadProgress').value=0;
+   overlay.querySelector('#startupPreloadActions').hidden=true;
+  },200);
+  const bootSafetyTimer=setTimeout(()=>{
+   bootDone=true;clearTimeout(bootOverlayTimer);
+   if(bootVisible&&!starting)overlay.hidden=true;
+  },12000);
+  bootPromise.then(()=>{
+   bootDone=true;clearTimeout(bootOverlayTimer);clearTimeout(bootSafetyTimer);
+   if(bootVisible&&!starting)overlay.hidden=true;
+  },()=>{
+   bootDone=true;clearTimeout(bootOverlayTimer);clearTimeout(bootSafetyTimer);
+   if(bootVisible&&!starting)overlay.hidden=true;
+  });
   document.addEventListener('click',event=>{
    const button=mode==='story'
     ?event.target.closest?.('#storyChapters button.chapter')
@@ -161,11 +182,11 @@
    else window.unlockAudio?.();
    const chapter=mode==='story'?[...document.querySelectorAll('#storyChapters button.chapter')].indexOf(button)-1:null;
    const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
-   if(successful.has(key))return;
+   if(mode==='story'&&successful.has(key))return;
    event.preventDefault();event.stopImmediatePropagation();
-   void run(mode,chapter,()=>{bypass.add(button);button.click()});
+   void run(mode,chapter,()=>{bypass.add(button);button.click()},{forceOverlay:mode==='normal'});
   },true);
  }
- window.ShinsengumiStartup={prepare,run,isReady:(mode,chapter)=>successful.has(mode+':'+(Number.isInteger(chapter)?chapter:'home'))};
+ window.ShinsengumiStartup={prepare,run,isReady:(mode,chapter)=>{const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');return successful.has(key)||temporaryBypass.has(key)}};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
 })();

@@ -162,7 +162,7 @@
   }
   const stage=$('boardStage');
   let routes=$('checkRouteOverlay');if(routes)routes.remove();
-  const threats=ended?[]:getCheckThreats(b).paths;
+  const threats=ended||normalDeferCheck?[]:getCheckThreats(b).paths;
   if(threats?.length){
    const ns='http://www.w3.org/2000/svg';
    routes=document.createElementNS(ns,'svg');routes.id='checkRouteOverlay';routes.setAttribute('viewBox','0 0 9 9');routes.setAttribute('preserveAspectRatio','none');routes.setAttribute('aria-hidden','true');
@@ -231,17 +231,16 @@
   visibleBannerPersons[side]=p;const result=baseSetCharacterBanner(side,p,caption,duration);
   syncHitokiriSeal(side);return result;
  };
- flashHitokiri=function(message){
+ flashHitokiri=function(message,side=turn){
   const notice=$('hitokiriNotice');
   const awakening=message.includes('覚醒');
-  if(awakening)playSampleSfx('slash1');
   const name=awakening?'人斬り覚醒！':'斬殺！';
   const image=document.createElement('img');image.src=awakening?'assets/visuals/hitokiri_red_calligraphy.webp':'assets/visuals/hitokiri_kill_calligraphy.webp';image.alt=name;
   notice.replaceChildren(image);
-  const side=turn,ep=epoch;
+  const ep=epoch;
   syncHitokiriSeal(side);
   const id=++noticeSerialHitokiri;notice.classList.add('show');
-  setTimeout(()=>{if(ep===epoch&&id===noticeSerialHitokiri)notice.classList.remove('show')},1800);
+  setTimeout(()=>{if(ep===epoch&&id===noticeSerialHitokiri)notice.classList.remove('show')},window.ShinsengumiBattlePresentation.timing.awakening);
  };
 
  /* These visual tests leave the actual match and character counters unchanged. */
@@ -410,77 +409,7 @@
  const baseQueueTurn=queueTurnNotice;
  queueTurnNotice=function(side){if(!ended&&b&&titleIsVisible()===false){saveGame(SAVE_KEY);updateContinueButton()}return baseQueueTurn(side)};
 
- /* Reinforcement = defection, not an arrest. Move the token to the receiver's jail. */
- function animateDefection(effect,person,done){
-  const cell=$('board').children[effect.y*9+effect.x],jail=$(effect.side===0?'playerHandShell':'enemyHandShell');
-  if(!cell||!jail){done();return}
-  let from=cell.getBoundingClientRect(),to=jail.getBoundingClientRect();
-  if(from.bottom<0||from.top>window.innerHeight){$('boardStage').scrollIntoView({block:'center',behavior:'auto'});from=cell.getBoundingClientRect();to=jail.getBoundingClientRect()}
-  const flight=document.createElement('div');flight.className='defection-flight';
-  flight.style.left=from.left+'px';flight.style.top=from.top+'px';flight.style.width=from.width+'px';flight.style.height=from.height+'px';
-  const ghost=createToken(person.t,person.s,person.p);
-  const badge=document.createElement('span');badge.className='defection-flight-badge';badge.textContent='寝返り！';
-  flight.append(ghost,badge);document.body.append(flight);cell.classList.add('sprite-departing');
-  const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
-  const destX=clamp(to.left+to.width/2,from.width/2+16,window.innerWidth-from.width/2-16);
-  const destY=clamp(to.top+to.height/2,from.height/2+28,window.innerHeight-from.height/2-30);
-  const deltaX=destX-(from.left+from.width/2),deltaY=destY-(from.top+from.height/2);
-  const duration=reducedGameMotion()?800:1800;
-  let finished=false,anim=null;
-  const finish=()=>{if(finished)return;finished=true;try{anim?.cancel()}catch{}flight.remove();cell.classList.remove('sprite-departing');done()};
-  const frames=[
-   {offset:0,transform:'translate(0,0) scale(1.25) rotate(-7deg)',opacity:1},
-   {offset:.2,transform:'translate(4px,-4px) scale(1.35) rotate(7deg)',opacity:1},
-   {offset:.53,transform:`translate(${deltaX*.34}px,${deltaY*.32-12}px) scale(1.26) rotate(-9deg)`,opacity:1},
-   {offset:.82,transform:`translate(${deltaX*.82}px,${deltaY*.78-10}px) scale(1.0) rotate(8deg)`,opacity:1},
-   {offset:1,transform:`translate(${deltaX}px,${deltaY}px) scale(.72) rotate(0deg)`,opacity:.16}
-  ];
-  try{
-   if(typeof flight.animate==='function'){
-    anim=flight.animate(frames,{duration,easing:'cubic-bezier(.35,.1,.2,1)',fill:'forwards'});
-    anim.finished.then(finish,finish);
-   }else{
-    flight.style.transform=frames[0].transform;
-    requestAnimationFrame(()=>{flight.style.transition=`transform ${duration}ms ease-in-out,opacity ${duration}ms ease-in-out`;flight.style.transform=frames[4].transform;flight.style.opacity='.16'});
-   }
-  }catch{flight.style.opacity='1'}
-  setTimeout(finish,duration+180);
- }
- const baseIncidentEffect=runIncidentEffect;
- runIncidentEffect=function(){
-  if(incidentEffect?.kind!=='寝返り')return baseIncidentEffect();
-  const effect=incidentEffect;incidentEffect=null;
-  const p=b[effect.y]?.[effect.x];if(!p||p.s!==effect.owner||p.t==='玉'){queueTurnNotice(turn);return}
-  incidentRunning=true;busy=true;playerTurnReady=false;incidentTarget={y:effect.y,x:effect.x};
-  setCharacterBanner(effect.owner,p,'寝返り！',1800);playSampleSfx('gravel');render();
-  const ep=epoch;
-  const proceed=()=>{
-   if(ep!==epoch)return;
-   if(b[effect.y][effect.x]===p){
-    b[effect.y][effect.x]=null;h[effect.side][p.t]=(h[effect.side][p.t]||0)+1;
-    (handIdentities[effect.side][p.t]??=[]).push({cid:p.cid,originSide:p.originSide??p.s});
-   }
-   incidentTarget=null;incidentRunning=false;busy=false;
-   clearCharacterBanner(effect.owner);setCharacterBanner(effect.side,p,'寝返りとして合流！',2000);
-   render();if(!ended){
-    // Defection's distinct 「御免！」 is the only retained part of the old voice.
-    const clip=playBattleVoice('gomen',()=>{if(ep===epoch&&!ended)queueTurnNotice(turn)});
-    if(!clip)queueTurnNotice(turn);
-   }
-  };
-  setTimeout(()=>{if(ep===epoch)previewReinforcementPortrait({y:effect.y,x:effect.x,p},effect.side,proceed)},240);
- };
- const baseResolveCard=resolveCard;
- const calmWind=new Audio('assets/audio/sfx/wind_calm_short.mp3');calmWind.preload='auto';calmWind.playsInline=true;
- resolveCard=function(s){
-  baseResolveCard(s);
-  if(incidentEffect?.kind==='寝返り')$('event').textContent=$('event').textContent.replace('捕獲して持ち駒に加える','寝返り、味方の持ち駒に合流する');
-  if(lastIncidentKind==='何事もなし'&&sampleSfxEnabled&&!document.hidden){
-   calmWind.pause();calmWind.currentTime=0;
-   calmWind.volume=Math.min(.32,Math.max(0,Number($('volume').value)/100*1.1));
-   const playing=calmWind.play();if(playing?.catch)playing.catch(()=>{});
-  }
- };
+ // Incident animations and audio are supplied by the common story presentation.
 
  /* Both modes share the same transparent victory portrait compositor. */
  const baseVictory=showVictory;

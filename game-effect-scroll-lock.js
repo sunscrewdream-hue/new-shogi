@@ -25,19 +25,27 @@ window.ShinsengumiTurnPresentation=Object.freeze({
   "#compactIntroClash.show","#endOverlay.show"
  ];
  let locked=false;
- const active=()=>selectors.some(q=>!!document.querySelector(q));
+ // A CSS class alone is not proof of a visible effect: pages can keep
+ // stale class names or hide the parent after a cinematic ends.
+ const visible=node=>{
+  if(!node||!node.isConnected||!node.getClientRects().length)return false;
+  const style=getComputedStyle(node);
+  return style.display!=='none'&&style.visibility!=='hidden';
+ };
+ const active=()=>selectors.some(q=>[...document.querySelectorAll(q)].some(visible));
  const inStoryBattle=()=>{
   const battle=document.getElementById("storyBattle");
   return !!battle&&!battle.classList.contains("hidden");
  };
- const blockScroll=e=>{if(locked&&e.cancelable)e.preventDefault()};
+ const blockScroll=e=>{if(locked&&!lockExpired()&&e.cancelable)e.preventDefault()};
  const currentBoard=()=>{
   const battle=document.getElementById("storyBattle");
   const storyVisible=!!battle&&!battle.classList.contains("hidden");
   const board=document.getElementById(storyVisible?"storyBoard":"board");
   return board&&board.getClientRects().length?board:null;
  };
- let anchorY=0,repositioning=false;
+ let anchorY=0,repositioning=false,lockSince=0;
+ const lockExpired=()=>locked&&Date.now()-lockSince>11000;
  const updateOverlayPosition=()=>{
   const board=currentBoard();
   if(!board)return;
@@ -62,6 +70,7 @@ window.ShinsengumiTurnPresentation=Object.freeze({
  const sync=()=>{
   const next=active();if(next===locked)return;
   if(next){
+   lockSince=Date.now();
    document.documentElement.classList.add("game-effect-scroll-locked");
    document.body.classList.add("game-effect-scroll-locked");
    locked=true;
@@ -70,16 +79,16 @@ window.ShinsengumiTurnPresentation=Object.freeze({
   }else{
    document.documentElement.classList.remove("game-effect-scroll-locked");
    document.body.classList.remove("game-effect-scroll-locked");
-   locked=false;
+   locked=false;lockSince=0;
    updateOverlayPosition();
   }
  };
  const holdScroll=()=>{
-  if(!locked||repositioning||Math.abs(window.scrollY-anchorY)<2)return;
+  if(!locked||lockExpired()||repositioning||Math.abs(window.scrollY-anchorY)<2)return;
   window.scrollTo({top:anchorY,left:0,behavior:"instant"});
  };
  const blockKeys=e=>{
-  if(!locked)return;
+  if(!locked||lockExpired())return;
   if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(e.key)&&!e.target?.closest?.('input,textarea,select,[contenteditable="true"]'))e.preventDefault();
  };
  const start=()=>{
@@ -88,6 +97,15 @@ window.ShinsengumiTurnPresentation=Object.freeze({
   document.addEventListener("wheel",blockScroll,{passive:false});
   document.addEventListener("keydown",blockKeys,{passive:false});
   window.addEventListener("scroll",holdScroll,{passive:true});
+  // Recover from an animation that loses its completion callback on iOS PWA.
+  setInterval(()=>{
+   if(!locked)return;
+   sync();
+   if(lockExpired()){
+    document.documentElement.classList.remove("game-effect-scroll-locked");
+    document.body.classList.remove("game-effect-scroll-locked");
+   }
+  },800);
   sync();
  };
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
