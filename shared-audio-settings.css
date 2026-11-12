@@ -77,15 +77,39 @@
 body.local-title-mode #opponentResignButton{display:flex}
 @media(max-width:400px){.opponent-resign{min-height:40px}}
 
-/* Independent audio mixer; same component in normal and story settings. */
-.audio-settings-body>.audio-mixer{display:flex;flex-direction:column;gap:9px;margin:0}
-.audio-settings-body>.audio-mixer .audio-mixer-row{display:grid;grid-template-columns:58px minmax(0,1fr) 40px;align-items:center;gap:9px;min-height:44px;margin:0;padding:8px 11px;border:1px solid #bca781;border-radius:7px;background:#fffaf0;font-weight:700}
-.audio-settings-body>.audio-mixer input[type="range"]{width:100%;min-width:0;accent-color:#324c5b}
-.audio-settings-body>.audio-mixer output{font-variant-numeric:tabular-nums;text-align:right;font-weight:800;font-size:13px}
-.audio-settings-body>.audio-mixer-reset{min-height:42px;padding:9px 12px;border:1px solid #97743f;border-radius:7px;background:#e8d5ae;color:#282116;font-weight:850;cursor:pointer}
-.audio-settings-body>.audio-mixer-reset:focus-visible{outline:3px solid #e4b960;outline-offset:2px}
-.audio-settings-body>label:has(>#volume),.audio-settings-body>label:has(>#storyVolume){display:grid;grid-template-columns:58px minmax(0,1fr) 40px;justify-content:stretch;text-align:left;font-weight:700;gap:9px}
-.audio-settings-body>label:has(>#volume)>input,.audio-settings-body>label:has(>#storyVolume)>input{width:100%!important;min-width:0}
+/* Identical three-row mixer on desktop and mobile: label / square toggle / fader / value. */
+.audio-settings-body>.audio-mixer{display:flex;flex-direction:column;gap:10px;margin:0;width:100%;min-width:0}
+.audio-settings-body>.audio-mixer .audio-mixer-row{
+ display:grid;grid-template-columns:52px 44px minmax(0,1fr) 39px;
+ align-items:center;column-gap:7px;min-height:59px;margin:0;padding:9px 10px;
+ border:1px solid #bca781;border-radius:8px;background:#fffaf0;
+ box-sizing:border-box;min-width:0;
+}
+.audio-settings-body .audio-mixer-title{font-size:13px;font-weight:800;white-space:nowrap;margin:0;color:#302b23}
+.audio-settings-body .audio-mixer-toggle{
+ display:grid!important;place-items:center!important;position:static!important;
+ width:44px!important;height:39px!important;min-width:0!important;min-height:39px!important;
+ max-width:44px!important;margin:0!important;padding:0!important;
+ border:1px solid #8b764d!important;border-radius:5px!important;
+ background:#334f45!important;color:#fff5dc!important;font-size:12px!important;
+ line-height:1!important;font-weight:900!important;letter-spacing:0!important;box-shadow:none!important;
+ text-indent:0!important;white-space:nowrap!important;touch-action:manipulation;
+}
+.audio-settings-body .audio-mixer-toggle[aria-pressed="false"]{background:#5b6268!important;color:#eae5dc!important}
+.audio-settings-body .audio-mixer-row input[type="range"]{
+ display:block!important;width:100%!important;min-width:0!important;max-width:none!important;
+ margin:0!important;padding:0!important;accent-color:#324c5b;
+}
+.audio-settings-body .audio-mixer-row output{text-align:right;font-variant-numeric:tabular-nums;font-size:12px;font-weight:800;white-space:nowrap}
+.audio-settings-body .audio-mixer-row.audio-mixer-off input[type="range"]{opacity:.48}
+.audio-settings-body>.audio-mixer-reset{min-height:43px;padding:9px 12px;border:1px solid #97743f;border-radius:7px;background:#e8d5ae;color:#282116;font-weight:850;cursor:pointer}
+.audio-settings-body>.audio-mixer-reset:focus-visible,.audio-settings-body .audio-mixer-toggle:focus-visible{outline:3px solid #e4b960;outline-offset:2px}
+@media(max-width:380px){
+ .audio-settings-body>.audio-mixer .audio-mixer-row{grid-template-columns:46px 40px minmax(0,1fr) 36px;gap:5px;padding:8px 7px}
+ .audio-settings-body .audio-mixer-toggle{width:40px!important;max-width:40px!important;height:38px!important}
+ .audio-settings-body .audio-mixer-title{font-size:12px}
+ .audio-settings-body .audio-mixer-row output{font-size:11px}
+}
 
 /* iOS stand-alone web app: parent pan-y must not consume slider drags. */
 body.audio-settings-active{touch-action:auto!important}

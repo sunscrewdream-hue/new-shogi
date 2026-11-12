@@ -141,54 +141,78 @@
    restart?.remove();
    playerHand?.after(actions);
   }
-  // Same audio field order and same saved master-volume percentage in both modes.
-  const order=languageOnly?[]:story?['audioToggle','storyVoiceToggle','storyFxToggle']:['bgmToggle','voiceToggle','sfxToggle'];
-  for(const id of order){const control=body.querySelector('#'+id);if(control)body.append(control)}
+  // Preserve the game's original on/off controls and their handlers, but
+  // place each button directly beside its own volume slider.
+  const toggles=languageOnly?{}:story?
+   {bgm:body.querySelector('#audioToggle'),voice:body.querySelector('#storyVoiceToggle'),fx:body.querySelector('#storyFxToggle')}:
+   {bgm:body.querySelector('#bgmToggle'),voice:body.querySelector('#voiceToggle'),fx:body.querySelector('#sfxToggle')};
   const slider=body.querySelector(story?'#storyVolume':'#volume');
-  const sliderLabel=slider?.closest('label');if(sliderLabel)body.append(sliderLabel);
-  const primary=new Set([...order,'volume','storyVolume']);
-  const extras=[...body.children].filter(node=>!primary.has(node.id)&&node!==sliderLabel);
-  extras.forEach(node=>body.append(node));
-  // Keep the single translation control inside the Settings dialog on every page.
+  const oldLabel=slider?.closest('label');
+  const extras=[...body.children].filter(node=>node!==oldLabel&&!Object.values(toggles).includes(node));
+  if(slider&&!languageOnly){
+   const bgmOriginalOutput=oldLabel?.querySelector('output');
+   const group=document.createElement('div');group.className='audio-mixer';
+   const rows={};
+   const labels={bgm:'BGM',voice:'音声',fx:'効果音'};
+   const toggleOn=button=>{
+    if(!button)return true;
+    // Story buttons already maintain aria-pressed. Normal buttons encode
+    // their current state in the text; both handlers remain untouched.
+    return story?button.getAttribute('aria-pressed')==='true':
+     !/OFF/i.test(button.textContent);
+   };
+   for(const kind of ['bgm','voice','fx']){
+    const row=document.createElement('div');row.className='audio-mixer-row';
+    const label=document.createElement('label');label.className='audio-mixer-title';
+    const range=kind==='bgm'?slider:document.createElement('input');
+    if(kind!=='bgm'){range.type='range';range.min='0';range.max='100';range.step='1';range.id='audioMix'+kind}
+    range.value=String(mixer.get(kind));range.setAttribute('aria-label',labels[kind]+'の音量');
+    label.textContent=labels[kind];label.htmlFor=range.id;
+    const toggle=toggles[kind];
+    if(toggle){
+     toggle.classList.add('audio-mixer-toggle');toggle.type='button';
+     const updateButton=()=>{
+      const on=toggleOn(toggle);
+      toggle.textContent=on?'ON':'OFF';
+      toggle.setAttribute('aria-pressed',String(on));
+      toggle.setAttribute('aria-label',labels[kind]+'を'+(on?'オフ':'オン')+'にする');
+      row.classList.toggle('audio-mixer-off',!on);
+     };
+     // Normal game onclick handlers use button text to toggle? They do not:
+     // each maintains its own enabled flag, so keep the raw state in dataset.
+     const sourceHandler=toggle.onclick;
+     toggle.onclick=null;
+     toggle.addEventListener('click',()=>{
+      if(typeof sourceHandler==='function')sourceHandler.call(toggle);
+      // Original normal handlers set their long text; normalize after them.
+      updateButton();
+     });
+     updateButton();
+    }
+    const value=document.createElement('output');value.htmlFor=range.id;
+    value.textContent=range.value+'%';
+    range.addEventListener('input',()=>mixer.set(kind,range.value));
+    row.append(label,toggle||document.createElement('span'),range,value);group.append(row);
+    rows[kind]={range,value};
+   }
+   const reset=document.createElement('button');reset.type='button';reset.className='audio-mixer-reset';
+   reset.textContent='推奨音量にリセット';reset.onclick=()=>mixer.reset();
+   group.append(reset);
+   oldLabel?.remove();
+   body.prepend(group);
+   const sync=next=>{
+    for(const kind of ['bgm','voice','fx']){
+     rows[kind].range.value=String(next[kind]);
+     rows[kind].value.textContent=next[kind]+'%';
+    }
+    if(bgmOriginalOutput){bgmOriginalOutput.value=String(next.bgm);bgmOriginalOutput.textContent=String(next.bgm)}
+   };
+   mixer.subscribe(sync);sync({bgm:mixer.get('bgm'),voice:mixer.get('voice'),fx:mixer.get('fx')});
+  }
+  for(const node of extras)body.append(node);
   const languageButton=document.querySelector('.language-toggle');
   if(languageButton)body.append(languageButton);
   document.body.append(panel);
-  if(slider&&!languageOnly){
-   const oldLabel=slider.closest('label');
-   // Preserve the original range input so the game's BGM handlers stay wired.
-   if(oldLabel){oldLabel.firstChild.textContent='BGM　';slider.style.width='100%'}
-   slider.value=String(mixer.get('bgm'));
-   slider.dispatchEvent(new Event('input',{bubbles:true}));
-   slider.addEventListener('input',()=>mixer.set('bgm',slider.value));
-   const group=document.createElement('div');
-   group.className='audio-mixer';
-   const rows={};
-   const labelFor={fx:'効果音',voice:'音声'};
-   for(const kind of ['fx','voice']){
-    const row=document.createElement('label');row.className='audio-mixer-row';
-    const title=document.createElement('span');title.textContent=labelFor[kind];
-    const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='1';
-    range.id='audioMix'+kind;range.value=String(mixer.get(kind));
-    range.setAttribute('aria-label',labelFor[kind]+'の音量');
-    const value=document.createElement('output');value.htmlFor=range.id;value.textContent=range.value+'%';
-    range.addEventListener('input',()=>mixer.set(kind,range.value));
-    row.append(title,range,value);group.append(row);rows[kind]={range,value};
-   }
-   const reset=document.createElement('button');reset.type='button';reset.className='audio-mixer-reset';
-   reset.textContent='推奨音量にリセット';
-   reset.onclick=()=>mixer.reset();
-   group.append(reset);
-   oldLabel?.after(group);
-   const bgmOutput=oldLabel?.querySelector('output');
-   const sync=next=>{
-    slider.value=String(next.bgm);
-    if(bgmOutput){bgmOutput.value=String(next.bgm);bgmOutput.textContent=String(next.bgm)}
-    // Game audio subscribes to the mixer directly; re-dispatching input here
-    // would recursively trigger mixer.set() through this range's listener.
-    for(const kind of ['fx','voice']){rows[kind].range.value=String(next[kind]);rows[kind].value.textContent=next[kind]+'%'}
-   };
-   mixer.subscribe(sync);
-  }
   const close=()=>panel.close();
   trigger.addEventListener('click',()=>{document.body.classList.add('audio-settings-active');panel.showModal();trigger.setAttribute('aria-expanded','true');panel.querySelector('.audio-settings-close').focus()});
   panel.querySelector('.audio-settings-close').addEventListener('click',close);
