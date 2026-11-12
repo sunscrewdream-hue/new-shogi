@@ -125,6 +125,18 @@ function playCasualtyCry(){return new Promise(resolve=>{
  setTimeout(done,3400);
 })}
 const later=ms=>new Promise(r=>setTimeout(r,ms));
+// Character art gets the same minimum on-screen time in ordinary moves and
+// scripted reinforcements; never truncate a spoken line to advance the turn.
+const storyBannerMinimumMs=2300,storyBannerVoiceLimitMs=15000,storyBannerVoicePollMs=160;
+async function waitStoryReinforcementBanner(game){
+ const shownAt=Date.now();
+ await later(storyBannerMinimumMs);
+ while(game===epoch&&!ended&&Date.now()-shownAt<storyBannerVoiceLimitMs){
+  const voice=activeStoryVoice;
+  if(!((voice&&!voice.paused&&!voice.ended)||battleVoiceActive))break;
+  await later(storyBannerVoicePollMs);
+ }
+}
 // Never leave battle input locked if mobile Safari omits an audio-ended event.
 function playBloodImpact(){return Promise.race([new Promise(resolve=>compactSound("blood",resolve)),later(1700)])}
 function playLethalSword(){return Promise.race([new Promise(resolve=>compactSound("slash",resolve)),later(1300)])}
@@ -399,7 +411,8 @@ async function ikedayaReinforcementArrival(){
    g.board[entry.y][entry.x]=entry.piece;
    render();
    banner(0,entry.piece,true);
-   await later(260);
+   // Match normal character banners: full reading time, plus any active voice.
+   await waitStoryReinforcementBanner(game);
   }
   // Let the last arriving officer be seen before retiring the character portrait.
   await later(700);
@@ -458,7 +471,8 @@ async function kinmonSatsumaArrival(){
    g.board[entry.y][entry.x]=entry.piece;
    render();
    banner(0,entry.piece,true);
-   await later(260);
+   // Match normal character banners: full reading time, plus any active voice.
+   await waitStoryReinforcementBanner(game);
   }
   // Let the last arriving officer be seen before retiring the character portrait.
   await later(700);
@@ -863,10 +877,10 @@ function banner(s,p,hold=false){
   const closeAfterVoice=()=>{
    if(currentEpoch!==epoch)return;
    const voice=activeStoryVoice;
-   if(((voice&&!voice.paused&&!voice.ended)||battleVoiceActive)&&Date.now()-start<15000){storyBannerTimers[s]=setTimeout(closeAfterVoice,160);return}
+   if(((voice&&!voice.paused&&!voice.ended)||battleVoiceActive)&&Date.now()-start<storyBannerVoiceLimitMs){storyBannerTimers[s]=setTimeout(closeAfterVoice,storyBannerVoicePollMs);return}
    panel.classList.remove("show-character");
   };
-  storyBannerTimers[s]=setTimeout(closeAfterVoice,2300);
+  storyBannerTimers[s]=setTimeout(closeAfterVoice,storyBannerMinimumMs);
  }
 }
 // As in the completed match, turn/status notices live inside the character banners.
