@@ -40,6 +40,15 @@
    .then(r=>r.ok?r.arrayBuffer():Promise.reject(Error('audio '+r.status)))
    .then(()=>true,()=>false).finally(()=>clearTimeout(timer));
  }
+ function bgmReady(name){
+  const preload=window.StoryBgm?.preload;
+  if(typeof preload!=='function')return Promise.resolve(false);
+  let timer;
+  return Promise.race([
+   Promise.resolve().then(()=>preload(name)).then(buffer=>!!buffer,()=>false),
+   new Promise(resolve=>{timer=setTimeout(()=>resolve(false),12000)})
+  ]).finally(()=>clearTimeout(timer));
+ }
  function assetsFor(mode,chapter){
   const story=mode==='story';
   const names=story?common.slice():common.concat(normalImages);
@@ -50,8 +59,12 @@
     'assets/visuals/intro_shinsengumi_team_mobile.webp',
     'assets/visuals/intro_shinsengumi_team_pc.webp');
   }
-  return [...new Set(names)].map(src=>({src,kind:'image'}))
+  const assets=[...new Set(names)].map(src=>({src,kind:'image'}))
    .concat([{src:titleVoice,kind:'audio'}]);
+  // Decode only the selected chapter soundtrack before entering its story.
+  if(story&&Number.isInteger(chapter)&&chapter>=0&&chapter<4)
+   assets.push({src:chapter===3?'toba':chapter===0||chapter===2?'battle01':'battle02',kind:'bgm'});
+  return assets;
  }
  function prepare(mode,chapter,onProgress){
   const key=mode+':'+(Number.isInteger(chapter)?chapter:'home');
@@ -61,7 +74,7 @@
   const workers=Array.from({length:Math.min(3,list.length)},async()=>{
    while(next<list.length){
     const item=list[next++];
-    const ok=await (item.kind==='image'?imageReady(item.src):audioReady(item.src));
+    const ok=await (item.kind==='image'?imageReady(item.src):item.kind==='bgm'?bgmReady(item.src):audioReady(item.src));
     if(!ok)failures++;
     onProgress?.(++completed,list.length);
    }
