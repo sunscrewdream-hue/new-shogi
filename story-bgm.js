@@ -67,8 +67,12 @@ async function play(name){
   const buffer=await load(name);
   if(token!==epoch||wanted!==name||!buffer)return;
   const c=audioContext();if(!c)return;
-  await c.resume().catch(()=>{});
-  if(token!==epoch)return;
+  // Never await a mobile autoplay-blocked AudioContext indefinitely.
+  const resumed=await Promise.race([
+   Promise.resolve(c.resume()).then(()=>true,()=>false),
+   new Promise(resolve=>setTimeout(()=>resolve(false),1400))
+  ]);
+  if(token!==epoch||!resumed||c.state!=="running")return;
   stopCurrent(.7);
   const node=c.createBufferSource(),gain=c.createGain();
   node.buffer=buffer;node.loop=true;
@@ -91,32 +95,39 @@ function duck(){
  master.gain.setTargetAtTime(gainLevel()*.5,t,.1);
  master.gain.setTargetAtTime(gainLevel(),t+1.6,.22);
 }
-// Direct two-player previews can open a battle without any initial tap.
-// Browsers suspend Web Audio until a user gesture; a retry on that gesture
-// allows the requested soundtrack to begin without toggling settings.
-let gestureRecoveryPending=false;
-function resumeBgmFromGesture(){
- if(!wanted||muted||document.hidden||gestureRecoveryPending)return;
+// Restore the requested track when the tab/PWA returns from the background.
+// Browsers can still block first-ever autoplay: no extra unlock button is used;
+// the next ordinary game action also triggers the same recovery.
+let recoveryInFlight=false;
+function restoreStoryBgm(){
+ if(!wanted||muted||document.hidden||recoveryInFlight)return;
  const c=audioContext();if(!c)return;
- if(c.state==="running"&&source)return;
- gestureRecoveryPending=true;
- Promise.resolve(c.resume()).then(()=>{
-  gestureRecoveryPending=false;
-  // The initial play may have been blocked before its source was created.
-  // A fresh attempt is safe: play() invalidates previous requests by epoch.
-  if(wanted&&!muted&&!document.hidden&&!source&&!pending.has(wanted))void play(wanted);
- }).catch(error=>{
-  gestureRecoveryPending=false;
-  console.warn("Story BGM gesture resume failed",error);
- });
+ if(c.state==="running"){
+  if(!source&&!pending.has(wanted))void play(wanted);
+  return;
+ }
+ recoveryInFlight=true;
+ let settled=false;
+ const finish=(success)=>{
+  if(settled)return;settled=true;recoveryInFlight=false;
+  if(success&&c.state==="running"&&wanted&&!muted&&!document.hidden&&!source&&!pending.has(wanted))void play(wanted);
+ };
+ // Invoke resume synchronously inside the gesture when one occurs.
+ try{
+  Promise.resolve(c.resume()).then(()=>finish(true),error=>{
+   console.warn('物語BGM復帰を再試行します',error);finish(false);
+  });
+ }catch(error){finish(false)}
+ setTimeout(()=>finish(false),1500);
 }
-document.addEventListener("pointerdown",resumeBgmFromGesture,{passive:true});
-document.addEventListener("touchstart",resumeBgmFromGesture,{passive:true});
-document.addEventListener("keydown",resumeBgmFromGesture);
-document.addEventListener("visibilitychange",()=>{
- if(!ctx)return;
- if(document.hidden)ctx.suspend().catch(()=>{});
- else if(!muted&&wanted)ctx.resume().catch(()=>{});
+document.addEventListener('pointerdown',restoreStoryBgm,{passive:true,capture:true});
+document.addEventListener('touchstart',restoreStoryBgm,{passive:true,capture:true});
+document.addEventListener('keydown',restoreStoryBgm);
+window.addEventListener('pageshow',restoreStoryBgm);
+window.addEventListener('focus',restoreStoryBgm);
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){if(ctx&&ctx.state==='running')ctx.suspend().catch(()=>{});}
+ else restoreStoryBgm();
 });
 window.StoryBgm={play,unlock,setMuted,setVolume,duck,preload:load,restart:name=>{current=null;return play(name)},stop:()=>play(null)};
 })();
