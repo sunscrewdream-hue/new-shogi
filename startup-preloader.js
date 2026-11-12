@@ -62,8 +62,8 @@
   const assets=[...new Set(names)].map(src=>({src,kind:'image'}))
    .concat([{src:titleVoice,kind:'audio'}]);
   // Decode only the selected chapter soundtrack before entering its story.
-  if(story&&Number.isInteger(chapter)&&chapter>=0&&chapter<4)
-   assets.push({src:chapter===3?'toba':chapter===0||chapter===2?'battle01':'battle02',kind:'bgm'});
+  if(story&&Number.isInteger(chapter)&&chapter>=-1&&chapter<=4)
+   assets.push({src:chapter===-1?'prologue':chapter===4?'ending':chapter===3?'toba':chapter===0||chapter===2?'battle01':'battle02',kind:'bgm'});
   return assets;
  }
  function warm(item){
