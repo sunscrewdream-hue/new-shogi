@@ -15,6 +15,8 @@
  const anchor=document.getElementById('titleModeActions');
  if(!title||!match||!anchor)return;
  let selected='classic';
+ const testAvailable=new URLSearchParams(location.search).has('previewAll');
+ let testAllStages=false;
  const panel=document.createElement('section');panel.id='storyUnlockPicker';
  panel.setAttribute('aria-label','通常対戦の戦場を選択');
  panel.innerHTML='<h2>対戦する戦場 <small>物語で勝利すると解放</small></h2><div id="storyUnlockChoices" role="group" aria-label="戦場一覧"></div><p id="storyUnlockExplanation">未解放の戦場は物語の各章で勝利すると選べます。</p>';
@@ -24,6 +26,18 @@
  group.style.cssText='display:flex;flex-direction:column;align-items:center;width:min(95vw,520px);min-width:0;position:relative;left:50%;transform:translateX(-50%)';
  anchor.before(group);
  group.append(panel,anchor);
+ if(testAvailable){
+  const testButton=document.createElement('button');
+  testButton.type='button';testButton.id='twoPlayerDevStages';
+  testButton.textContent='🛠 開発テスト：全ステージを試す';
+  testButton.setAttribute('aria-pressed','false');
+  testButton.addEventListener('click',()=>{
+   testAllStages=!testAllStages;
+   testButton.textContent=testAllStages?'🛠 開発テスト終了（通常の解放条件）':'🛠 開発テスト：全ステージを試す';
+   testButton.setAttribute('aria-pressed',String(testAllStages));render();
+  });
+  panel.append(testButton);
+ }
  // The battlefield is a local two-player choice, not an AI difficulty setting.
  const syncModeVisibility=()=>{panel.hidden=!document.getElementById('modeLocal')?.classList.contains('selected')};
  document.getElementById('modeAi')?.addEventListener('click',syncModeVisibility);
@@ -31,7 +45,7 @@
  syncModeVisibility();
  const choices=panel.querySelector('#storyUnlockChoices');
  const explanation=panel.querySelector('#storyUnlockExplanation');
- const cleared=()=>{if(new URLSearchParams(location.search).has('previewAll'))return 4;try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
+ const cleared=()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
  const cssAssets={
   ikedaya:'assets/backgrounds/story/ikedaya-bg-v2.webp',
   kinmon:'assets/backgrounds/story/kinmon-bg-v2.webp',
@@ -55,10 +69,10 @@
  }
  function render(){
   const wins=cleared();
-  if(battlefields.find(f=>f.id===selected)?.required>wins)selected='classic';
+  if(!testAllStages&&battlefields.find(f=>f.id===selected)?.required>wins)selected='classic';
   choices.replaceChildren();
   for(const field of battlefields){
-   const allowed=wins>=field.required;
+   const allowed=testAllStages||wins>=field.required;
    const button=document.createElement('button');button.type='button';
    button.className='story-unlock-choice'+(field.id===selected?' selected':'');
    button.disabled=!allowed;button.setAttribute('aria-pressed',String(field.id===selected));
@@ -71,7 +85,7 @@
    choices.append(button);
   }
   const current=battlefields.find(f=>f.id===selected);
-  explanation.textContent=current.id==='classic'
+  explanation.textContent=testAllStages?'開発テスト中：全ステージを試せます。攻略記録は変更しません。':current.id==='classic'
    ?'未解放の戦場は物語の各章で勝利すると選べます。'
    :current.name+'の戦場を選択中。いざ、出陣で専用盤面の二人対戦を開始します。';
   updateAppearance();
@@ -83,11 +97,11 @@
   sortie?.addEventListener('click',event=>{
    if(!document.getElementById('modeLocal')?.classList.contains('selected')||selected==='classic')return;
    const field=battlefields.find(item=>item.id===selected);
-   if(!field||cleared()<field.required)return;
+   if(!field||(!testAllStages&&cleared()<field.required))return;
    event.preventDefault();event.stopImmediatePropagation();
    // Preserve the unlocked progress in localStorage; each two-player match
    // starts from the stage's exact authored formation and incident rules.
-   window.location.assign('story-mode.html?twoPlayer='+encodeURIComponent(field.id)+(new URLSearchParams(location.search).has('previewAll')?'&previewAll=1':''));
+   window.location.assign('story-mode.html?twoPlayer='+encodeURIComponent(field.id)+(testAllStages?'&previewAll=1':''));
   },true);
  // Pages restored from browser history must show the latest story victory.
  window.addEventListener('pageshow',()=>{render();syncModeVisibility()});
