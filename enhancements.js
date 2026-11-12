@@ -43,6 +43,11 @@
  window.addEventListener('focus',restoreTitleMusic);
  // Browsers that permit autoplay can begin before any input.
  playTitleMusic();
+ // End the title soundtrack at the same intentional sortie click; the battle
+ // track is primed by the main game before any async preload can defer playback.
+ document.addEventListener('click',event=>{
+  if(event.target.closest?.('#startGame')){stopTitleMusic();stopTitleIntro()}
+ },true);
  const baseSyncVolume=syncBgmVolume;
  syncBgmVolume=function(){baseSyncVolume();syncTitleVolume()};
  const baseStartBgm=startBgm;
