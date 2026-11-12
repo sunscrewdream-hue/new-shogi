@@ -1605,7 +1605,7 @@ function draw(s){
  pendingCardSide=s;cardRevealed=false;cardVoiceDone=true;cardCloseRequested=false;lastIncidentKind='何事もなし';
  const face=el('cardFace');
  face.classList.remove('revealed','ai-card','card-text-ready');
- face.style.setProperty('background-image','url(\"assets/cards/back/card-back-saccho-1024x1536.webp\")','important');
+ face.style.setProperty('background-image','url(\"assets/cards/back/card-back-king-neutral.webp\")','important');
  el('cardEffectText').textContent='';
  face.setAttribute('aria-label',(gameMode==='local'?(s===0?'先手':'後手'):(s===1?'敵陣':'新選組'))+'の事件札をめくる');
  el('cardOverlay').classList.toggle('ai-turn',s===1);
