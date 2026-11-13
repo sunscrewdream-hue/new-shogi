@@ -1153,7 +1153,7 @@ function line(){
  $("dialogueNext").classList.toggle("story-sortie-button",sortie);
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
-function battle(i,oilFormation=null,retry=false){
+function battle(i,oilFormation=null,retry=false,alreadyCrossed=false){
  // Direct two-player entry skips the paper-story selection that normally sets
  // chapter-specific crossing artwork; always set it at battle start as well.
  selectIntroArtwork(i);
@@ -1211,7 +1211,13 @@ function battle(i,oilFormation=null,retry=false){
   const desiredY=Math.max(0,Math.round(boardCenter-window.innerHeight/2-36));
   window.scrollTo(0,desiredY);
   document.body.classList.add("story-opening-viewport-lock");
-  compactIntro();
+  if(alreadyCrossed){
+   // The normal crossing and the sortie shout were already played together
+   // on the title page's trusted click. Only show the opening turn notice.
+   const game=epoch;
+   compactTurnLocked=true;
+   setTimeout(()=>{if(game===epoch&&!ended){busy=false;compactTurn(0,null,true)}},450);
+  }else compactIntro();
  }
 }
 // First-act Aburanokoji abilities were previously AI-only.  The second
@@ -2117,9 +2123,14 @@ if(localTwoPlayer){
   // The StoryEngine setup is shared with the story chapter, not a visual skin.
   // Human players take both sides, with no AI turn scheduled.
   const fromSortie=(()=>{try{return sessionStorage.getItem('shinsengumi-two-player-sortie-cue')==='1'}catch{return false}})();
-  try{sessionStorage.removeItem('shinsengumi-two-player-sortie-cue')}catch(e){}
-  if(!fromSortie)playStorySortieVoice(); // Direct deep links still attempt the cue.
-  battle(localStage);
+  const crossedAt=(()=>{try{return Number(sessionStorage.getItem('shinsengumi-two-player-sortie-crossed'))||0}catch{return 0}})();
+  try{
+   sessionStorage.removeItem('shinsengumi-two-player-sortie-cue');
+   sessionStorage.removeItem('shinsengumi-two-player-sortie-crossed');
+  }catch(e){}
+  const alreadyCrossed=fromSortie&&crossedAt>0&&Date.now()-crossedAt<120000;
+  if(!alreadyCrossed)playStorySortieVoice(); // Deep link or expired launch: own intro.
+  battle(localStage,null,false,alreadyCrossed);
  }
 }
 })();
