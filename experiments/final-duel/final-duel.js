@@ -66,8 +66,8 @@ function move(s,duel,side,to,rng=Math.random){
     return {state:{...next,ended:true},duel:{...duel,active:false,gun:null,winner:side,shot:true,plies:duel.plies+1},event:'shot'};
   const plies=duel.plies+1;
   // Every four half-moves, reposition on a reachable, fair square.
-  const gun=plies%4===0?chooseSquare(next,rng):duel.gun;
-  return {state:next,duel:{...duel,gun,plies},event:plies%4===0?'relocate':'move'};
+  const gun=duel.gun;
+  return {state:next,duel:{...duel,gun,plies},event:'move'};
 }
 return {validState,canStart,distances,candidates,chooseSquare,begin,legalKingMove,move};
 });
