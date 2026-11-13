@@ -1154,6 +1154,9 @@ function line(){
  $("dialogueNext").closest(".dialogue-foot").classList.toggle("story-sortie-foot",sortie);
 }
 function battle(i,oilFormation=null,retry=false){
+ // Direct two-player entry skips the paper-story selection that normally sets
+ // chapter-specific crossing artwork; always set it at battle start as well.
+ selectIntroArtwork(i);
  // Oil-koji formation choice happens before the battle and its opening animation.
  // Only swap the friendly rook with one front-rank pawn; all other pieces stay fixed.
  // Start Oil-koji in the standard formation without a selection popup.
