@@ -23,7 +23,7 @@ button:disabled{opacity:.45}#board{display:grid;aspect-ratio:1;gap:3px;backgroun
 #shot{display:none;position:fixed;inset:0;z-index:10;place-items:center;background:#000b;text-align:center;font-size:clamp(28px,8vw,70px);font-weight:900;color:#ffe0a2;text-shadow:0 0 20px #f80}
 #shot.show{display:grid}small{color:#c2c7cc}
 </style></head><body><main><h1>最後の一発 <small>検証版</small></h1>
-<p>王将だけになった局面で、双方から合法手で到達できるマスに拳銃が出現。拳銃は逃げず、王将が拾うと決着します。<strong>このページは本編から完全に独立した試作です。</strong></p>
+<p>王将だけになった局面で、双方から合法手で到達できるマスに拳銃が出現。拳銃は逃げず、王将が拳銃に隣接したら、拳銃マスをタップして拾えます。相手王将の利きに入る必要はありません。<strong>このページは本編から完全に独立した試作です。</strong></p>
 <div class="controls"><label>盤面 <select id="size"><option value="9,9">通常 9×9</option><option value="5,6">物語 5×6</option></select></label>
 <label>対局 <select id="mode"><option value="local">二人対戦</option><option value="ai">対CPU</option></select></label>
 <button id="restart">新しい決闘</button><button id="tests">検査を実行</button><button id="preview" type="button">音声・発砲テスト</button></div>
@@ -87,7 +87,7 @@ function draw(){
   el.textContent=at===0?'王':at===1?'玉':'';
   if(gun){const icon=document.createElement('img');icon.className='gun-icon';icon.src=gunPhoto;icon.alt='';icon.onerror=()=>{icon.replaceWith(document.createTextNode('🔫'))};el.append(icon)}
   el.setAttribute('aria-label',y+'段'+x+'列'+(at>=0?'王将':'')+(gun?'拳銃':''));
-  el.disabled=!rule.legalKingMove(state,state.turn,p)||duel.winner!==null||running;
+  el.disabled=!(rule.legalKingMove(state,state.turn,p)||(gun&&rule.canPickup(state,duel,state.turn)))||duel.winner!==null||running;
   el.onclick=()=>play(p);board.append(el);
  }
 }
@@ -100,7 +100,7 @@ function play(p){
  }else if(result.event==='relocate')msg('再配置');
  draw();
  if(document.getElementById('mode').value==='ai'&&state.turn===1&&duel.winner===null){
-  running=true;setTimeout(()=>{running=false;if(duel.winner!==null)return;const d=rule.distances(duel.gun,state.kings[0],state);
+  running=true;setTimeout(()=>{running=false;if(duel.winner!==null)return;if(rule.canPickup(state,duel,1)){play(duel.gun);return;}const d=rule.distances(duel.gun,state.kings[0],state);
    const opts=[];for(let y=0;y<state.rows;y++)for(let x=0;x<state.cols;x++)if(rule.legalKingMove(state,1,{y,x}))opts.push({y,x});
    opts.sort((a,b)=>(d.get(a.y+','+a.x)??999)-(d.get(b.y+','+b.x)??999));if(opts.length)play(opts[0]);},350);
  }
