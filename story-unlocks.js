@@ -46,6 +46,37 @@
  const choices=panel.querySelector('#storyUnlockChoices');
  const explanation=panel.querySelector('#storyUnlockExplanation');
  const cleared=()=>{try{return Math.max(0,Math.min(4,Number(localStorage.getItem(progressKey))||0))}catch(e){return 0}};
+  // Prime only the chosen scene's opening art while users select the battlefield.
+  // The source-page crossing must start on the FIRST click, just like 9x9.
+  const warmCrossingAssets=new Map(),warmMatchDocuments=new Set();
+  function stageClashKey(id){return id==='tobafushimi'?'toba_fushimi':id}
+  function warmStageCrossing(id){
+   if(!id||id==='classic')return;
+   // The next HTML is fetched in advance too; its request never delays a click.
+   const destination='story-mode.html?twoPlayer='+encodeURIComponent(id)+(testAllStages?'&previewAll=1':'');
+   if(!warmMatchDocuments.has(destination)){
+    warmMatchDocuments.add(destination);
+    window.fetch?.(destination,{cache:'force-cache'}).catch(()=>{});
+   }
+   if(warmCrossingAssets.has(id))return;
+   const key=stageClashKey(id),imgs=[];
+   for(const src of [
+    `assets/visuals/intro_${key}_enemy_mobile.webp`,
+    `assets/visuals/intro_${key}_enemy_pc.webp`,
+    'assets/visuals/intro_shinsengumi_team_mobile.webp',
+    'assets/visuals/intro_shinsengumi_team_pc.webp'
+   ]){const img=new Image();img.decoding='async';img.src=src;imgs.push(img)}
+   warmCrossingAssets.set(id,imgs);
+  }
+  function useStageCrossing(id){
+   const pictures=document.querySelectorAll('#introClash picture');
+   if(pictures.length!==2)return;
+   const key=stageClashKey(id);
+   pictures[0].querySelector('source').srcset=`assets/visuals/intro_${key}_enemy_mobile.webp`;
+   pictures[0].querySelector('img').src=`assets/visuals/intro_${key}_enemy_pc.webp`;
+   pictures[1].querySelector('source').srcset='assets/visuals/intro_shinsengumi_team_mobile.webp';
+   pictures[1].querySelector('img').src='assets/visuals/intro_shinsengumi_team_pc.webp';
+  }
  const cssAssets={
   ikedaya:'assets/backgrounds/story/ikedaya-bg-v2.webp',
   kinmon:'assets/backgrounds/story/kinmon-bg-v2.webp',
@@ -53,6 +84,7 @@
   tobafushimi:'assets/backgrounds/story/tobafushimi-bg-v2.webp'
  };
  function updateAppearance(){
+  warmStageCrossing(selected);
   match.setAttribute('data-unlocked-field',selected);
   document.body.setAttribute('data-unlocked-field',selected);
   // Keep the 9x9 board, cell hit targets and piece geometry completely unchanged.
@@ -102,33 +134,39 @@
    const field=battlefields.find(item=>item.id===selected);
    if(!field||(!testAllStages&&cleared()<field.required))return;
    event.preventDefault();event.stopImmediatePropagation();
-   // Match the ordinary match: the actual user click starts its approved
-   // 「いざ出陣」 voice and BGM before the cross-page navigation. Waiting until
-   // the destination loads loses gesture activation on mobile Safari.
+   // Use the SAME approved crossing animation and voice as the standard 9x9.
+   // Do not play the shout on the title and then wait for the next page's intro.
    if(sortie.dataset.twoPlayerLaunching==='1')return;
    sortie.dataset.twoPlayerLaunching='1';
    sortie.disabled=true;
-   // No extra sortie page or overlay: this button only plays the shared
-   // voice cue, then opens the selected chapter's existing crossing animation.
-   // Preload the chosen battlefield's images while the original user gesture starts the voice.
-   for(const suffix of ['enemy_mobile.webp','enemy_pc.webp']){const img=new Image();const key=field.id==='tobafushimi'?'toba_fushimi':field.id;img.src='assets/visuals/intro_'+key+'_'+suffix;}
-   try{sessionStorage.setItem('shinsengumi-two-player-sortie-cue','1')}catch(e){}
+   warmStageCrossing(field.id);
+   useStageCrossing(field.id);
+   // This flag prevents a second crossing and duplicate shout in story-mode.html.
+   try{
+    sessionStorage.setItem('shinsengumi-two-player-sortie-cue','1');
+    sessionStorage.setItem('shinsengumi-two-player-sortie-crossed',String(Date.now()));
+   }catch(e){}
    const destination='story-mode.html?twoPlayer='+encodeURIComponent(field.id)+(testAllStages?'&previewAll=1':'');
    let navigated=false;
-   const depart=()=>{if(navigated)return;navigated=true;window.location.assign(destination)};
-   const cue=typeof sortieVoiceAudio!=='undefined'?sortieVoiceAudio:null;
-   if(typeof playSortieVoice==='function'&&voiceEnabled!==false){
-    // The same mastered recording and 0.65 voice mix as the 9×9 sortie.
-    const started=playSortieVoice();
-    cue?.addEventListener('ended',depart,{once:true});
-    cue?.addEventListener('error',depart,{once:true});
-    if(!started){try{sessionStorage.removeItem('shinsengumi-two-player-sortie-cue')}catch(e){};setTimeout(depart,120)}
-    else Promise.resolve(started).catch(()=>{try{sessionStorage.removeItem('shinsengumi-two-player-sortie-cue')}catch(e){};setTimeout(depart,120)});
-    setTimeout(depart,3400); // Never trap launch when Safari omits ended.
-   }else depart();
+   const depart=()=>{
+    if(navigated)return;
+    navigated=true;
+    // Hold the end of the existing crossing above the old title until navigation.
+    const clash=document.getElementById('introClash');
+    clash?.classList.add('historic-handoff');
+    window.location.assign(destination);
+   };
+   window.unlockAudio?.();
+   // Both cues start together on the original, trusted tap; same mastered voice,
+   // same sword impact (at 840ms), same 2.5s crossing as an ordinary game.
+   if(typeof playSortieVoice==='function')playSortieVoice();
+   if(typeof playIntroClash==='function')playIntroClash();
+   // Never wait for ended/error; their timings depend on iOS audio policy.
+   // The crossing itself defines the time to enter the chosen battlefield.
+   setTimeout(depart,2600);
   },true);
  // Pages restored from browser history must show the latest story victory.
- window.addEventListener('pageshow',()=>{if(sortie){sortie.dataset.twoPlayerLaunching='';sortie.disabled=false;}render();syncModeVisibility()});
+ window.addEventListener('pageshow',()=>{document.getElementById('introClash')?.classList.remove('historic-handoff','show');if(sortie){sortie.dataset.twoPlayerLaunching='';sortie.disabled=false;}render();syncModeVisibility()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
  if(typeof window.returnToTitle==='function'){
   const original=window.returnToTitle;
