@@ -38,9 +38,10 @@ test('illegal king moves do not modify a duel',()=>{
  assert.equal(duel.move(s,d,0,s.kings[1]),null);
  assert.equal(duel.move(s,d,1,{y:1,x:8}),null);
 });
-test('repositions after four legal half-moves without declaring a winner',()=>{
+test('keeps the pistol fixed after four legal half-moves without declaring a winner',()=>{
  let s=state(9,9,0),d=duel.begin(s,()=>0);
+ const initialGun={...d.gun};
  const steps=[{y:8,x:1},{y:0,x:7},{y:8,x:0},{y:0,x:8}];
  for(const p of steps){const result=duel.move(s,d,s.turn,p,()=>0);assert.ok(result);s=result.state;d=result.duel;}
- assert.equal(d.plies,4);assert.equal(d.winner,null);assert.equal(d.active,true);
+ assert.equal(d.plies,4);assert.equal(d.winner,null);assert.equal(d.active,true);assert.deepEqual(d.gun,initialGun);
 });
