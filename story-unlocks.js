@@ -74,7 +74,7 @@
   for(const field of battlefields){
    const allowed=testAllStages||wins>=field.required;
    const button=document.createElement('button');button.type='button';
-   button.className='story-unlock-choice'+(field.id===selected?' selected':'')+(allowed?'':' stage-locked');
+   button.className='story-unlock-choice'+(field.id===selected?' selected':'')+(allowed?' stage-available':' stage-locked');
    button.disabled=!allowed;button.setAttribute('aria-pressed',String(field.id===selected));
    // Locked fields contain only a key: never render their decorative scroll or chapter name.
    // Keep the name and unlock requirement available to assistive technology.
