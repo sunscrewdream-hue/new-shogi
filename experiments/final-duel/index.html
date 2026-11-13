@@ -23,7 +23,7 @@ button:disabled{opacity:.45}#board{display:grid;aspect-ratio:1;gap:3px;backgroun
 #shot{display:none;position:fixed;inset:0;z-index:10;place-items:center;background:#000b;text-align:center;font-size:clamp(28px,8vw,70px);font-weight:900;color:#ffe0a2;text-shadow:0 0 20px #f80}
 #shot.show{display:grid}small{color:#c2c7cc}
 </style></head><body><main><h1>最後の一発 <small>検証版</small></h1>
-<p>王将だけになった局面で、双方から合法手で到達できるマスに拳銃が出現。王将が拾うと決着します。<strong>このページは本編から完全に独立した試作です。</strong></p>
+<p>王将だけになった局面で、双方から合法手で到達できるマスに拳銃が出現。拳銃は逃げず、王将が拾うと決着します。<strong>このページは本編から完全に独立した試作です。</strong></p>
 <div class="controls"><label>盤面 <select id="size"><option value="9,9">通常 9×9</option><option value="5,6">物語 5×6</option></select></label>
 <label>対局 <select id="mode"><option value="local">二人対戦</option><option value="ai">対CPU</option></select></label>
 <button id="restart">新しい決闘</button><button id="tests">検査を実行</button><button id="preview" type="button">音声・発砲テスト</button></div>
@@ -97,7 +97,7 @@ function play(p){
  if(result.event==='shot'){
   msg('拳銃取得。勝者：'+(duel.winner===0?'新選組':'相手方'));
   playShot(duel.winner);
- }else if(result.event==='relocate')msg('4手経過：拳銃を再配置');
+ }else if(result.event==='relocate')msg('再配置');
  draw();
  if(document.getElementById('mode').value==='ai'&&state.turn===1&&duel.winner===null){
   running=true;setTimeout(()=>{running=false;if(duel.winner!==null)return;const d=rule.distances(duel.gun,state.kings[0],state);
