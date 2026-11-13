@@ -188,6 +188,9 @@
     ?event.target.closest?.('#storyChapters button.chapter')
     :event.target.closest?.('#startGame');
    if(!button||button.disabled||bypass.has(button)){if(button)bypass.delete(button);return}
+   // Historic local matches launch through the original click. Re-dispatching
+   // it after async loading loses iOS audio activation and flashes the title.
+   if(mode==='normal'&&button.dataset.historicStage)return;
    // Unlock the story WebAudio context while the original touch is still live.
    if(mode==='story')window.StoryBgm?.unlock?.();
    else window.unlockAudio?.();
