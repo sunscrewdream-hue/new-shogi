@@ -55,13 +55,18 @@ function begin(s,rng=Math.random){
   if(!canStart(s))return null;
   return {active:true,gun:chooseSquare(s,rng),plies:0,winner:null,shot:false};
 }
+function canPickup(s,duel,side){
+  return validState(s)&&duel?.active&&duel.gun&&side===s.turn&&
+    adjacent(s.kings[side],duel.gun)&&key(s.kings[side])!==key(duel.gun);
+}
 function legalKingMove(s,side,to){
   if(!validState(s)||![0,1].includes(side)||side!==s.turn||!inside(to,s))return false;
   return key(to)!==key(s.kings[side])&&adjacent(to,s.kings[side])&&!adjacent(to,s.kings[1-side]);
 }
 function move(s,duel,side,to,rng=Math.random){
-  if(!duel?.active||duel.winner!==null||!legalKingMove(s,side,to))return null;
-  const next={...s,kings:s.kings.map((p,i)=>i===side?{...to}:{...p}),turn:1-side};
+  if(!duel?.active||duel.winner!==null||(!legalKingMove(s,side,to)&&!(key(to)===key(duel.gun||{})&&canPickup(s,duel,side))))return null;
+  const pickup=key(to)===key(duel.gun||{})&&canPickup(s,duel,side);
+  const next={...s,kings:s.kings.map((p,i)=>i===side&&!pickup?{...to}:{...p}),turn:1-side};
   if(duel.gun&&key(to)===key(duel.gun))
     return {state:{...next,ended:true},duel:{...duel,active:false,gun:null,winner:side,shot:true,plies:duel.plies+1},event:'shot'};
   const plies=duel.plies+1;
@@ -69,5 +74,5 @@ function move(s,duel,side,to,rng=Math.random){
   const gun=duel.gun;
   return {state:next,duel:{...duel,gun,plies},event:'move'};
 }
-return {validState,canStart,distances,candidates,chooseSquare,begin,legalKingMove,move};
+return {validState,canStart,distances,candidates,chooseSquare,begin,legalKingMove,canPickup,move};
 });
