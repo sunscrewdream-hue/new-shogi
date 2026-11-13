@@ -42,3 +42,16 @@ body.local-title-mode #storyUnlockChoices .story-unlock-choice.stage-locked:disa
 body.local-title-mode #storyUnlockChoices .story-unlock-choice.selected:not(.stage-locked){
  filter:drop-shadow(0 0 7px #f4d084)!important;
 }
+
+/* Unlocked is not the same as selected. All available stages remain tappable,
+   but only the currently selected scroll is shown in full colour. */
+body.local-title-mode #storyUnlockChoices .story-unlock-choice.stage-available:not(.selected){
+ filter:grayscale(1) brightness(.67)!important;opacity:.72!important;
+ box-shadow:none!important;cursor:pointer!important;
+}
+body.local-title-mode #storyUnlockChoices .story-unlock-choice.stage-available:not(.selected):hover{
+ filter:grayscale(.65) brightness(.85)!important;opacity:.9!important;
+}
+body.local-title-mode #storyUnlockChoices .story-unlock-choice.stage-available.selected{
+ filter:drop-shadow(0 0 7px #f4d084)!important;opacity:1!important;
+}
