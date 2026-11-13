@@ -45,3 +45,13 @@ test('keeps the pistol fixed after four legal half-moves without declaring a win
  for(const p of steps){const result=duel.move(s,d,s.turn,p,()=>0);assert.ok(result);s=result.state;d=result.duel;}
  assert.equal(d.plies,4);assert.equal(d.winner,null);assert.equal(d.active,true);assert.deepEqual(d.gun,initialGun);
 });
+
+test('adjacent pistol is collectible even if guarded by opposing king',()=>{
+ const s={...state(),kings:[{y:4,x:2},{y:4,x:4}],turn:0};
+ const d={active:true,gun:{y:4,x:3},plies:0,winner:null,shot:false};
+ assert.equal(duel.legalKingMove(s,0,d.gun),false);
+ assert.equal(duel.canPickup(s,d,0),true);
+ const result=duel.move(s,d,0,d.gun);
+ assert.equal(result.event,'shot');assert.equal(result.duel.winner,0);
+ assert.deepEqual(result.state.kings[0],s.kings[0]);
+});
