@@ -108,10 +108,8 @@
    if(sortie.dataset.twoPlayerLaunching==='1')return;
    sortie.dataset.twoPlayerLaunching='1';
    sortie.disabled=true;
-   // Do not reveal the title for seconds while the narration is playing.
-   let veil=document.getElementById('historicSortieVeil');
-   if(!veil){veil=document.createElement('div');veil.id='historicSortieVeil';veil.style.cssText='position:fixed;inset:0;z-index:2147483000;display:grid;place-content:center;gap:16px;text-align:center;background:radial-gradient(circle at 50% 35%,#213e47,#07141d 70%);color:#f4e2b6;font:900 clamp(24px,6vw,38px)/1.6 serif;letter-spacing:.1em';document.body.appendChild(veil)}
-   veil.textContent=field.name+'　いざ、出陣！';
+   // No extra sortie page or overlay: this button only plays the shared
+   // voice cue, then opens the selected chapter's existing crossing animation.
    // Preload the chosen battlefield's images while the original user gesture starts the voice.
    for(const suffix of ['enemy_mobile.webp','enemy_pc.webp']){const img=new Image();const key=field.id==='tobafushimi'?'toba_fushimi':field.id;img.src='assets/visuals/intro_'+key+'_'+suffix;}
    try{sessionStorage.setItem('shinsengumi-two-player-sortie-cue','1')}catch(e){}
@@ -130,7 +128,7 @@
    }else depart();
   },true);
  // Pages restored from browser history must show the latest story victory.
- window.addEventListener('pageshow',()=>{if(sortie){sortie.dataset.twoPlayerLaunching='';sortie.disabled=false;document.getElementById('historicSortieVeil')?.remove();}render();syncModeVisibility()});
+ window.addEventListener('pageshow',()=>{if(sortie){sortie.dataset.twoPlayerLaunching='';sortie.disabled=false;}render();syncModeVisibility()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
  if(typeof window.returnToTitle==='function'){
   const original=window.returnToTitle;
