@@ -124,6 +124,9 @@
    ?'未解放の戦場は物語の各章で勝利すると選べます。'
    :current.name+'の戦場を選択中。いざ、出陣で専用盤面の二人対戦を開始します。';
   updateAppearance();
+  // Keep the preloader's mode gate in sync with the selected battlefield.
+  // Without this, it re-dispatches the first click after a slow async preload.
+  syncModeVisibility();
  }
   render();
   // Actual historical battleboards run in the shared StoryEngine, never in the
