@@ -57,7 +57,7 @@ function begin(s,rng=Math.random){
 }
 function legalKingMove(s,side,to){
   if(!validState(s)||![0,1].includes(side)||side!==s.turn||!inside(to,s))return false;
-  return adjacent(to,s.kings[side])&&!adjacent(to,s.kings[1-side]);
+  return key(to)!==key(s.kings[side])&&adjacent(to,s.kings[side])&&!adjacent(to,s.kings[1-side]);
 }
 function move(s,duel,side,to,rng=Math.random){
   if(!duel?.active||duel.winner!==null||!legalKingMove(s,side,to))return null;
