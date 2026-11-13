@@ -1,0 +1,17 @@
+name: Final duel prototype tests
+on:
+  push:
+    branches: [experiment/final-duel-pistol-20261113]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: node --check experiments/final-duel/final-duel.js
+      - name: Unit tests
+        run: node --test experiments/final-duel/final-duel.test.cjs
