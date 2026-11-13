@@ -9,7 +9,16 @@ h1{font:900 clamp(24px,5vw,38px) serif;margin:8px 0}p{line-height:1.6}
 button:disabled{opacity:.45}#board{display:grid;aspect-ratio:1;gap:3px;background:#58432d;padding:5px;border:3px solid #c5a775;max-width:580px;margin:auto}
 .sq{position:relative;width:100%;aspect-ratio:1;border:1px solid #aa946e;border-radius:2px;padding:0;display:grid;place-items:center;background:#e2cfab;color:#201710;font-size:clamp(15px,3vw,30px)}
 .sq.dark{background:#d3b88e}.sq.gun{background:#efcd70}.sq.king0{color:#164566}.sq.king1{color:#9a2430}
-.sq .gun-icon{position:absolute;right:0;top:0;font-size:.6em}.sq:disabled{opacity:1;cursor:default}
+.sq .gun-icon{position:absolute;left:3%;top:4%;width:94%;height:90%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 4px #2b1609);mix-blend-mode:multiply}
+.sq.gun{background:radial-gradient(circle,#fff4ac,#e9b650 72%);box-shadow:inset 0 0 11px #bf7e23;animation:gunPulse 1.6s ease-in-out infinite}
+@keyframes gunPulse{50%{box-shadow:inset 0 0 3px #c38a30,0 0 14px #f9d763}}
+#shot .duel-gun{display:block;margin:8px auto;width:min(75vw,320px);max-height:130px;object-fit:contain;mix-blend-mode:screen}
+#shot .duel-copy{display:block;font-size:clamp(16px,4vw,28px);color:#fff1ca;margin-bottom:10px}
+#shot.firing{background:radial-gradient(circle,#fff9dd 0%,#ffcc57 13%,#65351b 40%,#050505ed 75%)}
+#shot .flash{font-size:clamp(70px,20vw,180px);line-height:1;opacity:0;transform:scale(.5)}
+#shot.firing .flash{animation:flashShot .5s ease-out both}
+@keyframes flashShot{0%{opacity:1;transform:scale(2.5)}100%{opacity:0;transform:scale(.5)}}
+@media(prefers-reduced-motion:reduce){.sq.gun{animation:none!important}#shot.firing .flash{animation:none!important;opacity:1;transform:none}}.sq:disabled{opacity:1;cursor:default}
 #status{font-weight:800;font-size:20px;min-height:3em;margin:10px 0}#log{white-space:pre-wrap;background:#0b111c;padding:10px;border-radius:8px;min-height:90px;font-size:13px}
 #shot{display:none;position:fixed;inset:0;z-index:10;place-items:center;background:#000b;text-align:center;font-size:clamp(28px,8vw,70px);font-weight:900;color:#ffe0a2;text-shadow:0 0 20px #f80}
 #shot.show{display:grid}small{color:#c2c7cc}
@@ -17,22 +26,56 @@ button:disabled{opacity:.45}#board{display:grid;aspect-ratio:1;gap:3px;backgroun
 <p>王将だけになった局面で、双方から合法手で到達できるマスに拳銃が出現。王将が拾うと決着します。<strong>このページは本編から完全に独立した試作です。</strong></p>
 <div class="controls"><label>盤面 <select id="size"><option value="9,9">通常 9×9</option><option value="5,6">物語 5×6</option></select></label>
 <label>対局 <select id="mode"><option value="local">二人対戦</option><option value="ai">対CPU</option></select></label>
-<button id="restart">新しい決闘</button><button id="tests">検査を実行</button></div>
+<button id="restart">新しい決闘</button><button id="tests">検査を実行</button><button id="preview" type="button">音声・発砲テスト</button></div>
 <div id="status" role="status"></div><div id="board" aria-label="決闘の盤面"></div>
 <h2>ログ</h2><pre id="log"></pre>
-<p><small>これは拳銃出現位置と勝敗処理の試作品です。拳銃アイコンは仮置きで、正式なS&amp;W No.2 Army画像は未組み込み。音声・演出も後で接続します。盤上が王将2枚だけの初期状態を模擬しています。</small></p>
-</main><div id="shot" role="alert"><div>これで仕舞いだ！<div>💥</div></div></div>
+<p><small>これは拳銃出現位置と勝敗処理の試作品です。拳銃は幕末期のS&amp;W No.2 Armyの実物写真を使用（Wikimedia Commons、後述）。「これで仕舞いだ！」は支給音声からの加工版です。発砲音はテスト用合成音です。盤上が王将2枚だけの初期状態を模擬しています。</small></p>
+<p><small>拳銃写真：<a href="https://commons.wikimedia.org/wiki/File:Smith_%26_Wesson_Army_No_2.JPG" target="_blank" rel="noopener noreferrer">Smith &amp; Wesson Army No 2（Wikimedia Commons）</a>。権利表示・画像利用条件は原典を参照。画像が読み込めない場合、文字アイコンが代わりに表示されます。</small></p>
+</main><div id="shot" role="alert" aria-live="assertive"><div><span class="duel-copy" id="shotSide">最後の一発</span>これで仕舞いだ！<img class="duel-gun" src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Smith_%26_Wesson_Army_No_2.JPG" alt="Smith &amp; Wesson No.2 Army"><div class="flash" aria-hidden="true">💥</div><span class="duel-copy" id="shotResult"></span></div></div>
+<audio id="duelVoice" preload="auto" src="voice_koredeshimaida.mp3"></audio>
 <script src="final-duel.js"></script>
 <script>
 (()=>{
 'use strict';
 const rule=window.ShinsengumiFinalDuel,board=document.getElementById('board'),status=document.getElementById('status'),log=document.getElementById('log'),shot=document.getElementById('shot');
+const voice=document.getElementById('duelVoice'),gunPhoto='https://upload.wikimedia.org/wikipedia/commons/5/5a/Smith_%26_Wesson_Army_No_2.JPG';
+let soundCtx=null,shotTimer=null,seq=0;
+function gunshot(){
+ try{
+  const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;
+  const ctx=soundCtx||(soundCtx=new AudioContext());if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+  const n=ctx.sampleRate*.26|0,b=ctx.createBuffer(1,n,ctx.sampleRate),data=b.getChannelData(0);
+  for(let i=0;i<n;i++){const t=i/ctx.sampleRate;data[i]=(Math.random()*2-1)*Math.exp(-t*24);}
+  const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+  src.buffer=b;filter.type='lowpass';filter.frequency.value=1800;gain.gain.value=.55;
+  src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);src.start();
+ }catch(e){msg('発砲音が再生できませんでした: '+e.message)}
+}
+function finishShot(n,winner){
+ if(n!==seq)return;
+ shot.classList.add('firing');gunshot();
+ const name=winner===0?'新選組':winner===1?'相手方':'試聴';
+ document.getElementById('shotResult').textContent=winner===null?'演出テスト完了':name+'の勝利！';
+ shotTimer=setTimeout(()=>{if(n===seq){shot.classList.remove('show','firing')}},1800);
+}
+function playShot(winner){
+ const n=++seq;clearTimeout(shotTimer);voice.pause();voice.currentTime=0;
+ shot.classList.remove('firing');shot.classList.add('show');
+ document.getElementById('shotSide').textContent=winner===0?'新選組・王将':winner===1?'相手方・王将':'演出テスト';
+ document.getElementById('shotResult').textContent='';
+ let ended=false;
+ const done=()=>{if(ended)return;ended=true;voice.removeEventListener('ended',done);finishShot(n,winner)};
+ voice.addEventListener('ended',done,{once:true});
+ const p=voice.play();if(p?.catch)p.catch(()=>{msg('音声再生が制限されました。画面タップ後に再試行してください。');setTimeout(done,1800)});
+ shotTimer=setTimeout(done,2900);
+}
+
 let state,duel,running=false;
 function msg(text){log.textContent=text+'\n'+log.textContent.slice(0,1000);}
 function reset(){
  const [rows,cols]=document.getElementById('size').value.split(',').map(Number);
  state={rows,cols,turn:0,kings:[{y:rows-1,x:0},{y:0,x:cols-1}],onlyKings:true,handsEmpty:true,enabled:true,ended:false};
- duel=rule.begin(state);running=false;shot.classList.remove('show');log.textContent='';
+ duel=rule.begin(state);running=false;seq++;voice.pause();clearTimeout(shotTimer);shot.classList.remove('show','firing');log.textContent='';
  msg('王将のみの局面。拳銃が配置されました。');draw();
 }
 function draw(){
@@ -42,7 +85,7 @@ function draw(){
   const p={y,x},at=state.kings.findIndex(k=>k.y===y&&k.x===x),gun=duel.gun?.y===y&&duel.gun?.x===x;
   const el=document.createElement('button');el.className='sq'+((x+y)%2?' dark':'')+(gun?' gun':'')+(at>=0?' king'+at:'');
   el.textContent=at===0?'王':at===1?'玉':'';
-  if(gun){const icon=document.createElement('span');icon.className='gun-icon';icon.textContent='🔫';el.append(icon)}
+  if(gun){const icon=document.createElement('img');icon.className='gun-icon';icon.src=gunPhoto;icon.alt='';icon.onerror=()=>{icon.replaceWith(document.createTextNode('🔫'))};el.append(icon)}
   el.setAttribute('aria-label',y+'段'+x+'列'+(at>=0?'王将':'')+(gun?'拳銃':''));
   el.disabled=!rule.legalKingMove(state,state.turn,p)||duel.winner!==null||running;
   el.onclick=()=>play(p);board.append(el);
@@ -53,7 +96,7 @@ function play(p){
  state=result.state;duel=result.duel;
  if(result.event==='shot'){
   msg('拳銃取得。勝者：'+(duel.winner===0?'新選組':'相手方'));
-  shot.classList.add('show');setTimeout(()=>shot.classList.remove('show'),1800);
+  playShot(duel.winner);
  }else if(result.event==='relocate')msg('4手経過：拳銃を再配置');
  draw();
  if(document.getElementById('mode').value==='ai'&&state.turn===1&&duel.winner===null){
@@ -74,6 +117,6 @@ function test(){
  }
  msg('位置検査 '+count+' 局面：'+(errors.length?'失敗 '+errors.length:'全件通過')+(errors[0]?'\n'+errors[0]:''));
 }
-document.getElementById('restart').onclick=reset;document.getElementById('size').onchange=reset;document.getElementById('mode').onchange=reset;document.getElementById('tests').onclick=test;reset();
+document.getElementById('restart').onclick=reset;document.getElementById('size').onchange=reset;document.getElementById('mode').onchange=reset;document.getElementById('tests').onclick=test;document.getElementById('preview').onclick=()=>playShot(null);reset();
 })();
 </script></body></html>
