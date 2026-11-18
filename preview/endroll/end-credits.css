@@ -1,0 +1,40 @@
+.story-credits-overlay{
+ position:fixed;inset:0;z-index:2147483000;overflow:hidden;background:#030405;color:#f6e8ca;
+ opacity:1;transition:opacity 6s ease;isolation:isolate;font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+}
+.story-credits-overlay.is-fading{opacity:0;pointer-events:none}
+.story-credits-intro{position:absolute;inset:0;display:grid;place-items:center;padding:9vw;animation:story-credits-logo 4.5s ease both}
+.story-credits-intro img{display:block;width:min(76vw,720px);max-height:52dvh;object-fit:contain;filter:drop-shadow(0 0 28px #d2a24c66)}
+.story-credits-track{
+ position:absolute;top:0;left:0;width:100%;padding:0 20px 50dvh;text-align:center;
+ animation:story-credits-rise 260s linear 4.5s forwards;will-change:transform;
+}
+.story-credits-heading,.story-credits-section{font-size:clamp(25px,5vw,42px);letter-spacing:.35em;font-weight:700;margin:0 0 36px;text-shadow:0 0 16px #c8a55d66}
+.story-credits-section{margin:75px 0 32px;color:#e5c78e}
+.story-credits-group{margin:0 auto 68px;max-width:780px}
+.story-credits-group-title{font-size:clamp(19px,3.6vw,28px);letter-spacing:.18em;margin-bottom:22px;color:#eed7a7}
+.story-credits-names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 26px;max-width:680px;margin:auto}
+.story-credits-name{font-size:clamp(16px,2.8vw,22px);letter-spacing:.08em;line-height:1.65}
+.story-credits-music{margin:0 auto 100px}
+.story-credits-music-title{font-size:clamp(24px,4vw,34px);margin:12px 0 8px;letter-spacing:.12em}
+.story-credits-music-note{font-size:clamp(15px,2.6vw,20px);margin-top:14px;letter-spacing:.06em}
+.story-credits-final{min-height:52dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;padding-bottom:10dvh}
+.story-credits-final-label{font-size:clamp(20px,3.7vw,30px);letter-spacing:.3em}
+.story-credits-final-name{font-family:Georgia,serif;font-size:clamp(36px,7vw,58px);letter-spacing:.16em}
+.story-credits-skip{
+ position:absolute;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:2;
+ border:1px solid #f0ddb188;border-radius:999px;background:#111a;color:#f6e8ca;padding:9px 14px;
+ font:500 12px/1.3 system-ui,sans-serif;letter-spacing:.04em;
+}
+.story-credits-skip:focus-visible{outline:3px solid #f6e8ca;outline-offset:3px}
+@keyframes story-credits-logo{
+ 0%{opacity:0;transform:scale(.96)}14%,76%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.025)}
+}
+@keyframes story-credits-rise{
+ from{transform:translateY(100dvh)}to{transform:translateY(calc(-100% + 50dvh))}
+}
+@media(max-width:520px){
+ .story-credits-track{padding-left:16px;padding-right:16px}
+ .story-credits-names{grid-template-columns:1fr;gap:8px}
+ .story-credits-group{margin-bottom:54px}
+}
